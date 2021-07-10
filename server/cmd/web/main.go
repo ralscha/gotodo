@@ -4,10 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/alexedwards/scs/v2"
+	"github.com/alexedwards/scs/v2/memstore"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"gotodo.rasc.ch/internal/config"
+	"net/http"
 	"time"
 )
 
@@ -17,13 +20,22 @@ var (
 )
 
 type application struct {
-	config *config.Config
-	db     *sql.DB
+	config         *config.Config
+	db             *sql.DB
+	sessionManager *scs.SessionManager
 }
 
 func main() {
-	//TODO configurable
+	// TODO: make this configurable
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+
+	sm := scs.New()
+	sm.Store = memstore.New()
+	sm.Lifetime = 24 * time.Hour
+	sm.Cookie.SameSite = http.SameSiteStrictMode
+
+	// TODO: make this configurable
+	sm.Cookie.Secure = true
 
 	cfg, err := config.LoadConfig()
 	if err != nil {
@@ -41,8 +53,9 @@ func main() {
 	log.Info().Msg("database connection pool established")
 
 	app := &application{
-		config: &cfg,
-		db:     db,
+		config:         &cfg,
+		db:             db,
+		sessionManager: sm,
 	}
 
 	err = app.serve()

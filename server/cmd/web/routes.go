@@ -16,7 +16,9 @@ func (app *application) routes() http.Handler {
 	router.Use(chimiddleware.Timeout(time.Minute))
 
 	router.Route("/v1", func(r chi.Router) {
+		r.Use(app.sessionManager.LoadAndSave)
 		r.Get("/healthcheck", app.healthcheckHandler)
+
 	})
 
 	return router
