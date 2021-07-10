@@ -2,7 +2,6 @@ package config
 
 import (
 	"github.com/spf13/viper"
-	"time"
 )
 
 type Config struct {
@@ -14,9 +13,9 @@ type Config struct {
 	}
 	Http struct {
 		Port                  string
-		ReadTimeoutInSeconds  time.Duration
-		WriteTimeoutInSeconds time.Duration
-		IdleTimeoutInSeconds  time.Duration
+		ReadTimeoutInSeconds  int64
+		WriteTimeoutInSeconds int64
+		IdleTimeoutInSeconds  int64
 	}
 }
 
