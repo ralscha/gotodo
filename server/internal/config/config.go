@@ -4,8 +4,18 @@ import (
 	"github.com/spf13/viper"
 )
 
+type LogLevel string
+
+const (
+	Info  LogLevel = "INFO"
+	Warn  LogLevel = "WARN"
+	Error LogLevel = "ERROR"
+)
+
 type Config struct {
-	Db struct {
+	LogLevel     LogLevel
+	SecureCookie bool
+	Db           struct {
 		User         string
 		Password     string
 		Connection   string
@@ -30,6 +40,8 @@ func applyDefaults() {
 	viper.SetDefault("db.maxOpenConns", 25)
 	viper.SetDefault("db.maxIdleConns", 25)
 	viper.SetDefault("db.maxIdleTime", "15m")
+	viper.SetDefault("secureCookie", true)
+	viper.SetDefault("LogLevel", Info)
 }
 
 func LoadConfig() (Config, error) {

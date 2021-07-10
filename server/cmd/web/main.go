@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/alexedwards/scs/mysqlstore"
 	"github.com/alexedwards/scs/v2"
+	"github.com/go-playground/validator/v10"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -23,15 +24,23 @@ type application struct {
 	config         *config.Config
 	db             *sql.DB
 	sessionManager *scs.SessionManager
+	validator      *validator.Validate
 }
 
 func main() {
-	// TODO: make this configurable
-	zerolog.SetGlobalLevel(zerolog.InfoLevel)
-
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		log.Fatal().Err(err).Msg("reading config failed")
+	}
+
+	log.Info().Msgf("setting log level: %s\n", cfg.LogLevel)
+	switch cfg.LogLevel {
+	case config.Info:
+		zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	case config.Warn:
+		zerolog.SetGlobalLevel(zerolog.WarnLevel)
+	case config.Error:
+		zerolog.SetGlobalLevel(zerolog.ErrorLevel)
 	}
 
 	db, err := openDB(cfg)
@@ -49,13 +58,16 @@ func main() {
 	sm.Lifetime = 24 * time.Hour
 	sm.Cookie.SameSite = http.SameSiteStrictMode
 
-	// TODO: make this configurable
-	sm.Cookie.Secure = true
+	sm.Cookie.Secure = cfg.SecureCookie
+	log.Info().Msgf("secure cookie: %v\n", sm.Cookie.Secure)
+
+	vld := validator.New()
 
 	app := &application{
 		config:         &cfg,
 		db:             db,
 		sessionManager: sm,
+		validator:      vld,
 	}
 
 	err = app.serve()
