@@ -8,11 +8,16 @@ import (
 )
 
 func main() {
+	cfg, err := loadConfig()
+	if err != nil {
+		log.Fatalln("reading config failed", err)
+	}
+	fmt.Println(cfg)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", Greet)
-	log.Println("Starting server :8080")
+	log.Println("Starting server " + cfg.Http.Port)
 	s := &http.Server{
-		Addr:         ":8080",
+		Addr:         cfg.Http.Port,
 		Handler:      mux,
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 30 * time.Second,
@@ -22,6 +27,6 @@ func main() {
 		log.Fatal("Server startup failed")
 	}
 }
-func Greet(w http.ResponseWriter, r *http.Request) {
+func Greet(w http.ResponseWriter, _ *http.Request) {
 	_, _ = fmt.Fprintf(w, "Hello World!")
 }
