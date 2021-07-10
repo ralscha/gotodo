@@ -1,0 +1,17 @@
+version: '3.8'
+services:
+  db:
+    image: mariadb:latest
+    ports:
+      - "3366:3306"
+    volumes:
+      - db:/var/lib/mysql
+    restart: "no"
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: gotodo
+      MARIADB_USER: gotodo
+      MARIADB_PASSWORD: gotodo
+
+volumes:
+  db:
