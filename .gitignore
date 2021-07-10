@@ -1,2 +1,4 @@
 /server/gotodo
 /server/.idea
+/server/bin
+/server/migrate

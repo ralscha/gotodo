@@ -2,13 +2,20 @@ package main
 
 import (
 	"fmt"
+	"gotodo.rasc.ch/internal/config"
 	"log"
 	"net/http"
 	"time"
 )
 
+var (
+	buildTime string
+	version   string
+)
+
 func main() {
-	cfg, err := loadConfig()
+	fmt.Println(buildTime, version)
+	cfg, err := config.LoadConfig()
 	if err != nil {
 		log.Fatalln("reading config failed", err)
 	}
@@ -19,9 +26,9 @@ func main() {
 	s := &http.Server{
 		Addr:         cfg.Http.Port,
 		Handler:      mux,
-		ReadTimeout:  30 * time.Second,
-		WriteTimeout: 30 * time.Second,
-		IdleTimeout:  120 * time.Second,
+		ReadTimeout:  cfg.Http.ReadTimeoutInSeconds * time.Second,
+		WriteTimeout: cfg.Http.WriteTimeoutInSeconds * time.Second,
+		IdleTimeout:  cfg.Http.IdleTimeoutInSeconds * time.Second,
 	}
 	if err := s.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatal("Server startup failed")
