@@ -12,7 +12,7 @@ import (
 type anyMap map[string]interface{}
 
 func (app *application) writeJSON(w http.ResponseWriter, status int, data anyMap, headers http.Header) error {
-	js, err := json.MarshalIndent(data, "", "\t")
+	js, err := json.Marshal(data)
 	if err != nil {
 		return err
 	}

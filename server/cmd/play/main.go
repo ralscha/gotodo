@@ -1,13 +1,42 @@
 package main
 
 import (
+	"context"
+	"database/sql"
 	"fmt"
 	"github.com/alexedwards/argon2id"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"gotodo.rasc.ch/internal/config"
+	"gotodo.rasc.ch/internal/models"
 )
 
 func main() {
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		log.Fatal().Err(err).Msg("reading config failed")
+	}
+
+	dbstring := fmt.Sprintf("%s:%s@%s/%s?%s",
+		cfg.Db.User, cfg.Db.Password, cfg.Db.Connection, cfg.Db.Database, cfg.Db.Parameter)
+
+	// Open handle to database like normal
+	db, err := sql.Open("mysql", dbstring)
+	if err != nil {
+		log.Fatal().Err(err).Msg("opening database failed")
+	}
+
+	// If you don't want to pass in db to all generated methods
+	// you can use boil.SetDB to set it globally, and then use
+	// the G variant methods like so (--add-global-variants to enable)
+	ctx := context.Background()
+	users, err := models.AppUsers().All(ctx, db)
+	if err != nil {
+		log.Fatal().Err(err).Msg("select app_users")
+	}
+	fmt.Println(users)
+
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	// UNIX Time is faster and smaller than most timestamps
 	// zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
@@ -21,7 +50,7 @@ func main() {
 	// $argon2id$v=19$m=65536,t=3,p=2$c29tZXNhbHQ$RdescudvJCsgt3ub+b+dWRWJTmaaJObG
 	hash, err := argon2id.CreateHash("pa$$word", argon2id.DefaultParams)
 	if err != nil {
-		log.Fatal().Err(err)
+		log.Fatal().Err(err).Msg("")
 	}
 	fmt.Println(hash)
 	// ComparePasswordAndHash performs a constant-time comparison between a
@@ -30,7 +59,7 @@ func main() {
 	// false.
 	match, err := argon2id.ComparePasswordAndHash("pa$$word", hash)
 	if err != nil {
-		log.Fatal().Err(err)
+		log.Fatal().Err(err).Msg("")
 	}
 
 	log.Printf("Match: %v", match)

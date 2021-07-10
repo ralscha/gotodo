@@ -1,0 +1,15 @@
+output = "../internal/models"
+wipe = "true"
+no-hooks = "true"
+no-auto-timestamps = "true"
+no-rows-affected = "true"
+no-tests = "true"
+
+[mysql]
+  dbname = "gotodo"
+  host = "host.docker.internal"
+  port = 3366
+  user = "gotodo"
+  pass = "gotodo"
+  sslmode = "false"
+  blacklist = ["goose_db_version"]

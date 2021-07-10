@@ -10,6 +10,7 @@ require (
 	github.com/caarlos0/env/v6 v6.6.2 // indirect
 	github.com/coreos/go-etcd v2.0.0+incompatible // indirect
 	github.com/denisenkom/go-mssqldb v0.10.0 // indirect
+	github.com/friendsofgo/errors v0.9.2 // indirect
 	github.com/go-chi/chi/v5 v5.0.3 // indirect
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/go-playground/validator/v10 v10.7.0 // indirect
@@ -25,6 +26,7 @@ require (
 	github.com/ugorji/go/codec v0.0.0-20181204163529-d75b2dcb6bc8 // indirect
 	github.com/volatiletech/null/v8 v8.1.2 // indirect
 	github.com/volatiletech/sqlboiler/v4 v4.6.0 // indirect
+	github.com/volatiletech/strmangle v0.0.1 // indirect
 	github.com/xordataexchange/crypt v0.0.3-0.20170626215501-b2862e3d0a77 // indirect
 	github.com/ziutek/mymysql v1.5.4 // indirect
 	go.uber.org/atomic v1.8.0 // indirect

@@ -38,6 +38,16 @@ db/migration/up: build/goose
 .PHONY: db/migration/status
 db/migration/status: build/goose
 	./migrate status
+	
+## db/codegen: generate sqlboiler code
+.PHONY: db/codegen
+db/codegen:
+	@docker build -t sqlboilercodegen -f sqlboiler/Dockerfile .
+	@docker run -v $(shell pwd):/src sqlboilercodegen
+
+.PHONY: db/run-sqlboiler
+db/run-sqlboiler:
+	cd sqlboiler && sqlboiler mysql
 
 # ==================================================================================== #
 # QUALITY CONTROL

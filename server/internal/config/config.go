@@ -6,10 +6,14 @@ import (
 
 type Config struct {
 	Db struct {
-		User       string
-		Password   string
-		Connection string
-		Database   string
+		User         string
+		Password     string
+		Connection   string
+		Database     string
+		Parameter    string
+		MaxOpenConns int
+		MaxIdleConns int
+		MaxIdleTime  string
 	}
 	Http struct {
 		Port                  string
@@ -23,6 +27,9 @@ func applyDefaults() {
 	viper.SetDefault("http.readTimeoutInSeconds", 30)
 	viper.SetDefault("http.writeTimeoutInSeconds", 30)
 	viper.SetDefault("http.idleTimeoutInSeconds", 120)
+	viper.SetDefault("db.maxOpenConns", 25)
+	viper.SetDefault("db.maxIdleConns", 25)
+	viper.SetDefault("db.maxIdleTime", "15m")
 }
 
 func LoadConfig() (Config, error) {
