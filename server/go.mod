@@ -5,6 +5,7 @@ go 1.16
 require (
 	github.com/ClickHouse/clickhouse-go v1.4.5 // indirect
 	github.com/alexedwards/argon2id v0.0.0-20210511081203-7d35d68092b8 // indirect
+	github.com/alexedwards/scs/mysqlstore v0.0.0-20210606090158-85ec2fab6bdf // indirect
 	github.com/alexedwards/scs/v2 v2.4.0 // indirect
 	github.com/armon/consul-api v0.0.0-20180202201655-eb2c6b5be1b6 // indirect
 	github.com/caarlos0/env/v6 v6.6.2 // indirect

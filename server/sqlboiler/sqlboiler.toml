@@ -12,4 +12,4 @@ no-tests = "true"
   user = "gotodo"
   pass = "gotodo"
   sslmode = "false"
-  blacklist = ["goose_db_version"]
+  blacklist = ["goose_db_version", "sessions"]

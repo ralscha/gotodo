@@ -47,6 +47,8 @@ github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuy
 github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf/go.mod h1:ybxpYRFXyAe+OPACYpWeL0wqObRcbAqCMya13uyzqw0=
 github.com/alexedwards/argon2id v0.0.0-20210511081203-7d35d68092b8 h1:ZtMr6/tt7VU/Ijpyyedn7eUwwsNX1uskEcR+maLEF18=
 github.com/alexedwards/argon2id v0.0.0-20210511081203-7d35d68092b8/go.mod h1:Kmn5t2Rb93Q4NTprN4+CCgARGvigKMJyxP0WckpTUp0=
+github.com/alexedwards/scs/mysqlstore v0.0.0-20210606090158-85ec2fab6bdf h1:X7sAgQ8tgmW/6wzpX2g4Ay+j7Nd+t0mw+aWmm9Lmpi4=
+github.com/alexedwards/scs/mysqlstore v0.0.0-20210606090158-85ec2fab6bdf/go.mod h1:Ae5jMu5Nlp7KkM7RuqHAzuYBBZf5K6HfRV1WVQXXTJA=
 github.com/alexedwards/scs/v2 v2.4.0 h1:XfnMamKnvp1muJVNr1WzikQTclopsBXWZtzz0NBjOK0=
 github.com/alexedwards/scs/v2 v2.4.0/go.mod h1:ToaROZxyKukJKT/xLcVQAChi5k6+Pn1Gvmdl7h3RRj8=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=

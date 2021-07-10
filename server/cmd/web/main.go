@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/alexedwards/scs/mysqlstore"
 	"github.com/alexedwards/scs/v2"
-	"github.com/alexedwards/scs/v2/memstore"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -29,14 +29,6 @@ func main() {
 	// TODO: make this configurable
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 
-	sm := scs.New()
-	sm.Store = memstore.New()
-	sm.Lifetime = 24 * time.Hour
-	sm.Cookie.SameSite = http.SameSiteStrictMode
-
-	// TODO: make this configurable
-	sm.Cookie.Secure = true
-
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		log.Fatal().Err(err).Msg("reading config failed")
@@ -51,6 +43,14 @@ func main() {
 	}(db)
 
 	log.Info().Msg("database connection pool established")
+
+	sm := scs.New()
+	sm.Store = mysqlstore.NewWithCleanupInterval(db, 30*time.Minute)
+	sm.Lifetime = 24 * time.Hour
+	sm.Cookie.SameSite = http.SameSiteStrictMode
+
+	// TODO: make this configurable
+	sm.Cookie.Secure = true
 
 	app := &application{
 		config:         &cfg,
