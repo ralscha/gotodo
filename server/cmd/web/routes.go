@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/httprate"
 	"gotodo.rasc.ch/internal/middleware"
 	"net/http"
 	"time"
@@ -12,8 +13,10 @@ func (app *application) routes() http.Handler {
 	router := chi.NewRouter()
 	router.Use(chimiddleware.RealIP)
 	router.Use(middleware.LoggerMiddleware())
+	router.Use(httprate.LimitAll(1_000, 1*time.Minute))
 	router.Use(chimiddleware.Recoverer)
 	router.Use(chimiddleware.Timeout(time.Minute))
+	router.Use(chimiddleware.NoCache)
 
 	router.Route("/v1", func(r chi.Router) {
 		r.Use(app.sessionManager.LoadAndSave)
