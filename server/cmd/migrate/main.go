@@ -32,7 +32,8 @@ func main() {
 		log.Fatalln("reading config failed", err)
 	}
 
-	dbstring := fmt.Sprintf("%s:%s@%s/%s", cfg.Db.User, cfg.Db.Password, cfg.Db.Connection, cfg.Db.Database)
+	dbstring := fmt.Sprintf("%s:%s@%s/%s?%s",
+		cfg.Db.User, cfg.Db.Password, cfg.Db.Connection, cfg.Db.Database, cfg.Db.Parameter)
 
 	db, err := goose.OpenDBWithDriver("mysql", dbstring)
 	if err != nil {

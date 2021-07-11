@@ -35,7 +35,6 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("select app_users")
 	}
-	fmt.Println(users)
 
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	// UNIX Time is faster and smaller than most timestamps

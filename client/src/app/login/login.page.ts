@@ -32,7 +32,9 @@ export class LoginPage implements OnInit {
       .login(username, password)
       .subscribe({
         next:  authority => {
-          if (authority === null) {
+          if (authority !== null) {
+            this.navCtrl.navigateRoot('home')
+          } else {
             this.showLoginFailedToast()
           }
         },

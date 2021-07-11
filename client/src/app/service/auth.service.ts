@@ -9,20 +9,20 @@ import {catchError, share, tap} from 'rxjs/operators';
 export class AuthService {
   private readonly authoritySubject = new BehaviorSubject<string | null>(null);
   readonly authority$ = this.authoritySubject.asObservable();
-  private readonly authorityCall$: Observable<string | null>;
+  private readonly authorityCall$: Observable<{ authority: string } | null>;
 
   constructor(private readonly httpClient: HttpClient) {
-    this.authorityCall$ = this.httpClient.get<string>('/v1/authenticate', {
+    this.authorityCall$ = this.httpClient.post<{ authority: string }>('/v1/authenticate', null, {
       withCredentials: true
     })
       .pipe(
-        tap(response => this.authoritySubject.next(response)),
+        tap(response => this.authoritySubject.next(response.authority)),
         catchError(() => of(null)),
         share()
       );
   }
 
-  authenticate(): Observable<string | null> {
+  authenticate(): Observable<{ authority: string } | null> {
     return this.authorityCall$;
   }
 
