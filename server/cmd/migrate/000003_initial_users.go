@@ -12,7 +12,15 @@ func init() {
 }
 
 func upInitialUsers(tx *sql.Tx) error {
-	hash, err := argon2id.CreateHash("password", argon2id.DefaultParams)
+	params := &argon2id.Params{
+		Memory:      1 << 17,
+		Iterations:  20,
+		Parallelism: 8,
+		SaltLength:  16,
+		KeyLength:   32,
+	}
+
+	hash, err := argon2id.CreateHash("password", params)
 	if err != nil {
 		return err
 	}

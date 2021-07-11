@@ -21,7 +21,30 @@ func (app *application) routes() http.Handler {
 		r.Post("/authenticate", app.authenticateHandler)
 		r.Post("/login", app.loginHandler)
 		r.Post("/logout", app.logoutHandler)
+		r.Mount("/", app.authenticatedRouter())
 	})
 
 	return router
+}
+
+func (app *application) authenticatedRouter() http.Handler {
+	r := chi.NewRouter()
+	r.Use(app.authenticatedOnly)
+	r.Get("/secret", app.secret)
+	return r
+}
+
+func (app *application) authenticatedOnly(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		value := app.sessionManager.Get(r.Context(), "userId")
+		userId, ok := value.(int64)
+		if !ok {
+			userId = 0
+		}
+		if userId > 0 {
+			next.ServeHTTP(w, r)
+		} else {
+			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		}
+	})
 }

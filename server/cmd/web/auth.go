@@ -15,8 +15,15 @@ import (
 var userNotFoundPasswordHash string
 
 func init() {
+	params := &argon2id.Params{
+		Memory:      1 << 17,
+		Iterations:  20,
+		Parallelism: 8,
+		SaltLength:  16,
+		KeyLength:   32,
+	}
 	var err error
-	userNotFoundPasswordHash, err = argon2id.CreateHash("userNotFoundPassword", argon2id.DefaultParams)
+	userNotFoundPasswordHash, err = argon2id.CreateHash("userNotFoundPassword", params)
 	if err != nil {
 		log.Fatal().Err(err).Msg("")
 	}
