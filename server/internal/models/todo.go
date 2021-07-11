@@ -28,7 +28,6 @@ type Todo struct {
 	Subject     string      `boil:"subject" json:"subject" toml:"subject" yaml:"subject"`
 	Description null.String `boil:"description" json:"description,omitempty" toml:"description" yaml:"description,omitempty"`
 	AppUserID   int64       `boil:"app_user_id" json:"app_user_id" toml:"app_user_id" yaml:"app_user_id"`
-	Updated     time.Time   `boil:"updated" json:"updated" toml:"updated" yaml:"updated"`
 
 	R *todoR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L todoL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -39,13 +38,11 @@ var TodoColumns = struct {
 	Subject     string
 	Description string
 	AppUserID   string
-	Updated     string
 }{
 	ID:          "id",
 	Subject:     "subject",
 	Description: "description",
 	AppUserID:   "app_user_id",
-	Updated:     "updated",
 }
 
 var TodoTableColumns = struct {
@@ -53,13 +50,11 @@ var TodoTableColumns = struct {
 	Subject     string
 	Description string
 	AppUserID   string
-	Updated     string
 }{
 	ID:          "todo.id",
 	Subject:     "todo.subject",
 	Description: "todo.description",
 	AppUserID:   "todo.app_user_id",
-	Updated:     "todo.updated",
 }
 
 // Generated where
@@ -87,39 +82,16 @@ func (w whereHelpernull_String) GTE(x null.String) qm.QueryMod {
 	return qmhelper.Where(w.field, qmhelper.GTE, x)
 }
 
-type whereHelpertime_Time struct{ field string }
-
-func (w whereHelpertime_Time) EQ(x time.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.EQ, x)
-}
-func (w whereHelpertime_Time) NEQ(x time.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.NEQ, x)
-}
-func (w whereHelpertime_Time) LT(x time.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LT, x)
-}
-func (w whereHelpertime_Time) LTE(x time.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LTE, x)
-}
-func (w whereHelpertime_Time) GT(x time.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GT, x)
-}
-func (w whereHelpertime_Time) GTE(x time.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GTE, x)
-}
-
 var TodoWhere = struct {
 	ID          whereHelperint64
 	Subject     whereHelperstring
 	Description whereHelpernull_String
 	AppUserID   whereHelperint64
-	Updated     whereHelpertime_Time
 }{
 	ID:          whereHelperint64{field: "`todo`.`id`"},
 	Subject:     whereHelperstring{field: "`todo`.`subject`"},
 	Description: whereHelpernull_String{field: "`todo`.`description`"},
 	AppUserID:   whereHelperint64{field: "`todo`.`app_user_id`"},
-	Updated:     whereHelpertime_Time{field: "`todo`.`updated`"},
 }
 
 // TodoRels is where relationship names are stored.
@@ -143,9 +115,9 @@ func (*todoR) NewStruct() *todoR {
 type todoL struct{}
 
 var (
-	todoAllColumns            = []string{"id", "subject", "description", "app_user_id", "updated"}
+	todoAllColumns            = []string{"id", "subject", "description", "app_user_id"}
 	todoColumnsWithoutDefault = []string{"subject", "description", "app_user_id"}
-	todoColumnsWithDefault    = []string{"id", "updated"}
+	todoColumnsWithDefault    = []string{"id"}
 	todoPrimaryKeyColumns     = []string{"id"}
 )
 

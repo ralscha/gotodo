@@ -25,7 +25,6 @@ CREATE TABLE todo (
   subject       VARCHAR(255) NOT NULL,
   description   VARCHAR(255) NULL,
   app_user_id   BIGINT       NOT NULL,
-  updated       TIMESTAMP    NOT NULL,
   FOREIGN KEY (app_user_id) REFERENCES app_user(id) ON DELETE CASCADE
 );
 

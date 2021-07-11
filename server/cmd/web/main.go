@@ -8,6 +8,7 @@ import (
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-playground/validator/v10"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorilla/schema"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"gotodo.rasc.ch/internal/config"
@@ -25,6 +26,7 @@ type application struct {
 	db             *sql.DB
 	sessionManager *scs.SessionManager
 	validator      *validator.Validate
+	decoder        *schema.Decoder
 }
 
 func main() {
@@ -61,13 +63,12 @@ func main() {
 	sm.Cookie.Secure = cfg.SecureCookie
 	log.Info().Msgf("secure cookie: %v\n", sm.Cookie.Secure)
 
-	vld := validator.New()
-
 	app := &application{
 		config:         &cfg,
 		db:             db,
 		sessionManager: sm,
-		validator:      vld,
+		validator:      validator.New(),
+		decoder:        schema.NewDecoder(),
 	}
 
 	err = app.serve()
