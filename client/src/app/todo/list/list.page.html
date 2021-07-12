@@ -1,0 +1,32 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>
+      Todos
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-refresher (ionRefresh)="refresh($event)" [pullFactor]="0.6" slot="fixed">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <ng-container *ngIf="todos$ | async as todos">
+    <ion-list lines="full">
+      <ion-item *ngFor="let todo of todos" [detail]="true" routerLink="./edit/{{todo.id}}">
+        <ion-label>{{todo.subject}}</ion-label>
+      </ion-item>
+    </ion-list>
+  </ng-container>
+
+  <ion-fab horizontal="end" slot="fixed" vertical="bottom">
+    <ion-fab-button routerDirection="forward" routerLink="./edit">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+</ion-content>

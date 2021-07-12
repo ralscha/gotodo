@@ -5,11 +5,15 @@ import {LoginPage} from './login/login.page';
 import {LogoutPage} from './logout/logout.page';
 
 const routes: Routes = [
-  {path: '', redirectTo: 'home', pathMatch: 'full'},
-  {path: 'home', loadChildren: () => import('./home/home.module').then(m => m.HomePageModule), canActivate: [AuthGuard]},
+  {path: '', redirectTo: 'todo', pathMatch: 'full'},
+  {
+    path: 'todo',
+    loadChildren: () => import('./todo/todo.module').then(m => m.TodoModule),
+    canActivate: [AuthGuard]
+  },
   {path: 'login', component: LoginPage},
   {path: 'logout', component: LogoutPage},
-  {path: '**', redirectTo: 'home'}
+  {path: '**', redirectTo: 'todo'}
 ];
 
 @NgModule({
