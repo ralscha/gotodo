@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
+	"time"
 )
 
 type anyMap map[string]interface{}
@@ -12,8 +14,6 @@ func (app *application) writeJSON(w http.ResponseWriter, status int, data anyMap
 	if err != nil {
 		return err
 	}
-
-	js = append(js, '\n')
 
 	for key, value := range headers {
 		w.Header()[key] = value
@@ -27,6 +27,10 @@ func (app *application) writeJSON(w http.ResponseWriter, status int, data anyMap
 	}
 
 	return nil
+}
+
+func (app *application) createDbContext() (context.Context, context.CancelFunc) {
+	return context.WithTimeout(context.Background(), 3*time.Second)
 }
 
 func (app *application) background(fn func()) {

@@ -37,7 +37,10 @@ func (app *application) routes() http.Handler {
 func (app *application) authenticatedRouter() http.Handler {
 	r := chi.NewRouter()
 	r.Use(app.authenticatedOnly)
-	r.Get("/secret", app.secret)
+	r.Get("/todo", app.todoGetHandler)
+	r.Post("/todo", app.todoInsertHandler)
+	r.Put("/todo/{todoId:\\d+}", app.todoUpdateHandler)
+	r.Delete("/todo/{todoId:\\d+}", app.todoDeleteHandler)
 	return r
 }
 

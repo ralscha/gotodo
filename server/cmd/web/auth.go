@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -39,7 +38,7 @@ func (app *application) authenticateHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	if userId > 0 {
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		ctx, cancel := app.createDbContext()
 		defer cancel()
 		user, err := models.AppUsers(qm.Select(
 			models.AppUserColumns.Authority,
@@ -107,7 +106,7 @@ func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := app.createDbContext()
 	defer cancel()
 	user, err := models.AppUsers(qm.Select(
 		models.AppUserColumns.ID,
@@ -128,20 +127,33 @@ func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if match {
+			ctxUpdate, cancelUpdate := app.createDbContext()
+			defer cancelUpdate()
+
+			err := models.AppUsers(models.AppUserWhere.ID.EQ(user.ID)).UpdateAll(ctxUpdate, app.db,
+				models.M{models.AppUserColumns.LastAccess: time.Now()})
+
+			if err != nil {
+				app.serverErrorResponse(w, r, err)
+				return
+			}
+
 			app.sessionManager.Put(r.Context(), "userId", user.ID)
 
 			data := anyMap{
 				"authority": user.Authority,
 			}
-			err := app.writeJSON(w, http.StatusOK, data, nil)
+			err = app.writeJSON(w, http.StatusOK, data, nil)
 			if err != nil {
 				app.serverErrorResponse(w, r, err)
+				return
 			}
 		}
 	} else {
 		_, err := argon2id.ComparePasswordAndHash(lf.Password, userNotFoundPasswordHash)
 		if err != nil {
 			app.serverErrorResponse(w, r, err)
+			return
 		}
 	}
 	w.WriteHeader(http.StatusUnauthorized)

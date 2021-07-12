@@ -15,7 +15,7 @@ export class TodoService {
   }
 
   loadTodos(): void {
-    this.httpClient.get<Todo[]>('/v1/todos').subscribe(data => this.todosSubject.next(data));
+    this.httpClient.get<Todo[]>('/v1/todo').subscribe(data => this.todosSubject.next(data));
   }
 
   getTodos(): Observable<Todo[]> {
