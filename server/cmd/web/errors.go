@@ -1,27 +1,16 @@
 package main
 
 import (
-	"github.com/rs/zerolog/log"
+	"go.uber.org/zap"
 	"net/http"
 )
 
 func (app *application) logError(r *http.Request, err error) {
-	log.Error().Err(err).Str("request_method", r.Method).Str("request_url", r.URL.String()).Msg("")
-}
-
-func (app *application) errorResponse(w http.ResponseWriter, r *http.Request, status int, message interface{}) {
-	env := anyMap{"error": message}
-
-	err := app.writeJSON(w, status, env, nil)
-	if err != nil {
-		app.logError(r, err)
-		w.WriteHeader(500)
-	}
+	app.logger.Errorw("", zap.Error(err), zap.String("request_method", r.Method),
+		zap.String("request_url", r.URL.String()))
 }
 
 func (app *application) serverErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	app.logError(r, err)
-
-	message := "internal server error"
-	app.errorResponse(w, r, http.StatusInternalServerError, message)
+	w.WriteHeader(http.StatusInternalServerError)
 }

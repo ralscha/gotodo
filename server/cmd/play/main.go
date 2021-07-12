@@ -1,42 +1,30 @@
 package main
 
 import (
-	"fmt"
-	"github.com/alexedwards/argon2id"
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/rs/zerolog/log"
+	"errors"
+	"go.uber.org/zap"
 	"time"
 )
 
 func main() {
-	// CreateHash returns a Argon2id hash of a plain-text password using the
-	// provided algorithm parameters. The returned hash follows the format used
-	// by the Argon2 reference C implementation and looks like this:
-	// $argon2id$v=19$m=65536,t=3,p=2$c29tZXNhbHQ$RdescudvJCsgt3ub+b+dWRWJTmaaJObG
-	params := &argon2id.Params{
-		Memory:      1 << 17,
-		Iterations:  20,
-		Parallelism: 8,
-		SaltLength:  16,
-		KeyLength:   32,
-	}
+	logger, _ := zap.NewProduction()
+	defer func(logger *zap.Logger) {
+		_ = logger.Sync()
+	}(logger) // flushes buffer, if any
 
-	hash, err := argon2id.CreateHash("pa$$word", params)
-	if err != nil {
-		log.Fatal().Err(err).Msg("")
-	}
-	fmt.Println(hash)
-	// ComparePasswordAndHash performs a constant-time comparison between a
-	// plain-text password and Argon2id hash, using the parameters and salt
-	// contained in the hash. It returns true if they match, otherwise it returns
-	// false.
-	start := time.Now()
-	match, err := argon2id.ComparePasswordAndHash("pa$$word", hash)
-	if err != nil {
-		log.Fatal().Err(err).Msg("")
-	}
-	elapsed := time.Since(start)
-	log.Printf("compare took %s", elapsed)
+	e := errors.New("this is an error")
 
-	log.Printf("Match: %v", match)
+	url := "testurl"
+	sugar := logger.Sugar()
+	sugar.Infow("failed to fetch URL",
+		// Structured context as loosely typed key-value pairs.
+		"url", url,
+		"attempt", 3,
+		"backoff", time.Second,
+	)
+	sugar.Infof("Failed to fetch URL: %s", url)
+
+	sugar.Error(e)
+	sugar.Errorf("message with error %v", e)
+	sugar.Errorw("message with error", zap.Error(e))
 }

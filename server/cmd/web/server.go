@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"github.com/rs/zerolog/log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -27,7 +26,7 @@ func (app *application) serve() error {
 		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 		s := <-quit
 
-		log.Info().Msgf("caught signal: %s", s.String())
+		app.logger.Infof("caught signal: %s", s.String())
 
 		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 		defer cancel()
@@ -37,13 +36,13 @@ func (app *application) serve() error {
 			shutdownError <- err
 		}
 
-		// log.Info().Msg("completing background tasks")
+		app.logger.Info("completing background tasks")
+		app.wg.Wait()
 
-		// app.wg.Wait()
 		shutdownError <- nil
 	}()
 
-	log.Info().Str("addr", srv.Addr).Msg("starting server")
+	app.logger.Infow("starting server", "addr", srv.Addr)
 
 	err := srv.ListenAndServe()
 	if !errors.Is(err, http.ErrServerClosed) {
@@ -55,7 +54,9 @@ func (app *application) serve() error {
 		return err
 	}
 
-	log.Info().Str("addr", srv.Addr).Msg("stopped server")
+	app.logger.Infow("server stopped", "addr", srv.Addr)
+
+	_ = app.logger.Sync()
 
 	return nil
 }

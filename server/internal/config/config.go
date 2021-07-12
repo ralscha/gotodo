@@ -4,16 +4,15 @@ import (
 	"github.com/spf13/viper"
 )
 
-type LogLevel string
+type Environment string
 
 const (
-	Info  LogLevel = "INFO"
-	Warn  LogLevel = "WARN"
-	Error LogLevel = "ERROR"
+	Production  Environment = "production"
+	Development Environment = "development"
 )
 
 type Config struct {
-	LogLevel     LogLevel
+	Environment  Environment
 	SecureCookie bool
 	Db           struct {
 		User         string
@@ -34,6 +33,7 @@ type Config struct {
 }
 
 func applyDefaults() {
+	viper.SetDefault("environment", Production)
 	viper.SetDefault("http.readTimeoutInSeconds", 30)
 	viper.SetDefault("http.writeTimeoutInSeconds", 30)
 	viper.SetDefault("http.idleTimeoutInSeconds", 120)
@@ -41,7 +41,6 @@ func applyDefaults() {
 	viper.SetDefault("db.maxIdleConns", 25)
 	viper.SetDefault("db.maxIdleTime", "15m")
 	viper.SetDefault("secureCookie", true)
-	viper.SetDefault("LogLevel", Info)
 }
 
 func LoadConfig() (Config, error) {

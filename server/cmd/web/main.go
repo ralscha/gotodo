@@ -9,10 +9,11 @@ import (
 	"github.com/go-playground/validator/v10"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/schema"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
+	"go.uber.org/zap"
 	"gotodo.rasc.ch/internal/config"
+	"log"
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -27,33 +28,42 @@ type application struct {
 	sessionManager *scs.SessionManager
 	validator      *validator.Validate
 	decoder        *schema.Decoder
+	wg             sync.WaitGroup
+	logger         *zap.SugaredLogger
 }
 
 func main() {
 	cfg, err := config.LoadConfig()
 	if err != nil {
-		log.Fatal().Err(err).Msg("reading config failed")
+		log.Fatalf("reading config failed %v\n", err)
 	}
 
-	log.Info().Msgf("setting log level: %s\n", cfg.LogLevel)
-	switch cfg.LogLevel {
-	case config.Info:
-		zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	case config.Warn:
-		zerolog.SetGlobalLevel(zerolog.WarnLevel)
-	case config.Error:
-		zerolog.SetGlobalLevel(zerolog.ErrorLevel)
+	var logger *zap.Logger
+
+	switch cfg.Environment {
+	case config.Development:
+		logger, err = zap.NewDevelopment()
+		if err != nil {
+			log.Fatalf("can't initialize development zap logger: %v\n", err)
+		}
+	case config.Production:
+		logger, err = zap.NewProduction()
+		if err != nil {
+			log.Fatalf("can't initialize production zap logger: %v\n", err)
+		}
 	}
+
+	sugar := logger.Sugar()
 
 	db, err := openDB(cfg)
 	if err != nil {
-		log.Fatal().Err(err).Msg("opening database connection failed")
+		sugar.Fatalw("opening database connection failed", zap.Error(err))
 	}
 	defer func(db *sql.DB) {
 		_ = db.Close()
 	}(db)
 
-	log.Info().Msg("database connection pool established")
+	sugar.Info("database connection pool established")
 
 	sm := scs.New()
 	sm.Store = mysqlstore.NewWithCleanupInterval(db, 30*time.Minute)
@@ -61,7 +71,7 @@ func main() {
 	sm.Cookie.SameSite = http.SameSiteStrictMode
 
 	sm.Cookie.Secure = cfg.SecureCookie
-	log.Info().Msgf("secure cookie: %v\n", sm.Cookie.Secure)
+	sugar.Infof("secure cookie: %t\n", sm.Cookie.Secure)
 
 	app := &application{
 		config:         &cfg,
@@ -69,11 +79,12 @@ func main() {
 		sessionManager: sm,
 		validator:      validator.New(),
 		decoder:        schema.NewDecoder(),
+		logger:         sugar,
 	}
 
 	err = app.serve()
 	if err != nil {
-		log.Fatal().Err(err).Msg("http serve failed")
+		sugar.Fatalw("http serve failed", zap.Error(err))
 	}
 
 }

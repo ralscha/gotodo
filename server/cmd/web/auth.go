@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"github.com/alexedwards/argon2id"
 	"github.com/go-playground/validator/v10"
-	"github.com/rs/zerolog/log"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"gotodo.rasc.ch/internal/models"
+	"log"
 	"net/http"
 	"time"
 )
@@ -27,7 +27,7 @@ func init() {
 	var err error
 	userNotFoundPasswordHash, err = argon2id.CreateHash("userNotFoundPassword", params)
 	if err != nil {
-		log.Fatal().Err(err).Msg("")
+		log.Fatal(err)
 	}
 }
 
@@ -65,7 +65,7 @@ func (app *application) authenticateHandler(w http.ResponseWriter, r *http.Reque
 }
 
 type LoginForm struct {
-	Password string `validate:"required,gte=11"`
+	Password string `validate:"required,gte=8"`
 	Username string `validate:"required,email"`
 }
 
