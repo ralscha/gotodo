@@ -37,6 +37,13 @@ type Config struct {
 		Password string
 		Sender   string
 	}
+	Argon2 struct {
+		Memory      uint32
+		Iterations  uint32
+		Parallelism uint8
+		SaltLength  uint32
+		KeyLength   uint32
+	}
 }
 
 func applyDefaults() {
@@ -48,6 +55,11 @@ func applyDefaults() {
 	viper.SetDefault("db.maxIdleConns", 25)
 	viper.SetDefault("db.maxIdleTime", "15m")
 	viper.SetDefault("secureCookie", true)
+	viper.SetDefault("argon2.memory", 1<<17)
+	viper.SetDefault("argon2.iterations", 20)
+	viper.SetDefault("argon2.parallelism", 8)
+	viper.SetDefault("argon2.saltLength", 16)
+	viper.SetDefault("argon2.keyLength", 32)
 }
 
 func LoadConfig() (Config, error) {

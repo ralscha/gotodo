@@ -1,39 +1,22 @@
 package main
 
 import (
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/base32"
 	"fmt"
-	"github.com/go-playground/validator/v10"
-	"reflect"
+	"log"
 )
 
-type BookForm struct {
-	Title         string `name:"title" validate:"max=255,email,hexcolor"`
-	Author        string `json:"author" validate:"required,max=255"`
-	PublishedDate string `json:"published_date" validate:"required"`
-	ImageUrl      string `json:"image_url" validate:"url"`
-	Description   string `json:"description"`
-}
-
 func main() {
-	validate := validator.New()
-	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
-		return fld.Tag.Get("name")
-	})
+	randomBytes := make([]byte, 16)
 
-	form := BookForm{
-		Title:         "",
-		Author:        "",
-		PublishedDate: "",
-		ImageUrl:      "",
-		Description:   "",
+	_, err := rand.Read(randomBytes)
+	if err != nil {
+		log.Fatalln(err)
 	}
-
-	if err := validate.Struct(form); err != nil {
-		fmt.Println(err)
-		for _, err := range err.(validator.ValidationErrors) {
-			fmt.Println(err.Field())
-			fmt.Println(err.Tag())
-			fmt.Println()
-		}
-	}
+	token := base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(randomBytes)
+	fmt.Println(token)
+	hash := sha256.Sum256([]byte(token))
+	fmt.Println(hash)
 }

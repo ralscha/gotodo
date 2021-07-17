@@ -81,6 +81,11 @@ func main() {
 		return fld.Tag.Get("name")
 	})
 
+	err = initAuth(cfg)
+	if err != nil {
+		sugar.Fatalw("init auth failed", zap.Error(err))
+	}
+
 	app := &application{
 		config:         &cfg,
 		db:             db,

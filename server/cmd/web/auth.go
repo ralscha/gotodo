@@ -5,27 +5,24 @@ import (
 	"errors"
 	"github.com/alexedwards/argon2id"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+	"gotodo.rasc.ch/internal/config"
 	"gotodo.rasc.ch/internal/models"
-	"log"
 	"net/http"
 	"time"
 )
 
 var userNotFoundPasswordHash string
 
-func init() {
-	params := &argon2id.Params{
-		Memory:      1 << 17,
-		Iterations:  20,
-		Parallelism: 8,
-		SaltLength:  16,
-		KeyLength:   32,
-	}
+func initAuth(config config.Config) error {
 	var err error
-	userNotFoundPasswordHash, err = argon2id.CreateHash("userNotFoundPassword", params)
-	if err != nil {
-		log.Fatal(err)
-	}
+	userNotFoundPasswordHash, err = argon2id.CreateHash("userNotFoundPassword", &argon2id.Params{
+		Memory:      config.Argon2.Memory,
+		Iterations:  config.Argon2.Iterations,
+		Parallelism: config.Argon2.Parallelism,
+		SaltLength:  config.Argon2.SaltLength,
+		KeyLength:   config.Argon2.KeyLength,
+	})
+	return err
 }
 
 func (app *application) authenticateHandler(w http.ResponseWriter, r *http.Request) {
@@ -51,6 +48,7 @@ func (app *application) authenticateHandler(w http.ResponseWriter, r *http.Reque
 			app.writeJSON(w, r, http.StatusOK, map[string]interface{}{
 				"authority": user.Authority,
 			})
+			return
 		}
 	}
 	w.WriteHeader(http.StatusUnauthorized)
