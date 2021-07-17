@@ -6,6 +6,8 @@ import {NgForm} from '@angular/forms';
 import {Todo} from '../todo';
 import {TodoService} from '../todo.service';
 import {displayFieldErrors} from '../../util';
+import {SaveResponse} from '../../model/save-response';
+import {HttpErrorResponse} from '@angular/common/http';
 
 @Component({
   selector: 'app-edit',
@@ -59,23 +61,31 @@ export class EditPage implements OnInit {
     if (this.selectedTodo) {
       this.selectedTodo.subject = form.value.subject;
       this.selectedTodo.description = form.value.description;
-
-      this.todoService.save(this.selectedTodo!).subscribe(response => {
-        if (response.success) {
-          this.messagesService.showSuccessToast('Todo successfully saved', 500);
-          this.router.navigate(['/todos']);
-        } else {
-          if (response.fieldErrors) {
-            displayFieldErrors(form, response.fieldErrors)
-          } else if (response.globalError) {
-            this.messagesService.showErrorToast(response.globalError);
-          } else {
-            this.messagesService.showErrorToast('Saving Todo failed');
-          }
-        }
+      this.todoService.save(this.selectedTodo).subscribe({
+        next: this.handleSuccessResponse,
+        error: this.handleErrorResponse(form)
       });
-
     }
+  }
+
+  private handleSuccessResponse(): void {
+    this.messagesService.showSuccessToast('Todo successfully saved', 500);
+    this.router.navigate(['/todos']);
+  }
+
+  private handleErrorResponse(form: NgForm) {
+    return (errorResponse: HttpErrorResponse) => {
+      const response: SaveResponse = errorResponse.error;
+      if (response) {
+        if (response.fieldErrors) {
+          displayFieldErrors(form, response.fieldErrors)
+        } else if (response.globalError) {
+          this.messagesService.showErrorToast(response.globalError);
+        } else {
+          this.messagesService.showErrorToast('Saving Todo failed');
+        }
+      }
+    };
   }
 
   private async reallyDeleteTodo(): Promise<void> {

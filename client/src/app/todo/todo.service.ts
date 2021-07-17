@@ -54,13 +54,11 @@ export class TodoService {
     return this.httpClient.post<SaveResponse>('/v1/todo', todo)
       .pipe(
         tap(response => {
-          if (response.success) {
-            if (response.id > 0) {
-              todo.id = response.id;
-            }
-            this.todosMap.set(todo.id, todo)
-            this.publish();
+          if (response.id > 0) {
+            todo.id = response.id;
           }
+          this.todosMap.set(todo.id, todo)
+          this.publish();
         })
       )
   }

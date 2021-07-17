@@ -35,7 +35,6 @@ export class AuthService {
     return this.httpClient.post<string>('/v1/login', body, {withCredentials: true})
       .pipe(
         tap(authority => this.authoritySubject.next(authority)),
-        catchError(() => of(null))
       );
   }
 

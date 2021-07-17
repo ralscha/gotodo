@@ -3,6 +3,7 @@ import {NavController} from '@ionic/angular';
 import {AuthService} from '../service/auth.service';
 import {MessagesService} from '../service/messages.service';
 import {take} from 'rxjs';
+import {HttpErrorResponse} from '@angular/common/http';
 
 @Component({
   selector: 'app-login',
@@ -31,13 +32,7 @@ export class LoginPage implements OnInit {
     this.authService
       .login(username, password)
       .subscribe({
-        next: authority => {
-          if (authority !== null) {
-            this.navCtrl.navigateRoot('home')
-          } else {
-            this.showLoginFailedToast()
-          }
-        },
+        next: () => this.navCtrl.navigateRoot('home'),
         error: () => this.showLoginFailedToast()
       });
   }

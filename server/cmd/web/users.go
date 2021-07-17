@@ -44,7 +44,7 @@ func (app *application) signupHandler(w http.ResponseWriter, r *http.Request) {
 	newUser := models.AppUser{
 		Email:        input.Email,
 		PasswordHash: hash,
-		Authority:    "user",
+		Authority:    "USER",
 		Activated:    false,
 	}
 

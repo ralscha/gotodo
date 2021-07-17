@@ -34,12 +34,12 @@
       </ion-item>
 
       <ion-text [hidden]="password.valid || !loginForm.submitted" class="ion-padding-start" color="danger">
-        <p *ngIf="password.errors?.required" class="ion-padding-start">
+        <div *ngIf="password.errors?.required" class="ion-padding-start">
           Password is required
-        </p>
-        <p *ngIf="password.errors?.minlength" class="ion-padding-start">
+        </div>
+        <div *ngIf="password.errors?.minlength" class="ion-padding-start">
           Minimum length is 8 characters
-        </p>
+        </div>
       </ion-text>
     </ion-list>
 
