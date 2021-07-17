@@ -1,5 +1,5 @@
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {NgModule} from '@angular/core';
+import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {IonicModule} from '@ionic/angular';
 import {RouterModule, Routes} from '@angular/router';
@@ -16,8 +16,17 @@ const routes: Routes = [
   },
   {
     path: 'edit',
-    component: EditPage,
     canActivate: [AuthGuard],
+    children: [
+      {
+        path: ':id',
+        component: EditPage
+      },
+      {
+        path: '',
+        component: EditPage
+      }
+    ]
   }
 ];
 
@@ -31,4 +40,5 @@ const routes: Routes = [
   ],
   providers: [TodoService]
 })
-export class TodoModule { }
+export class TodoModule {
+}

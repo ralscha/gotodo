@@ -17,7 +17,7 @@
 
   <ng-container *ngIf="todos$ | async as todos">
     <ion-list lines="full">
-      <ion-item *ngFor="let todo of todos" [detail]="true" routerLink="./edit/{{todo.id}}">
+      <ion-item *ngFor="let todo of todos;trackBy: trackById" [detail]="true" routerLink="./edit/{{todo.id}}">
         <ion-label>{{todo.subject}}</ion-label>
       </ion-item>
     </ion-list>

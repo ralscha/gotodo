@@ -52,9 +52,13 @@ db/run-sqlboiler:
 # ==================================================================================== #
 # QUALITY CONTROL
 # ==================================================================================== #
+## lint: run golangci-lint
+.PHONY: lint
 lint:
 	docker run --rm -v $(shell pwd):/app -w /app golangci/golangci-lint:v1.41.1 golangci-lint run ./...
 
+## upgrade-libraries: upgrade all dependant libraries
+.PHONY: upgrade-libraries
 upgrade-libraries:
 	@go get -u ./...
 	@go fmt ./...
@@ -64,7 +68,7 @@ upgrade-libraries:
 # ==================================================================================== #
 # BUILD
 # ==================================================================================== #
-.PHONY: help
+.PHONY: build/docker
 build/docker:
 	@docker build -t gobuilder -f docker/build.Dockerfile .
 

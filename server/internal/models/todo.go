@@ -27,7 +27,7 @@ type Todo struct {
 	ID          int64       `boil:"id" json:"id" toml:"id" yaml:"id"`
 	Subject     string      `boil:"subject" json:"subject" toml:"subject" yaml:"subject"`
 	Description null.String `boil:"description" json:"description,omitempty" toml:"description" yaml:"description,omitempty"`
-	AppUserID   int64       `boil:"app_user_id" json:"app_user_id" toml:"app_user_id" yaml:"app_user_id"`
+	AppUserID   int64       `boil:"app_user_id" json:"-" toml:"-" yaml:"-"`
 
 	R *todoR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L todoL  `boil:"-" json:"-" toml:"-" yaml:"-"`

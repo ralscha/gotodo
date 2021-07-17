@@ -13,6 +13,7 @@ import (
 	"gotodo.rasc.ch/internal/config"
 	"log"
 	"net/http"
+	"reflect"
 	"sync"
 	"time"
 )
@@ -73,11 +74,16 @@ func main() {
 	sm.Cookie.Secure = cfg.SecureCookie
 	sugar.Infof("secure cookie: %t\n", sm.Cookie.Secure)
 
+	vld := validator.New()
+	vld.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		return fld.Tag.Get("json")
+	})
+
 	app := &application{
 		config:         &cfg,
 		db:             db,
 		sessionManager: sm,
-		validator:      validator.New(),
+		validator:      vld,
 		decoder:        schema.NewDecoder(),
 		logger:         sugar,
 	}

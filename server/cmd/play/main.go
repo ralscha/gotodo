@@ -1,30 +1,39 @@
 package main
 
 import (
-	"errors"
-	"go.uber.org/zap"
-	"time"
+	"fmt"
+	"github.com/go-playground/validator/v10"
+	"reflect"
 )
 
+type BookForm struct {
+	Title         string `name:"title" validate:"max=255,email,hexcolor"`
+	Author        string `json:"author" validate:"required,max=255"`
+	PublishedDate string `json:"published_date" validate:"required"`
+	ImageUrl      string `json:"image_url" validate:"url"`
+	Description   string `json:"description"`
+}
+
 func main() {
-	logger, _ := zap.NewProduction()
-	defer func(logger *zap.Logger) {
-		_ = logger.Sync()
-	}(logger) // flushes buffer, if any
+	validate := validator.New()
+	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		return fld.Tag.Get("name")
+	})
 
-	e := errors.New("this is an error")
+	form := BookForm{
+		Title:         "",
+		Author:        "",
+		PublishedDate: "",
+		ImageUrl:      "",
+		Description:   "",
+	}
 
-	url := "testurl"
-	sugar := logger.Sugar()
-	sugar.Infow("failed to fetch URL",
-		// Structured context as loosely typed key-value pairs.
-		"url", url,
-		"attempt", 3,
-		"backoff", time.Second,
-	)
-	sugar.Infof("Failed to fetch URL: %s", url)
-
-	sugar.Error(e)
-	sugar.Errorf("message with error %v", e)
-	sugar.Errorw("message with error", zap.Error(e))
+	if err := validate.Struct(form); err != nil {
+		fmt.Println(err)
+		for _, err := range err.(validator.ValidationErrors) {
+			fmt.Println(err.Field())
+			fmt.Println(err.Tag())
+			fmt.Println()
+		}
+	}
 }

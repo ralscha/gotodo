@@ -54,12 +54,10 @@
 
   </form>
 
-
-  <ion-fab *ngIf="selectedTodo" horizontal="start" slot="fixed" vertical="bottom">
-    <ion-fab-button (click)="deleteTodo()">
+  <ion-fab *ngIf="selectedTodo?.id" horizontal="start" slot="fixed" vertical="bottom">
+    <ion-fab-button color="danger" (click)="deleteTodo()">
       <ion-icon name="trash"></ion-icon>
     </ion-fab-button>
   </ion-fab>
-
 
 </ion-content>

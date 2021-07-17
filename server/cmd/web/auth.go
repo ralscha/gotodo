@@ -50,7 +50,7 @@ func (app *application) authenticateHandler(w http.ResponseWriter, r *http.Reque
 			return
 		}
 		if user != nil && user.Activated && user.Expired.IsZero() {
-			data := anyMap{
+			data := map[string]interface{}{
 				"authority": user.Authority,
 			}
 			err := app.writeJSON(w, http.StatusOK, data, nil)
@@ -140,7 +140,7 @@ func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
 
 			app.sessionManager.Put(r.Context(), "userId", user.ID)
 
-			data := anyMap{
+			data := map[string]interface{}{
 				"authority": user.Authority,
 			}
 			err = app.writeJSON(w, http.StatusOK, data, nil)

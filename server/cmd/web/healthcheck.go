@@ -5,7 +5,7 @@ import (
 )
 
 func (app *application) healthcheckHandler(w http.ResponseWriter, r *http.Request) {
-	env := anyMap{
+	env := map[string]interface{}{
 		"status": "available",
 		"system_info": map[string]string{
 			"buildTime": appBuildTime,

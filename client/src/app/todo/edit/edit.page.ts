@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {MessagesService} from '../../service/messages.service';
 import {AlertController} from '@ionic/angular';
@@ -28,7 +28,7 @@ export class EditPage implements OnInit {
       this.selectedTodo = await this.todoService.getTodo(parseInt(todoIdString, 10));
     } else {
       this.selectedTodo = {
-        id: null,
+        id: 0,
         subject: null,
         description: null,
       };
@@ -58,17 +58,38 @@ export class EditPage implements OnInit {
     if (this.selectedTodo) {
       this.selectedTodo.subject = form.value.subject;
       this.selectedTodo.description = form.value.description;
-      await this.todoService.save(this.selectedTodo);
-      await this.messagesService.showSuccessToast('Todo successfully saved', 1000);
-      await this.router.navigate(['/todos']);
+      if (this.selectedTodo.id > 0) {
+        this.todoService.update(this.selectedTodo).subscribe(response => {
+          if (response.success) {
+            this.messagesService.showSuccessToast('Todo successfully updated', 500);
+          } else {
+            this.messagesService.showErrorToast('Updating Todo failed');
+          }
+          this.router.navigate(['/todos']);
+        });
+      } else {
+        this.todoService.insert(this.selectedTodo).subscribe(response => {
+          if (response.success) {
+            this.messagesService.showSuccessToast('Todo successfully inserted', 500);
+          } else {
+            this.messagesService.showErrorToast('Inserting Todo failed');
+          }
+          this.router.navigate(['/todos']);
+        });
+      }
     }
   }
 
   private async reallyDeleteTodo(): Promise<void> {
     if (this.selectedTodo) {
-      await this.todoService.delete(this.selectedTodo);
-      await this.router.navigate(['/todos']);
-      await this.messagesService.showSuccessToast('Todo successfully deleted', 500);
+      this.todoService.delete(this.selectedTodo).subscribe(success => {
+        this.router.navigate(['/todos']);
+        if (success) {
+          this.messagesService.showSuccessToast('Todo successfully deleted', 500);
+        } else {
+          this.messagesService.showErrorToast('Deleting Todo failed');
+        }
+      })
     }
   }
 }

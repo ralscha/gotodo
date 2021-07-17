@@ -48,10 +48,7 @@ func (app *application) authenticatedOnly(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		value := app.sessionManager.Get(r.Context(), "userId")
 		userId, ok := value.(int64)
-		if !ok {
-			userId = 0
-		}
-		if userId > 0 {
+		if ok && userId > 0 {
 			next.ServeHTTP(w, r)
 		} else {
 			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)

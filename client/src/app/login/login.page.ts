@@ -31,14 +31,14 @@ export class LoginPage implements OnInit {
     this.authService
       .login(username, password)
       .subscribe({
-        next:  authority => {
+        next: authority => {
           if (authority !== null) {
             this.navCtrl.navigateRoot('home')
           } else {
             this.showLoginFailedToast()
           }
         },
-        error:  () => this.showLoginFailedToast()
+        error: () => this.showLoginFailedToast()
       });
   }
 

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {Observable} from 'rxjs';
 import {TodoService} from '../todo.service';
 import {Todo} from '../todo';
@@ -23,6 +23,10 @@ export class ListPage implements OnInit {
   refresh(event: Event): void {
     this.todoService.loadTodos();
     (event as CustomEvent).detail.complete();
+  }
+
+  trackById(index: number, item: any): number {
+    return item.id;
   }
 
 }
