@@ -40,7 +40,7 @@ export class AuthService {
   }
 
   logout(): Observable<void> {
-    return this.httpClient.post<void>('/v1/logout', {withCredentials: true})
+    return this.httpClient.post<void>('/v1/logout', null, {withCredentials: true})
       .pipe(
         tap(() => this.authoritySubject.next(null))
       );

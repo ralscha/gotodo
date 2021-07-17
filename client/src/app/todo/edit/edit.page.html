@@ -14,43 +14,27 @@
   <form #todoForm="ngForm" (ngSubmit)="todoForm.valid && save(todoForm)"
         [ngFormOptions]="{updateOn: 'submit'}" novalidate>
 
-    <ion-grid *ngIf="selectedTodo">
+    <ion-list lines="none" *ngIf="selectedTodo">
+      <ion-item>
+        <ion-label position="stacked">Subject</ion-label>
+        <ion-input #subject="ngModel" [ngModel]="selectedTodo.subject" [required]="true" name="subject"></ion-input>
+      </ion-item>
+      <ion-text color="danger">
+        <p [hidden]="subject.valid || !todoForm.submitted" class="ion-padding-start">
+          Subject is required
+        </p>
+      </ion-text>
 
-      <ion-row>
-        <ion-col offsetLg="4" offsetSm="3" sizeLg="4" sizeSm="6">
-          <ion-item>
-            <ion-label position="stacked">Subject</ion-label>
-            <ion-input #subject="ngModel" [ngModel]="selectedTodo.subject" [required]="true" name="subject"></ion-input>
-          </ion-item>
-        </ion-col>
-      </ion-row>
+      <ion-item>
+        <ion-label position="stacked">Description</ion-label>
+        <ion-textarea [ngModel]="selectedTodo.description" [rows]="3"
+                      name="description"></ion-textarea>
+      </ion-item>
+    </ion-list>
 
-      <ion-row>
-        <ion-col offsetLg="4" offsetSm="3" sizeLg="4" sizeSm="6">
-          <ion-text *ngIf="todoForm.submitted && subject.invalid" color="danger">
-            <p *ngIf="subject.errors?.required" class="ion-padding-start">
-              Subject is required
-            </p>
-          </ion-text>
-        </ion-col>
-      </ion-row>
-
-      <ion-row>
-        <ion-col offsetLg="4" offsetSm="3" sizeLg="4" sizeSm="6">
-          <ion-item>
-            <ion-label position="stacked">Description</ion-label>
-            <ion-textarea [ngModel]="selectedTodo.description" [rows]="3"
-                          name="description"></ion-textarea>
-          </ion-item>
-        </ion-col>
-      </ion-row>
-
-      <ion-row>
-        <ion-col class="ion-margin-top" offsetLg="4" offsetSm="3" sizeLg="4" sizeSm="6">
-          <ion-button expand="block" type="submit">Save</ion-button>
-        </ion-col>
-      </ion-row>
-    </ion-grid>
+    <div class="ion-padding">
+      <ion-button expand="block" type="submit">Save</ion-button>
+    </div>
 
   </form>
 
