@@ -78,7 +78,7 @@ func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
 
 	valid, fieldErrors := app.validate(loginInput)
 	if !valid {
-		app.writeJSON(w, r, http.StatusUnprocessableEntity, UpdateResponse{
+		app.writeJSON(w, r, http.StatusUnprocessableEntity, SaveResponse{
 			Success:     false,
 			FieldErrors: fieldErrors,
 		})

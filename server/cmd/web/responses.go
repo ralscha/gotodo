@@ -5,13 +5,9 @@ type DeleteResponse struct {
 	Error   string `json:"error,omitempty"`
 }
 
-type UpdateResponse struct {
+type SaveResponse struct {
+	Id          int64             `json:"id,omitempty"`
 	Success     bool              `json:"success"`
 	FieldErrors map[string]string `json:"fieldErrors,omitempty"`
 	GlobalError string            `json:"globalError,omitempty"`
-}
-
-type InsertResponse struct {
-	Id int64 `json:"id,omitempty"`
-	UpdateResponse
 }

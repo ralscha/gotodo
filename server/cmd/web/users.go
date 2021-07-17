@@ -22,7 +22,7 @@ func (app *application) signupHandler(w http.ResponseWriter, r *http.Request) {
 
 	valid, fieldErrors := app.validate(input)
 	if !valid {
-		app.writeJSON(w, r, http.StatusUnprocessableEntity, UpdateResponse{
+		app.writeJSON(w, r, http.StatusUnprocessableEntity, SaveResponse{
 			Success:     false,
 			FieldErrors: fieldErrors,
 		})

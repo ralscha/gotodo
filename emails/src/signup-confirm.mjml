@@ -1,0 +1,45 @@
+<mjml>
+   <mj-head>
+     <mj-attributes>
+       <mj-all font-family="Arial" font-size="20px" />
+     </mj-attributes>
+   </mj-head>
+  <mj-body>
+
+    <mj-section>
+      <mj-column>
+        <mj-text font-size="30px" color="blue">
+          GoTodo
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section>
+      <mj-column>
+        <mj-text>
+          Hello
+        </mj-text>
+
+        <mj-text>
+          Thanks for your registration. <br>
+          Before you can use the application we need to confirm your email address        
+        </mj-text>
+
+        <mj-text>
+          Please click on the link below
+        </mj-text>
+
+      </mj-column>
+    </mj-section>
+    
+    <mj-section>
+      <mj-column>
+        <mj-button href="{{.confirmationLink}}">
+          Confirm my registration
+        </mj-button>
+      </mj-column>
+    </mj-section>
+
+
+  </mj-body>
+</mjml>

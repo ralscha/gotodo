@@ -3,8 +3,7 @@ import {HttpClient} from '@angular/common/http';
 import {BehaviorSubject, Observable} from 'rxjs';
 import {map, tap} from 'rxjs/operators';
 import {Todo} from './todo';
-import {InsertResponse} from '../model/insert-response';
-import {UpdateResponse} from '../model/update-response';
+import {SaveResponse} from '../model/save-response';
 import {DeleteResponse} from '../model/delete-response';
 
 @Injectable({
@@ -51,24 +50,14 @@ export class TodoService {
         }));
   }
 
-  insert(todo: Todo): Observable<InsertResponse> {
-    return this.httpClient.post<InsertResponse>('/v1/todo', todo)
+  save(todo: Todo): Observable<SaveResponse> {
+    return this.httpClient.post<SaveResponse>('/v1/todo', todo)
       .pipe(
         tap(response => {
           if (response.success) {
-            todo.id = response.id;
-            this.todosMap.set(todo.id, todo)
-            this.publish();
-          }
-        })
-      )
-  }
-
-  update(todo: Todo): Observable<UpdateResponse> {
-    return this.httpClient.put<UpdateResponse>(`/v1/todo/${todo.id}`, todo)
-      .pipe(
-        tap(response => {
-          if (response.success) {
+            if (response.id > 0) {
+              todo.id = response.id;
+            }
             this.todosMap.set(todo.id, todo)
             this.publish();
           }

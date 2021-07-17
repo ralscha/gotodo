@@ -26,54 +26,9 @@ func (app *application) todoGetHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (app *application) todoInsertHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) todoSaveHandler(w http.ResponseWriter, r *http.Request) {
 	var todoInput struct {
-		Subject     string `name:"subject" validate:"required"`
-		Description string
-	}
-
-	err := app.readJSON(w, r, &todoInput)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
-
-	valid, fieldErrors := app.validate(todoInput)
-	if !valid {
-		app.writeJSON(w, r, http.StatusUnprocessableEntity, InsertResponse{
-			UpdateResponse: UpdateResponse{
-				Success:     false,
-				FieldErrors: fieldErrors,
-			},
-		})
-		return
-	}
-
-	newTodo := models.Todo{
-		Subject:     todoInput.Subject,
-		Description: app.newNullString(todoInput.Description),
-		AppUserID:   app.sessionManager.Get(r.Context(), "userId").(int64),
-	}
-
-	ctx, cancel := app.createDbContext()
-	err = newTodo.Insert(ctx, app.db, boil.Infer())
-	cancel()
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
-
-	app.writeJSON(w, r, http.StatusOK, InsertResponse{
-		Id: newTodo.ID,
-		UpdateResponse: UpdateResponse{
-			Success: true,
-		},
-	})
-}
-
-func (app *application) todoUpdateHandler(w http.ResponseWriter, r *http.Request) {
-	var todoInput struct {
-		Id          int64  `name:"id" validate:"gt=0"`
+		Id          int64
 		Subject     string `name:"subject" validate:"required"`
 		Description string
 	}
@@ -85,7 +40,7 @@ func (app *application) todoUpdateHandler(w http.ResponseWriter, r *http.Request
 
 	valid, fieldErrors := app.validate(todoInput)
 	if !valid {
-		app.writeJSON(w, r, http.StatusUnprocessableEntity, UpdateResponse{
+		app.writeJSON(w, r, http.StatusUnprocessableEntity, SaveResponse{
 			Success:     false,
 			FieldErrors: fieldErrors,
 		})
@@ -94,19 +49,30 @@ func (app *application) todoUpdateHandler(w http.ResponseWriter, r *http.Request
 
 	userId := app.sessionManager.Get(r.Context(), "userId").(int64)
 
+	var saveResponse SaveResponse
 	ctx, cancel := app.createDbContext()
-	err = models.Todos(models.TodoWhere.ID.EQ(todoInput.Id), models.TodoWhere.AppUserID.EQ(userId)).
-		UpdateAll(ctx, app.db, models.M{models.TodoColumns.Subject: todoInput.Subject,
-			models.TodoColumns.Description: app.newNullString(todoInput.Description)})
+	if todoInput.Id > 0 {
+		err = models.Todos(models.TodoWhere.ID.EQ(todoInput.Id), models.TodoWhere.AppUserID.EQ(userId)).
+			UpdateAll(ctx, app.db, models.M{models.TodoColumns.Subject: todoInput.Subject,
+				models.TodoColumns.Description: app.newNullString(todoInput.Description)})
+		saveResponse.Success = true
+	} else {
+		newTodo := models.Todo{
+			Subject:     todoInput.Subject,
+			Description: app.newNullString(todoInput.Description),
+			AppUserID:   userId,
+		}
+		err = newTodo.Insert(ctx, app.db, boil.Infer())
+		saveResponse.Id = newTodo.ID
+		saveResponse.Success = true
+	}
 	cancel()
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
-	app.writeJSON(w, r, http.StatusOK, UpdateResponse{
-		Success: true,
-	})
+	app.writeJSON(w, r, http.StatusOK, saveResponse)
 }
 
 func (app *application) todoDeleteHandler(w http.ResponseWriter, r *http.Request) {

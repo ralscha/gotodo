@@ -1,7 +1,7 @@
 <ion-app [class.dark-theme]="dark">
   <ion-split-pane contentId="main-content">
 
-    <ion-menu contentId="main-content">
+    <ion-menu [hidden]="!authService.isAuthenticated()" contentId="main-content">
       <ion-content>
         <ion-list *ngIf="authService.isAuthenticated()" lines="none">
           <ion-list-header>

@@ -5,6 +5,7 @@ import {AlertController} from '@ionic/angular';
 import {NgForm} from '@angular/forms';
 import {Todo} from '../todo';
 import {TodoService} from '../todo.service';
+import {displayFieldErrors} from '../../util';
 
 @Component({
   selector: 'app-edit',
@@ -58,25 +59,22 @@ export class EditPage implements OnInit {
     if (this.selectedTodo) {
       this.selectedTodo.subject = form.value.subject;
       this.selectedTodo.description = form.value.description;
-      if (this.selectedTodo.id > 0) {
-        this.todoService.update(this.selectedTodo).subscribe(response => {
-          if (response.success) {
-            this.messagesService.showSuccessToast('Todo successfully updated', 500);
-          } else {
-            this.messagesService.showErrorToast('Updating Todo failed');
-          }
+
+      this.todoService.save(this.selectedTodo!).subscribe(response => {
+        if (response.success) {
+          this.messagesService.showSuccessToast('Todo successfully saved', 500);
           this.router.navigate(['/todos']);
-        });
-      } else {
-        this.todoService.insert(this.selectedTodo).subscribe(response => {
-          if (response.success) {
-            this.messagesService.showSuccessToast('Todo successfully inserted', 500);
+        } else {
+          if (response.fieldErrors) {
+            displayFieldErrors(form, response.fieldErrors)
+          } else if (response.globalError) {
+            this.messagesService.showErrorToast(response.globalError);
           } else {
-            this.messagesService.showErrorToast('Inserting Todo failed');
+            this.messagesService.showErrorToast('Saving Todo failed');
           }
-          this.router.navigate(['/todos']);
-        });
-      }
+        }
+      });
+
     }
   }
 
