@@ -37,12 +37,12 @@ func (app *application) authenticateHandler(w http.ResponseWriter, r *http.Reque
 
 	if userId > 0 {
 		ctx, cancel := app.createDbContext()
-		defer cancel()
 		user, err := models.AppUsers(qm.Select(
 			models.AppUserColumns.Authority,
 			models.AppUserColumns.Expired,
 			models.AppUserColumns.Activated),
 			models.AppUserWhere.ID.EQ(userId)).One(ctx, app.db)
+		cancel()
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			app.serverErrorResponse(w, r, err)
 			return
@@ -88,7 +88,6 @@ func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx, cancel := app.createDbContext()
-	defer cancel()
 	user, err := models.AppUsers(qm.Select(
 		models.AppUserColumns.ID,
 		models.AppUserColumns.Authority,
@@ -96,6 +95,7 @@ func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
 		models.AppUserColumns.Expired,
 		models.AppUserColumns.Activated),
 		models.AppUserWhere.Email.EQ(loginInput.Username)).One(ctx, app.db)
+	cancel()
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -109,10 +109,9 @@ func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		if match {
 			ctxUpdate, cancelUpdate := app.createDbContext()
-			defer cancelUpdate()
-
 			err := models.AppUsers(models.AppUserWhere.ID.EQ(user.ID)).UpdateAll(ctxUpdate, app.db,
 				models.M{models.AppUserColumns.LastAccess: time.Now()})
+			cancelUpdate()
 			if err != nil {
 				app.serverErrorResponse(w, r, err)
 				return

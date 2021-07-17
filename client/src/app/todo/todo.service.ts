@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {BehaviorSubject, Observable} from 'rxjs';
-import {map,tap} from 'rxjs/operators';
+import {map, tap} from 'rxjs/operators';
 import {Todo} from './todo';
 import {InsertResponse} from '../model/insert-response';
 import {UpdateResponse} from '../model/update-response';

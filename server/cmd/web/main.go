@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/schema"
 	"go.uber.org/zap"
 	"gotodo.rasc.ch/internal/config"
+	"gotodo.rasc.ch/internal/mailer"
 	"log"
 	"net/http"
 	"reflect"
@@ -31,6 +32,7 @@ type application struct {
 	decoder        *schema.Decoder
 	wg             sync.WaitGroup
 	logger         *zap.SugaredLogger
+	mailer         mailer.Mailer
 }
 
 func main() {
@@ -86,6 +88,7 @@ func main() {
 		validator:      vld,
 		decoder:        schema.NewDecoder(),
 		logger:         sugar,
+		mailer:         mailer.New(cfg.Smtp.Host, cfg.Smtp.Port, cfg.Smtp.Username, cfg.Smtp.Password, cfg.Smtp.Sender),
 	}
 
 	err = app.serve()

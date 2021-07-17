@@ -13,5 +13,11 @@ services:
       MARIADB_USER: gotodo
       MARIADB_PASSWORD: gotodo
 
+  inbucket:
+    image: inbucket/inbucket:latest
+    ports:
+      - '2500:2500'
+      - '9000:9000'
+
 volumes:
   db:

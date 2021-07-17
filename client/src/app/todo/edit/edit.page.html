@@ -14,7 +14,7 @@
   <form #todoForm="ngForm" (ngSubmit)="todoForm.valid && save(todoForm)"
         [ngFormOptions]="{updateOn: 'submit'}" novalidate>
 
-    <ion-list lines="none" *ngIf="selectedTodo">
+    <ion-list *ngIf="selectedTodo">
       <ion-item>
         <ion-label position="stacked">Subject</ion-label>
         <ion-input #subject="ngModel" [ngModel]="selectedTodo.subject" [required]="true" name="subject"></ion-input>
@@ -39,7 +39,7 @@
   </form>
 
   <ion-fab *ngIf="selectedTodo?.id" horizontal="start" slot="fixed" vertical="bottom">
-    <ion-fab-button color="danger" (click)="deleteTodo()">
+    <ion-fab-button (click)="deleteTodo()" color="danger">
       <ion-icon name="trash"></ion-icon>
     </ion-fab-button>
   </ion-fab>

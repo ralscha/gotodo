@@ -30,6 +30,13 @@ type Config struct {
 		WriteTimeoutInSeconds int64
 		IdleTimeoutInSeconds  int64
 	}
+	Smtp struct {
+		Host     string
+		Port     int
+		Username string
+		Password string
+		Sender   string
+	}
 }
 
 func applyDefaults() {

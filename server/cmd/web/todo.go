@@ -12,8 +12,8 @@ func (app *application) todoGetHandler(w http.ResponseWriter, r *http.Request) {
 	userId := app.sessionManager.Get(r.Context(), "userId").(int64)
 
 	ctx, cancel := app.createDbContext()
-	defer cancel()
 	todos, err := models.Todos(models.TodoWhere.AppUserID.EQ(userId)).All(ctx, app.db)
+	cancel()
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -56,8 +56,8 @@ func (app *application) todoInsertHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	ctx, cancel := app.createDbContext()
-	defer cancel()
 	err = newTodo.Insert(ctx, app.db, boil.Infer())
+	cancel()
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -95,10 +95,10 @@ func (app *application) todoUpdateHandler(w http.ResponseWriter, r *http.Request
 	userId := app.sessionManager.Get(r.Context(), "userId").(int64)
 
 	ctx, cancel := app.createDbContext()
-	defer cancel()
 	err = models.Todos(models.TodoWhere.ID.EQ(todoInput.Id), models.TodoWhere.AppUserID.EQ(userId)).
 		UpdateAll(ctx, app.db, models.M{models.TodoColumns.Subject: todoInput.Subject,
 			models.TodoColumns.Description: app.newNullString(todoInput.Description)})
+	cancel()
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -118,8 +118,8 @@ func (app *application) todoDeleteHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	ctx, cancel := app.createDbContext()
-	defer cancel()
 	err = models.Todos(models.TodoWhere.ID.EQ(int64(todoId))).DeleteAll(ctx, app.db)
+	cancel()
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
