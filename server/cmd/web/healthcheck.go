@@ -5,7 +5,7 @@ import (
 )
 
 func (app *application) healthcheckHandler(w http.ResponseWriter, r *http.Request) {
-	env := map[string]interface{}{
+	response := map[string]interface{}{
 		"status": "available",
 		"system_info": map[string]string{
 			"buildTime": appBuildTime,
@@ -13,8 +13,5 @@ func (app *application) healthcheckHandler(w http.ResponseWriter, r *http.Reques
 		},
 	}
 
-	err := app.writeJSON(w, http.StatusOK, env, nil)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-	}
+	app.writeJSON(w, r, http.StatusOK, response)
 }

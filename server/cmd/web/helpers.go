@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/go-playground/validator/v10"
 	"github.com/volatiletech/null/v8"
 	"io"
 	"net/http"
@@ -12,28 +13,24 @@ import (
 	"time"
 )
 
-func (app *application) writeJSON(w http.ResponseWriter, status int, data interface{}, headers http.Header) error {
+func (app *application) writeJSON(w http.ResponseWriter, r *http.Request, status int, data interface{}) {
 	js, err := json.Marshal(data)
 	if err != nil {
-		return err
-	}
-
-	for key, value := range headers {
-		w.Header()[key] = value
+		app.serverErrorResponse(w, r, err)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	_, err = w.Write(js)
 	if err != nil {
-		return err
+		app.serverErrorResponse(w, r, err)
 	}
 
-	return nil
 }
 
+const maxBytes = 1_048_576
+
 func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst interface{}) error {
-	maxBytes := 1_048_576
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
 
 	dec := json.NewDecoder(r.Body)
@@ -89,6 +86,18 @@ func (app *application) newNullString(s string) null.String {
 		return null.String{}
 	}
 	return null.NewString(s, true)
+}
+
+func (app *application) validate(obj interface{}) (bool, map[string]string) {
+	err := app.validator.Struct(obj)
+	if err != nil {
+		fieldErrors := make(map[string]string)
+		for _, err := range err.(validator.ValidationErrors) {
+			fieldErrors[err.Field()] = err.Tag()
+		}
+		return false, fieldErrors
+	}
+	return true, nil
 }
 
 func (app *application) createDbContext() (context.Context, context.CancelFunc) {

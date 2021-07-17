@@ -3,9 +3,7 @@ package main
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"github.com/alexedwards/argon2id"
-	"github.com/go-playground/validator/v10"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"gotodo.rasc.ch/internal/models"
 	"log"
@@ -50,22 +48,12 @@ func (app *application) authenticateHandler(w http.ResponseWriter, r *http.Reque
 			return
 		}
 		if user != nil && user.Activated && user.Expired.IsZero() {
-			data := map[string]interface{}{
+			app.writeJSON(w, r, http.StatusOK, map[string]interface{}{
 				"authority": user.Authority,
-			}
-			err := app.writeJSON(w, http.StatusOK, data, nil)
-			if err != nil {
-				app.serverErrorResponse(w, r, err)
-			}
-
+			})
 		}
 	}
 	w.WriteHeader(http.StatusUnauthorized)
-}
-
-type LoginForm struct {
-	Password string `validate:"required,gte=8"`
-	Username string `validate:"required,email"`
 }
 
 func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
@@ -80,29 +68,22 @@ func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var lf LoginForm
-	err = app.decoder.Decode(&lf, r.PostForm)
+	var loginInput struct {
+		Password string `name:"password" validate:"required,gte=8"`
+		Username string `name:"username" validate:"required,email"`
+	}
+	err = app.decoder.Decode(&loginInput, r.PostForm)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
-	err = app.validator.Struct(lf)
-	if err != nil {
-		for _, err := range err.(validator.ValidationErrors) {
-			fmt.Println(err.Namespace())
-			fmt.Println(err.Field())
-			fmt.Println(err.StructNamespace())
-			fmt.Println(err.StructField())
-			fmt.Println(err.Tag())
-			fmt.Println(err.ActualTag())
-			fmt.Println(err.Kind())
-			fmt.Println(err.Type())
-			fmt.Println(err.Value())
-			fmt.Println(err.Param())
-			fmt.Println()
-		}
-		w.WriteHeader(http.StatusUnauthorized)
+	valid, fieldErrors := app.validate(loginInput)
+	if !valid {
+		app.writeJSON(w, r, http.StatusUnprocessableEntity, UpdateResponse{
+			Success:     false,
+			FieldErrors: fieldErrors,
+		})
 		return
 	}
 
@@ -114,14 +95,14 @@ func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
 		models.AppUserColumns.PasswordHash,
 		models.AppUserColumns.Expired,
 		models.AppUserColumns.Activated),
-		models.AppUserWhere.Email.EQ(lf.Username)).One(ctx, app.db)
+		models.AppUserWhere.Email.EQ(loginInput.Username)).One(ctx, app.db)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
 	if user != nil && user.Activated && user.Expired.IsZero() {
-		match, err := argon2id.ComparePasswordAndHash(lf.Password, user.PasswordHash)
+		match, err := argon2id.ComparePasswordAndHash(loginInput.Password, user.PasswordHash)
 		if err != nil {
 			app.serverErrorResponse(w, r, err)
 			return
@@ -132,7 +113,6 @@ func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
 
 			err := models.AppUsers(models.AppUserWhere.ID.EQ(user.ID)).UpdateAll(ctxUpdate, app.db,
 				models.M{models.AppUserColumns.LastAccess: time.Now()})
-
 			if err != nil {
 				app.serverErrorResponse(w, r, err)
 				return
@@ -140,17 +120,13 @@ func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
 
 			app.sessionManager.Put(r.Context(), "userId", user.ID)
 
-			data := map[string]interface{}{
+			app.writeJSON(w, r, http.StatusOK, map[string]interface{}{
 				"authority": user.Authority,
-			}
-			err = app.writeJSON(w, http.StatusOK, data, nil)
-			if err != nil {
-				app.serverErrorResponse(w, r, err)
-				return
-			}
+			})
+			return
 		}
 	} else {
-		_, err := argon2id.ComparePasswordAndHash(lf.Password, userNotFoundPasswordHash)
+		_, err := argon2id.ComparePasswordAndHash(loginInput.Password, userNotFoundPasswordHash)
 		if err != nil {
 			app.serverErrorResponse(w, r, err)
 			return
@@ -164,4 +140,5 @@ func (app *application) logoutHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
+	w.WriteHeader(http.StatusOK)
 }

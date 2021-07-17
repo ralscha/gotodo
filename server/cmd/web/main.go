@@ -76,7 +76,7 @@ func main() {
 
 	vld := validator.New()
 	vld.RegisterTagNameFunc(func(fld reflect.StructField) string {
-		return fld.Tag.Get("json")
+		return fld.Tag.Get("name")
 	})
 
 	app := &application{
