@@ -5,7 +5,9 @@
     "ng": "ng",
     "start": "ng serve",
     "watch": "ng build --watch --configuration development",
+    "prebuild": "node ./build-info-env.js",
     "build": "ng build",
+    "postbuild": "bread-compressor dist/app",
     "lint": "ng lint",
     "serve-dist": "ws --hostname localhost -d dist/app -p 1234 -o --log.format stats"
   },
@@ -36,8 +38,10 @@
     "@types/node": "16.3.3",
     "@typescript-eslint/eslint-plugin": "4.28.3",
     "@typescript-eslint/parser": "4.28.3",
+    "bread-compressor-cli": "1.1.0",
     "eslint": "7.31.0",
     "local-web-server": "5.0.0",
+    "replace-in-file": "6.2.0",
     "typescript": "4.3.5"
   }
 }

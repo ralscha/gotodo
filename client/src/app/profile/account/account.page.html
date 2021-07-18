@@ -1,0 +1,52 @@
+<ion-header>
+  <ion-toolbar color="danger">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/profile"></ion-back-button>
+    </ion-buttons>
+    <ion-title>
+      Delete Account
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <form #deleteForm="ngForm" (ngSubmit)="deleteForm.valid && deleteAccount(password.value)"
+        [ngFormOptions]="{updateOn: 'submit'}" novalidate>
+
+    <ion-list>
+
+      <ion-text color="danger">
+        <p>Deleting your account deletes all your data and account information.</p>
+        <p><strong>This action is irreversible!</strong></p>
+      </ion-text>
+
+      <ion-item>
+        <ion-label position="stacked">Password</ion-label>
+        <ion-input #password="ngModel" [minlength]="8" [required]="true"
+                   autocomplete="current-password" name="password"
+                   ngModel type="password"></ion-input>
+      </ion-item>
+
+
+      <ion-text [hidden]="password.valid || !deleteForm.submitted" class="ion-padding-start" color="danger">
+        <div *ngIf="password.errors?.required" class="ion-padding-start">
+          Password is required
+        </div>
+        <div *ngIf="password.errors?.minlength || password.errors?.gte" class="ion-padding-start">
+          Minimum length is 8 characters
+        </div>
+        <div *ngIf="password.errors?.invalid" class="ion-padding-start">
+          Password is invalid
+        </div>
+      </ion-text>
+
+      <div class="ion-padding">
+        <ion-button color="danger" expand="block" type="submit">Delete my Account</ion-button>
+      </div>
+
+    </ion-list>
+
+  </form>
+
+</ion-content>

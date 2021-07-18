@@ -1,0 +1,46 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>
+      Profile
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+
+<ion-content class="ion-padding">
+
+  <ion-grid>
+    <ion-row>
+      <ion-col offsetLg="4" offsetSm="3" sizeLg="4" sizeSm="6">
+        <ion-button class="ion-margin-top" expand="block" routerDirection="forward" routerLink="./password">Change my
+          Password
+        </ion-button>
+      </ion-col>
+    </ion-row>
+
+    <ion-row>
+      <ion-col offsetLg="4" offsetSm="3" sizeLg="4" sizeSm="6">
+        <ion-button class="ion-margin-top" expand="block" routerDirection="forward" routerLink="./email">Change my Email
+        </ion-button>
+      </ion-col>
+    </ion-row>
+
+    <ion-row>
+      <ion-col offsetLg="4" offsetSm="3" sizeLg="4" sizeSm="6">
+        <ion-button class="bigger-margin ion-margin-top" color="danger" expand="block" routerDirection="forward"
+                    routerLink="./account">Delete my Account
+        </ion-button>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <ion-footer class="ion-text-center">
+    <ion-note>Server: {{buildInfo.serverVersion}} / {{buildInfo.serverBuildTime}}</ion-note>
+    <br>
+    <ion-note>Client: {{buildInfo.clientVersion}} / {{buildInfo.clientBuildTime}}</ion-note>
+  </ion-footer>
+
+</ion-content>
