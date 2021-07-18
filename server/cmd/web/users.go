@@ -58,27 +58,11 @@ func (app *application) resetPasswordRequestHandler(w http.ResponseWriter, r *ht
 }
 
 func (app *application) resetPasswordHandler(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
-
 	var resetInput struct {
 		Password   string `name:"password" validate:"required,gte=8"`
 		ResetToken string `name:"resetToken" validate:"required"`
 	}
-	err = app.decoder.Decode(&resetInput, r.PostForm)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
-
-	valid, fieldErrors := app.validate(resetInput)
-	if !valid {
-		app.writeJSON(w, r, http.StatusUnprocessableEntity, FormErrorResponse{
-			FieldErrors: fieldErrors,
-		})
+	if ok := app.parseFromForm(w, r, &resetInput); !ok {
 		return
 	}
 
@@ -135,27 +119,11 @@ func (app *application) resetPasswordHandler(w http.ResponseWriter, r *http.Requ
 }
 
 func (app *application) signupHandler(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
-
 	var input struct {
 		Email    string `name:"email" validate:"required,email"`
 		Password string `name:"password" validate:"required,gte=8"`
 	}
-	err = app.decoder.Decode(&input, r.PostForm)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
-
-	valid, fieldErrors := app.validate(input)
-	if !valid {
-		app.writeJSON(w, r, http.StatusUnprocessableEntity, FormErrorResponse{
-			FieldErrors: fieldErrors,
-		})
+	if ok := app.parseFromForm(w, r, &input); !ok {
 		return
 	}
 

@@ -174,6 +174,48 @@ func (app *application) isPasswordCompromised(password string) (bool, error) {
 	return false, nil
 }
 
+func (app *application) parseFromForm(w http.ResponseWriter, r *http.Request, input interface{}) bool {
+	err := r.ParseForm()
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return false
+	}
+
+	err = app.decoder.Decode(input, r.PostForm)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return false
+	}
+
+	valid, fieldErrors := app.validate(input)
+	if !valid {
+		app.writeJSON(w, r, http.StatusUnprocessableEntity, FormErrorResponse{
+			FieldErrors: fieldErrors,
+		})
+		return false
+	}
+
+	return true
+}
+
+func (app *application) parseFromJson(w http.ResponseWriter, r *http.Request, input interface{}) bool {
+	err := app.readJSON(w, r, input)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return false
+	}
+
+	valid, fieldErrors := app.validate(input)
+	if !valid {
+		app.writeJSON(w, r, http.StatusUnprocessableEntity, FormErrorResponse{
+			FieldErrors: fieldErrors,
+		})
+		return false
+	}
+
+	return true
+}
+
 func (app *application) schedule(fn func(), delay time.Duration) chan struct{} {
 	stop := make(chan struct{})
 

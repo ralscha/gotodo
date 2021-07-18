@@ -60,27 +60,12 @@ func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
 		app.serverErrorResponse(w, r, err)
 	}
 
-	err = r.ParseForm()
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
-
 	var loginInput struct {
 		Password string `name:"password" validate:"required,gte=8"`
 		Email    string `name:"email" validate:"required,email"`
 	}
-	err = app.decoder.Decode(&loginInput, r.PostForm)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
 
-	valid, fieldErrors := app.validate(loginInput)
-	if !valid {
-		app.writeJSON(w, r, http.StatusUnprocessableEntity, FormErrorResponse{
-			FieldErrors: fieldErrors,
-		})
+	if ok := app.parseFromForm(w, r, &loginInput); !ok {
 		return
 	}
 

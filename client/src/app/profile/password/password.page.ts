@@ -34,7 +34,7 @@ export class PasswordPage {
         if (!response) {
           this.changeForm.resetForm();
           await this.messagesService.showSuccessToast('Password successfully changed');
-          await this.authService.deleteTokens();
+          // await this.authService.deleteTokens();
           await this.navCtrl.navigateRoot('/login');
         } else if (response === 'INVALID') {
           this.submitError = 'passwordInvalid';

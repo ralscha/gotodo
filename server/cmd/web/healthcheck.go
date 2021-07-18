@@ -5,13 +5,14 @@ import (
 )
 
 func (app *application) healthcheckHandler(w http.ResponseWriter, r *http.Request) {
-	response := map[string]interface{}{
-		"status": "available",
-		"system_info": map[string]string{
-			"buildTime": appBuildTime,
-			"version":   appVersion,
-		},
-	}
+	app.writeJSON(w, r, http.StatusOK, map[string]interface{}{
+		"status": "up",
+	})
+}
 
-	app.writeJSON(w, r, http.StatusOK, response)
+func (app *application) buildInfoHandler(w http.ResponseWriter, r *http.Request) {
+	app.writeJSON(w, r, http.StatusOK, map[string]interface{}{
+		"buildTime": appBuildTime,
+		"version":   appVersion,
+	})
 }

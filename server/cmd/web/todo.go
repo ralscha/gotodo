@@ -32,17 +32,8 @@ func (app *application) todoSaveHandler(w http.ResponseWriter, r *http.Request) 
 		Subject     string `name:"subject" validate:"required"`
 		Description string
 	}
-	err := app.readJSON(w, r, &todoInput)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
 
-	valid, fieldErrors := app.validate(todoInput)
-	if !valid {
-		app.writeJSON(w, r, http.StatusUnprocessableEntity, FormErrorResponse{
-			FieldErrors: fieldErrors,
-		})
+	if ok := app.parseFromJson(w, r, &todoInput); !ok {
 		return
 	}
 
@@ -50,6 +41,7 @@ func (app *application) todoSaveHandler(w http.ResponseWriter, r *http.Request) 
 
 	var response interface{}
 	var httpStatus int
+	var err error
 
 	ctx, cancel := app.createDbContext()
 	if todoInput.Id > 0 {

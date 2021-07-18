@@ -11,6 +11,11 @@ const routes: Routes = [
     loadChildren: () => import('./todo/todo.module').then(m => m.TodoModule),
     canActivate: [AuthGuard]
   },
+  {
+    path: 'profile',
+    loadChildren: () => import('./profile/profile/profile.module').then(m => m.ProfilePageModule),
+    canActivate: [AuthGuard]
+  },
   {path: 'login', component: LoginPage},
   {path: 'logout', component: LogoutPage},
   {

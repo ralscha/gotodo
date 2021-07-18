@@ -9,6 +9,15 @@
           </ion-list-header>
 
           <ion-menu-toggle autoHide="false">
+            <ion-item routerLink="profile" routerDirection="root" routerLinkActive="active">
+              <ion-icon name="person" slot="start"></ion-icon>
+              <ion-label>
+                Profile
+              </ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+
+          <ion-menu-toggle autoHide="false">
             <ion-item (click)="logout()" detail="false">
               <ion-icon name="log-out-outline" slot="start"></ion-icon>
               <ion-label>

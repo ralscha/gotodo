@@ -25,6 +25,7 @@ func (app *application) routes() http.Handler {
 	router.Route("/v1", func(r chi.Router) {
 		r.Use(app.sessionManager.LoadAndSave)
 		r.Get("/healthcheck", app.healthcheckHandler)
+		r.Get("/build-info", app.buildInfoHandler)
 		r.Post("/authenticate", app.authenticateHandler)
 		r.Post("/login", app.loginHandler)
 		r.Post("/logout", app.logoutHandler)
