@@ -69,6 +69,13 @@ func (app *application) deleteAllTokensForUser(appUserId int64, scope scope) err
 	return err
 }
 
+func (app *application) deleteExpiredTokens() error {
+	ctx, cancel := app.createDbContext()
+	defer cancel()
+	err := models.Tokens(models.TokenWhere.Expiry.LT(time.Now())).DeleteAll(ctx, app.db)
+	return err
+}
+
 func (app *application) getAppUserIdFromToken(scope scope, tokenPlain string) (int64, error) {
 	tokenHash := sha256.Sum256([]byte(tokenPlain))
 

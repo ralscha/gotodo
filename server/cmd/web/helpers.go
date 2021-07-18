@@ -174,6 +174,24 @@ func (app *application) isPasswordCompromised(password string) (bool, error) {
 	return false, nil
 }
 
+func (app *application) schedule(fn func(), delay time.Duration) chan struct{} {
+	stop := make(chan struct{})
+
+	go func() {
+		for {
+			fn()
+			select {
+			case <-time.After(delay):
+			case <-stop:
+				fmt.Println("close")
+				return
+			}
+		}
+	}()
+
+	return stop
+}
+
 func (app *application) background(fn func()) {
 	app.wg.Add(1)
 

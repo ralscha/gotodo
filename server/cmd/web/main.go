@@ -96,6 +96,13 @@ func main() {
 		mailer:         mailer.New(cfg.Smtp.Host, cfg.Smtp.Port, cfg.Smtp.Username, cfg.Smtp.Password, cfg.Smtp.Sender),
 	}
 
+	app.schedule(func() {
+		err := app.deleteExpiredTokens()
+		if err != nil {
+			app.logger.Error("delete expired tokens failed", zap.Error(err))
+		}
+	}, time.Hour)
+
 	err = app.serve()
 	if err != nil {
 		sugar.Fatalw("http serve failed", zap.Error(err))
