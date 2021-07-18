@@ -1,5 +1,6 @@
 import {Injectable} from '@angular/core';
 import {BehaviorSubject, Observable, of} from 'rxjs';
+import {map} from 'rxjs/operators';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {catchError, share, tap} from 'rxjs/operators';
 
@@ -43,6 +44,27 @@ export class AuthService {
       .pipe(
         tap(() => this.authoritySubject.next(null))
       );
+  }
+
+  signup(email: string, password: string): Observable<'EMAIL_REGISTERED' | 'WEAK_PASSWORD' | null> {
+    const body = new HttpParams().set('email', email).set('password', password);
+    return this.httpClient.post<'EMAIL_REGISTERED' | 'WEAK_PASSWORD' | null>('/be/signup', body);
+  }
+
+  confirmSignup(token: string): Observable<boolean> {
+    return this.httpClient.post('/be/confirm-signup', token, {responseType: 'text'})
+      .pipe(
+        map(response => response === 'true')
+      );
+  }
+
+  resetPasswordRequest(email: string): Observable<void> {
+    return this.httpClient.post<void>('/v1/reset-password-request', email);
+  }
+
+  resetPassword(resetToken: string, password: string): Observable<'INVALID' | 'WEAK_PASSWORD' | null> {
+    const body = new HttpParams().set('resetToken', resetToken).set('password', password);
+    return this.httpClient.post<'INVALID' | 'WEAK_PASSWORD' | null>('/v1/reset-password', body);
   }
 
 }

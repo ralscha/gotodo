@@ -14,6 +14,7 @@ const (
 type Config struct {
 	Environment  Environment
 	SecureCookie bool
+	BaseUrl      string
 	Db           struct {
 		User         string
 		Password     string

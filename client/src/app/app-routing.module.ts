@@ -13,6 +13,22 @@ const routes: Routes = [
   },
   {path: 'login', component: LoginPage},
   {path: 'logout', component: LogoutPage},
+  {
+    path: 'signup',
+    loadChildren: () => import('./signup/signup.module').then(m => m.SignupPageModule)
+  },
+  {
+    path: 'signup-confirm',
+    loadChildren: () => import('./signup-confirm/signup-confirm.module').then(m => m.SignupConfirmPageModule)
+  },
+  {
+    path: 'password-reset-request',
+    loadChildren: () => import('./password-reset-request/password-reset-request.module').then(m => m.PasswordResetRequestPageModule)
+  },
+  {
+    path: 'password-reset',
+    loadChildren: () => import('./password-reset/password-reset.module').then(m => m.PasswordResetPageModule)
+  },
   {path: '**', redirectTo: 'todo'}
 ];
 

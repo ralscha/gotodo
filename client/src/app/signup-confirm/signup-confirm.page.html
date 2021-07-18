@@ -1,0 +1,36 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Sign Up Confirmation</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-grid *ngIf="success === true" class="ion-margin-top ion-text-center">
+    <ion-row>
+      <ion-col offsetLg="4" offsetSm="3" sizeLg="4" sizeSm="6">
+        <ion-text>
+          <p>Sign up successfully confirmed.</p>
+          <p>You can now use the application.</p>
+        </ion-text>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col class="ion-margin-top" offsetLg="4" offsetSm="3" sizeLg="4" sizeSm="6">
+        <ion-button expand="block" routerDirection="root" routerLink="/login">Go to Login</ion-button>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <ion-grid *ngIf="success === false" class="ion-margin-top ion-text-center">
+    <ion-row>
+      <ion-col offsetLg="4" offsetSm="3" sizeLg="4" sizeSm="6">
+        <ion-text color="danger">
+          <p>Something went wrong</p>
+          <p>Please try again later.</p>
+        </ion-text>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+</ion-content>

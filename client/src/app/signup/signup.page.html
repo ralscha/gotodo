@@ -1,0 +1,94 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/login"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Sign Up</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form #signupForm="ngForm" (ngSubmit)="signupForm.valid && signup(email.value, password.value)" *ngIf="!signUpSent"
+        [ngFormOptions]="{updateOn: 'submit'}" novalidate>
+    <ion-grid>
+
+      <ion-row>
+        <ion-col offsetLg="4" offsetSm="3" sizeLg="4" sizeSm="6">
+          <ion-item>
+            <ion-label position="stacked">Email</ion-label>
+            <ion-input #email="ngModel" [required]="true" [spellcheck]="false" autocapitalize="off"
+                       autocomplete="username" email
+                       name="email" ngModel type="text"></ion-input>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+
+      <ion-row>
+        <ion-col offsetLg="4" offsetSm="3" sizeLg="4" sizeSm="6">
+          <ion-text *ngIf="signupForm.submitted && email.invalid" color="danger">
+            <p *ngIf="email.errors?.required" class="ion-padding-start">
+              Email is required
+            </p>
+            <p *ngIf="email.errors?.email" class="ion-padding-start">
+              Not a valid email address
+            </p>
+          </ion-text>
+          <ion-text *ngIf="submitError" color="danger">
+            <p *ngIf="submitError === 'emailRegistered'" class="ion-padding-start">
+              Email already registered
+            </p>
+          </ion-text>
+        </ion-col>
+      </ion-row>
+
+      <ion-row>
+        <ion-col offsetLg="4" offsetSm="3" sizeLg="4" sizeSm="6">
+          <ion-item>
+            <ion-label position="stacked">Password</ion-label>
+            <ion-input #password="ngModel" [minlength]="8" [required]="true" autocomplete="new-password" name="password"
+                       ngModel type="password"></ion-input>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+
+      <ion-row>
+        <ion-col offsetLg="4" offsetSm="3" sizeLg="4" sizeSm="6">
+          <ion-text *ngIf="signupForm.submitted && password.invalid" color="danger">
+            <p *ngIf="password.errors?.required" class="ion-padding-start">
+              Password is required
+            </p>
+            <p *ngIf="password.errors?.minlength" class="ion-padding-start">
+              Minimum length is 8 characters
+            </p>
+          </ion-text>
+          <ion-text *ngIf="submitError" color="danger">
+            <p *ngIf="submitError === 'weakPassword'" class="ion-padding-start">
+              Weak password
+            </p>
+          </ion-text>
+        </ion-col>
+      </ion-row>
+
+      <ion-row>
+        <ion-col class="ion-margin-top" offsetLg="4" offsetSm="3" sizeLg="4" sizeSm="6">
+          <ion-button expand="block" type="submit">Sign up</ion-button>
+        </ion-col>
+      </ion-row>
+
+    </ion-grid>
+  </form>
+
+  <ion-grid *ngIf="signUpSent" class="ion-margin-top">
+    <ion-row>
+      <ion-col offsetLg="4" offsetSm="3" sizeLg="4" sizeSm="6">
+        <ion-text>
+          <p>We successfully received your sign up request.</p>
+          <p>Before we activate your account we need to verify your email address.</p>
+          <p>We sent you an email with a confirmation link.</p>
+          <p><strong>Please check your inbox and click on the link.</strong></p>
+        </ion-text>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+</ion-content>

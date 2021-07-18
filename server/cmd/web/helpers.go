@@ -30,6 +30,16 @@ func (app *application) writeJSON(w http.ResponseWriter, r *http.Request, status
 
 const maxBytes = 1_048_576
 
+func (app *application) readString(w http.ResponseWriter, r *http.Request) (string, error) {
+	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
+	buf := new(strings.Builder)
+	_, err := io.Copy(buf, r.Body)
+	if err != nil {
+		return "", err
+	}
+	return buf.String(), nil
+}
+
 func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst interface{}) error {
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
 
