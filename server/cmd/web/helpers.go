@@ -183,7 +183,6 @@ func (app *application) schedule(fn func(), delay time.Duration) chan struct{} {
 			select {
 			case <-time.After(delay):
 			case <-stop:
-				fmt.Println("close")
 				return
 			}
 		}
