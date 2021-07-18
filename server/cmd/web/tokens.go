@@ -3,7 +3,9 @@ package main
 import (
 	"crypto/rand"
 	"crypto/sha256"
+	"database/sql"
 	"encoding/base32"
+	"errors"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"gotodo.rasc.ch/internal/models"
@@ -62,7 +64,7 @@ func (app *application) insertToken(appUserId int64, ttl time.Duration, scope sc
 func (app *application) deleteAllTokensForUser(appUserId int64, scope scope) error {
 	ctx, cancel := app.createDbContext()
 	defer cancel()
-	err := models.Tokens(models.TokenWhere.ID.EQ(appUserId),
+	err := models.Tokens(models.TokenWhere.AppUserID.EQ(appUserId),
 		models.TokenWhere.Scope.EQ(string(scope))).DeleteAll(ctx, app.db)
 	return err
 }
@@ -78,10 +80,13 @@ func (app *application) getAppUserIdFromToken(scope scope, tokenPlain string) (i
 		models.TokenWhere.Scope.EQ(string(scope)),
 		models.TokenWhere.Expiry.GT(time.Now())).One(ctx, app.db)
 
-	if err != nil {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return 0, err
 	}
 
-	return token.AppUserID, nil
+	if token != nil {
+		return token.AppUserID, nil
+	}
+	return 0, nil
 
 }

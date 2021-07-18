@@ -1,8 +1,7 @@
 import {Injectable} from '@angular/core';
 import {BehaviorSubject, Observable, of} from 'rxjs';
-import {map} from 'rxjs/operators';
+import {catchError, map, share, tap} from 'rxjs/operators';
 import {HttpClient, HttpParams} from '@angular/common/http';
-import {catchError, share, tap} from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -62,9 +61,9 @@ export class AuthService {
     return this.httpClient.post<void>('/v1/reset-password-request', email);
   }
 
-  resetPassword(resetToken: string, password: string): Observable<'INVALID' | 'WEAK_PASSWORD' | null> {
+  resetPassword(resetToken: string, password: string): Observable<'WEAK' | void> {
     const body = new HttpParams().set('resetToken', resetToken).set('password', password);
-    return this.httpClient.post<'INVALID' | 'WEAK_PASSWORD' | null>('/v1/reset-password', body);
+    return this.httpClient.post<'WEAK' | void>('/v1/reset-password', body);
   }
 
 }

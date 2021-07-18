@@ -2,6 +2,10 @@ import {Component, OnInit} from '@angular/core';
 import {AuthService} from '../service/auth.service';
 import {ActivatedRoute} from '@angular/router';
 import {MessagesService} from '../service/messages.service';
+import {NgForm} from '@angular/forms';
+import {HttpErrorResponse} from '@angular/common/http';
+import {FormErrorResponse} from '../model/form-error-response';
+import {displayFieldErrors} from '../util';
 
 @Component({
   selector: 'app-password-reset',
@@ -12,7 +16,7 @@ export class PasswordResetPage implements OnInit {
 
   success: boolean | null = null;
   resetToken: string | null = null;
-  submitError: string | null = null;
+  showForm = true;
 
   constructor(private readonly authService: AuthService,
               private readonly route: ActivatedRoute,
@@ -23,34 +27,36 @@ export class PasswordResetPage implements OnInit {
     this.resetToken = this.route.snapshot.paramMap.get('token');
 
     if (!this.resetToken) {
-      this.success = false;
+      this.showForm = false;
     }
   }
 
-  async reset(password: string): Promise<void> {
-    const loading = await this.messagesService.showLoading('Changing Password');
+  async reset(form: NgForm, password: string): Promise<void> {
+    const loading = await this.messagesService.showLoading('Changing Password...');
     if (this.resetToken !== null) {
       this.authService.resetPassword(this.resetToken, password)
-        .subscribe(async (response) => {
-          await loading.dismiss();
-          this.submitError = null;
-          if (!response) {
-            await this.messagesService.showSuccessToast('Password successfully changed');
+        .subscribe({
+          next: () => {
+            loading.dismiss();
+            this.messagesService.showSuccessToast('Password successfully changed');
             this.success = true;
-          } else if (response === 'WEAK_PASSWORD') {
-            this.submitError = 'weakPassword';
-            await this.messagesService.showErrorToast('Weak password');
-          } else if (response === 'INVALID') {
-            this.success = false;
-            await this.messagesService.showErrorToast('Password change failed');
+          },
+          error: err => {
+            loading.dismiss();
+            this.handleErrorResponse(form, err);
           }
-        }, () => {
-          this.success = false;
-          loading.dismiss();
-          this.messagesService.showErrorToast('Password change failed');
-        });
+        })
     }
+  }
 
+  private handleErrorResponse(form: NgForm, errorResponse: HttpErrorResponse) {
+    const response: FormErrorResponse = errorResponse.error;
+    if (response && response.fieldErrors) {
+      displayFieldErrors(form, response.fieldErrors)
+      this.success = false;
+    } else {
+      this.showForm = false;
+    }
   }
 
 }

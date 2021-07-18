@@ -81,6 +81,57 @@ func (app *application) resetPasswordHandler(w http.ResponseWriter, r *http.Requ
 		})
 		return
 	}
+
+	userId, err := app.getAppUserIdFromToken(scopePasswordReset, resetInput.ResetToken)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	if userId == 0 {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		return
+	}
+
+	compromised, err := app.isPasswordCompromised(resetInput.Password)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+	if compromised {
+		app.writeJSON(w, r, http.StatusUnprocessableEntity, FormErrorResponse{
+			FieldErrors: map[string]string{
+				"password": "weak",
+			},
+		})
+		return
+	}
+
+	newPasswordHash, err := argon2id.CreateHash(resetInput.Password, &argon2id.Params{
+		Memory:      app.config.Argon2.Memory,
+		Iterations:  app.config.Argon2.Iterations,
+		Parallelism: app.config.Argon2.Parallelism,
+		SaltLength:  app.config.Argon2.SaltLength,
+		KeyLength:   app.config.Argon2.KeyLength,
+	})
+
+	ctx, cancel := app.createDbContext()
+	err = models.AppUsers(models.AppUserWhere.ID.EQ(userId)).UpdateAll(ctx, app.db,
+		models.M{models.AppUserColumns.PasswordHash: newPasswordHash})
+	cancel()
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.deleteAllTokensForUser(userId, scopePasswordReset)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+
 }
 
 func (app *application) signupHandler(w http.ResponseWriter, r *http.Request) {

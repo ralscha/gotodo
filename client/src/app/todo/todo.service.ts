@@ -39,13 +39,13 @@ export class TodoService {
     return this.httpClient.delete<void>(`/v1/todo/${todo.id}`)
       .pipe(
         tap(() => {
-            this.todosMap.delete(todo.id);
-            this.publish();
+          this.todosMap.delete(todo.id);
+          this.publish();
         }));
   }
 
-  save(todo: Todo): Observable<FormErrorResponse|number|void> {
-    return this.httpClient.post<FormErrorResponse|number|void>('/v1/todo', todo)
+  save(todo: Todo): Observable<FormErrorResponse | number | void> {
+    return this.httpClient.post<FormErrorResponse | number | void>('/v1/todo', todo)
       .pipe(
         tap(id => {
           if (id) {

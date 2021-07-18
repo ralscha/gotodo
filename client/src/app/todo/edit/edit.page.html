@@ -19,7 +19,7 @@
         <ion-label position="stacked">Subject</ion-label>
         <ion-input #subject="ngModel" [ngModel]="selectedTodo.subject" [required]="true" name="subject"></ion-input>
       </ion-item>
-      <ion-text color="danger" [hidden]="subject.valid || !todoForm.submitted" class="ion-padding-start">
+      <ion-text [hidden]="subject.valid || !todoForm.submitted" class="ion-padding-start" color="danger">
         <div class="ion-padding-start">
           Subject is required
         </div>
