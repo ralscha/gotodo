@@ -6,7 +6,7 @@ import {NgForm} from '@angular/forms';
 import {Todo} from '../todo';
 import {TodoService} from '../todo.service';
 import {displayFieldErrors} from '../../util';
-import {SaveResponse} from '../../model/save-response';
+import {FormErrorResponse} from '../../model/form-error-response';
 import {HttpErrorResponse} from '@angular/common/http';
 
 @Component({
@@ -62,7 +62,7 @@ export class EditPage implements OnInit {
       this.selectedTodo.subject = form.value.subject;
       this.selectedTodo.description = form.value.description;
       this.todoService.save(this.selectedTodo).subscribe({
-        next: this.handleSuccessResponse,
+        next: () => this.handleSuccessResponse(),
         error: this.handleErrorResponse(form)
       });
     }
@@ -75,12 +75,10 @@ export class EditPage implements OnInit {
 
   private handleErrorResponse(form: NgForm) {
     return (errorResponse: HttpErrorResponse) => {
-      const response: SaveResponse = errorResponse.error;
+      const response: FormErrorResponse = errorResponse.error;
       if (response) {
         if (response.fieldErrors) {
           displayFieldErrors(form, response.fieldErrors)
-        } else if (response.globalError) {
-          this.messagesService.showErrorToast(response.globalError);
         } else {
           this.messagesService.showErrorToast('Saving Todo failed');
         }
@@ -90,14 +88,13 @@ export class EditPage implements OnInit {
 
   private async reallyDeleteTodo(): Promise<void> {
     if (this.selectedTodo) {
-      this.todoService.delete(this.selectedTodo).subscribe(success => {
-        this.router.navigate(['/todos']);
-        if (success) {
+      this.todoService.delete(this.selectedTodo).subscribe({
+        next: () => {
+          this.router.navigate(['/todos']);
           this.messagesService.showSuccessToast('Todo successfully deleted', 500);
-        } else {
-          this.messagesService.showErrorToast('Deleting Todo failed');
-        }
-      })
+        },
+        error: () => this.messagesService.showErrorToast('Deleting Todo failed')
+      });
     }
   }
 }

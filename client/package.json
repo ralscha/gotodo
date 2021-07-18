@@ -18,7 +18,7 @@
     "@angular/platform-browser": "12.1.2",
     "@angular/platform-browser-dynamic": "12.1.2",
     "@angular/router": "12.1.2",
-    "@ionic/angular": "^6.0.0-beta.1",
+    "@ionic/angular": "6.0.0-beta.1",
     "rxjs": "7.2.0",
     "tslib": "2.3.0",
     "zone.js": "0.11.4"
@@ -36,7 +36,7 @@
     "@types/node": "16.3.3",
     "@typescript-eslint/eslint-plugin": "4.28.3",
     "@typescript-eslint/parser": "4.28.3",
-    "eslint": "7.30.0",
+    "eslint": "7.31.0",
     "local-web-server": "5.0.0",
     "typescript": "4.3.5"
   }

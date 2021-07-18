@@ -68,7 +68,7 @@ func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
 
 	var loginInput struct {
 		Password string `name:"password" validate:"required,gte=8"`
-		Username string `name:"username" validate:"required,email"`
+		Email    string `name:"email" validate:"required,email"`
 	}
 	err = app.decoder.Decode(&loginInput, r.PostForm)
 	if err != nil {
@@ -78,8 +78,7 @@ func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
 
 	valid, fieldErrors := app.validate(loginInput)
 	if !valid {
-		app.writeJSON(w, r, http.StatusUnprocessableEntity, SaveResponse{
-			Success:     false,
+		app.writeJSON(w, r, http.StatusUnprocessableEntity, FormErrorResponse{
 			FieldErrors: fieldErrors,
 		})
 		return
@@ -92,7 +91,7 @@ func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
 		models.AppUserColumns.PasswordHash,
 		models.AppUserColumns.Expired,
 		models.AppUserColumns.Activated),
-		models.AppUserWhere.Email.EQ(loginInput.Username)).One(ctx, app.db)
+		models.AppUserWhere.Email.EQ(loginInput.Email)).One(ctx, app.db)
 	cancel()
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		app.serverErrorResponse(w, r, err)

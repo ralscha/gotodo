@@ -5,7 +5,7 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-  <form #loginForm="ngForm" (ngSubmit)="loginForm.valid && login(email.value, password.value)"
+  <form #loginForm="ngForm" (ngSubmit)="loginForm.valid && login(loginForm, email.value, password.value)"
         [ngFormOptions]="{updateOn: 'submit'}" novalidate>
 
     <ion-list>
@@ -37,7 +37,7 @@
         <div *ngIf="password.errors?.required" class="ion-padding-start">
           Password is required
         </div>
-        <div *ngIf="password.errors?.minlength" class="ion-padding-start">
+        <div *ngIf="password.errors?.minlength || password.errors?.gte" class="ion-padding-start">
           Minimum length is 8 characters
         </div>
       </ion-text>

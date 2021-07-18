@@ -4,6 +4,9 @@ import {AuthService} from '../service/auth.service';
 import {MessagesService} from '../service/messages.service';
 import {take} from 'rxjs';
 import {HttpErrorResponse} from '@angular/common/http';
+import {NgForm} from '@angular/forms';
+import {FormErrorResponse} from '../model/form-error-response';
+import {displayFieldErrors} from '../util';
 
 @Component({
   selector: 'app-login',
@@ -28,17 +31,24 @@ export class LoginPage implements OnInit {
     });
   }
 
-  async login(username: string, password: string): Promise<void> {
+  async login(form: NgForm, email: string, password: string): Promise<void> {
     this.authService
-      .login(username, password)
+      .login(email, password)
       .subscribe({
         next: () => this.navCtrl.navigateRoot('home'),
-        error: () => this.showLoginFailedToast()
+        error: this.handleErrorResponse(form)
       });
   }
 
-  private showLoginFailedToast(): void {
-    this.messagesService.showErrorToast('Login failed');
+  private handleErrorResponse(form: NgForm) {
+    return (errorResponse: HttpErrorResponse) => {
+      const response: FormErrorResponse = errorResponse.error;
+      if (response && response.fieldErrors) {
+        displayFieldErrors(form, response.fieldErrors)
+      } else {
+        this.messagesService.showErrorToast('Login failed');
+      }
+    };
   }
 
 }

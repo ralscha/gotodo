@@ -40,8 +40,7 @@ func (app *application) todoSaveHandler(w http.ResponseWriter, r *http.Request) 
 
 	valid, fieldErrors := app.validate(todoInput)
 	if !valid {
-		app.writeJSON(w, r, http.StatusUnprocessableEntity, SaveResponse{
-			Success:     false,
+		app.writeJSON(w, r, http.StatusUnprocessableEntity, FormErrorResponse{
 			FieldErrors: fieldErrors,
 		})
 		return
@@ -49,13 +48,15 @@ func (app *application) todoSaveHandler(w http.ResponseWriter, r *http.Request) 
 
 	userId := app.sessionManager.Get(r.Context(), "userId").(int64)
 
-	var saveResponse SaveResponse
+	var response interface{}
+	var httpStatus int
+
 	ctx, cancel := app.createDbContext()
 	if todoInput.Id > 0 {
 		err = models.Todos(models.TodoWhere.ID.EQ(todoInput.Id), models.TodoWhere.AppUserID.EQ(userId)).
 			UpdateAll(ctx, app.db, models.M{models.TodoColumns.Subject: todoInput.Subject,
 				models.TodoColumns.Description: app.newNullString(todoInput.Description)})
-		saveResponse.Success = true
+		httpStatus = http.StatusOK
 	} else {
 		newTodo := models.Todo{
 			Subject:     todoInput.Subject,
@@ -63,8 +64,8 @@ func (app *application) todoSaveHandler(w http.ResponseWriter, r *http.Request) 
 			AppUserID:   userId,
 		}
 		err = newTodo.Insert(ctx, app.db, boil.Infer())
-		saveResponse.Id = newTodo.ID
-		saveResponse.Success = true
+		response = newTodo.ID
+		httpStatus = http.StatusCreated
 	}
 	cancel()
 	if err != nil {
@@ -72,7 +73,11 @@ func (app *application) todoSaveHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	app.writeJSON(w, r, http.StatusOK, saveResponse)
+	if response != nil {
+		app.writeJSON(w, r, httpStatus, response)
+	} else {
+		w.WriteHeader(httpStatus)
+	}
 }
 
 func (app *application) todoDeleteHandler(w http.ResponseWriter, r *http.Request) {
@@ -90,9 +95,5 @@ func (app *application) todoDeleteHandler(w http.ResponseWriter, r *http.Request
 		app.serverErrorResponse(w, r, err)
 		return
 	}
-
-	deleteResponse := DeleteResponse{
-		Success: true,
-	}
-	app.writeJSON(w, r, http.StatusOK, deleteResponse)
+	w.WriteHeader(http.StatusOK)
 }

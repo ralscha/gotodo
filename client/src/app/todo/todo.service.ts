@@ -1,10 +1,9 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {BehaviorSubject, Observable} from 'rxjs';
-import {map, tap} from 'rxjs/operators';
+import {tap} from 'rxjs/operators';
 import {Todo} from './todo';
-import {SaveResponse} from '../model/save-response';
-import {DeleteResponse} from '../model/delete-response';
+import {FormErrorResponse} from '../model/form-error-response';
 
 @Injectable({
   providedIn: 'root'
@@ -36,26 +35,21 @@ export class TodoService {
     return this.todosMap.get(id);
   }
 
-  delete(todo: Todo): Observable<boolean> {
-    return this.httpClient.delete<DeleteResponse>(`/v1/todo/${todo.id}`)
+  delete(todo: Todo): Observable<void> {
+    return this.httpClient.delete<void>(`/v1/todo/${todo.id}`)
       .pipe(
-        map(response => {
-          if (response.success) {
+        tap(() => {
             this.todosMap.delete(todo.id);
             this.publish();
-            return true;
-          } else {
-            return false
-          }
         }));
   }
 
-  save(todo: Todo): Observable<SaveResponse> {
-    return this.httpClient.post<SaveResponse>('/v1/todo', todo)
+  save(todo: Todo): Observable<FormErrorResponse|number|void> {
+    return this.httpClient.post<FormErrorResponse|number|void>('/v1/todo', todo)
       .pipe(
-        tap(response => {
-          if (response.id > 0) {
-            todo.id = response.id;
+        tap(id => {
+          if (id) {
+            todo.id = <number>id;
           }
           this.todosMap.set(todo.id, todo)
           this.publish();

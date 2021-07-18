@@ -28,6 +28,7 @@ func (app *application) routes() http.Handler {
 		r.Post("/authenticate", app.authenticateHandler)
 		r.Post("/login", app.loginHandler)
 		r.Post("/logout", app.logoutHandler)
+		r.Post("/signup", app.signupHandler)
 		r.Mount("/", app.authenticatedRouter())
 	})
 

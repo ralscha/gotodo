@@ -30,8 +30,8 @@ export class AuthService {
     return this.authoritySubject.getValue() != null;
   }
 
-  login(username: string, password: string): Observable<string | null> {
-    const body = new HttpParams().set('username', username).set('password', password);
+  login(email: string, password: string): Observable<string | null> {
+    const body = new HttpParams().set('email', email).set('password', password);
     return this.httpClient.post<string>('/v1/login', body, {withCredentials: true})
       .pipe(
         tap(authority => this.authoritySubject.next(authority)),

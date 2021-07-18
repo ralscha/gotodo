@@ -1,5 +1,4 @@
-export interface SaveResponse {
-  id: number;
+export interface FormErrorResponse {
   fieldErrors?: { [key: string]: string };
   globalError?: string;
 }
