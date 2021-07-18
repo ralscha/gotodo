@@ -2,6 +2,10 @@ import {Component} from '@angular/core';
 import {NavController} from '@ionic/angular';
 import {AuthService} from '../service/auth.service';
 import {MessagesService} from '../service/messages.service';
+import {NgForm} from '@angular/forms';
+import {HttpErrorResponse} from '@angular/common/http';
+import {FormErrorResponse} from '../model/form-error-response';
+import {displayFieldErrors} from '../util';
 
 @Component({
   selector: 'app-signup',
@@ -11,36 +15,33 @@ import {MessagesService} from '../service/messages.service';
 export class SignupPage {
 
   signUpSent = false;
-  submitError: string | null = null;
 
   constructor(private readonly navCtrl: NavController,
               private readonly authService: AuthService,
               private readonly messagesService: MessagesService) {
   }
 
-  async signup(email: string, password: string): Promise<void> {
-    const loading = await this.messagesService.showLoading('Signing up');
-    this.submitError = null;
+  private static handleErrorResponse(form: NgForm, errorResponse: HttpErrorResponse) {
+    const response: FormErrorResponse = errorResponse.error;
+    if (response && response.fieldErrors) {
+      displayFieldErrors(form, response.fieldErrors)
+    }
+  }
 
+  async signup(form: NgForm, email: string, password: string): Promise<void> {
+    const loading = await this.messagesService.showLoading('Signing up...');
     this.authService.signup(email, password)
-      .subscribe(async (response) => {
-        await loading.dismiss();
-        if (!response) {
+      .subscribe({
+        next: () => {
+          loading.dismiss();
           this.signUpSent = true;
-          await this.messagesService.showSuccessToast('Sign up successful');
-        } else if (response === 'EMAIL_REGISTERED') {
-          this.submitError = 'emailRegistered';
-          await this.messagesService.showErrorToast('Email already registered');
-        } else if (response === 'WEAK_PASSWORD') {
-          this.submitError = 'weakPassword';
-          await this.messagesService.showErrorToast('Weak password');
+          this.messagesService.showSuccessToast('Sign-up successful');
+        },
+        error: err => {
+          loading.dismiss();
+          SignupPage.handleErrorResponse(form, err);
         }
-
-      }, () => {
-        loading.dismiss();
-        this.messagesService.showErrorToast('Sign up failed');
-      });
-
+      })
   }
 
 

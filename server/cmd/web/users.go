@@ -135,12 +135,17 @@ func (app *application) resetPasswordHandler(w http.ResponseWriter, r *http.Requ
 }
 
 func (app *application) signupHandler(w http.ResponseWriter, r *http.Request) {
-	var input struct {
-		Email    string `validate:"required,email"`
-		Password string `validate:"required,gte=8"`
+	err := r.ParseForm()
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
 	}
 
-	err := app.readJSON(w, r, &input)
+	var input struct {
+		Email    string `name:"email" validate:"required,email"`
+		Password string `name:"password" validate:"required,gte=8"`
+	}
+	err = app.decoder.Decode(&input, r.PostForm)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -150,6 +155,37 @@ func (app *application) signupHandler(w http.ResponseWriter, r *http.Request) {
 	if !valid {
 		app.writeJSON(w, r, http.StatusUnprocessableEntity, FormErrorResponse{
 			FieldErrors: fieldErrors,
+		})
+		return
+	}
+
+	compromised, err := app.isPasswordCompromised(input.Password)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+	if compromised {
+		app.writeJSON(w, r, http.StatusUnprocessableEntity, FormErrorResponse{
+			FieldErrors: map[string]string{
+				"password": "weak",
+			},
+		})
+		return
+	}
+
+	ctx, cancel := app.createDbContext()
+	count, err := models.AppUsers(models.AppUserWhere.Email.EQ(input.Email)).Count(ctx, app.db)
+	cancel()
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	if count > 0 {
+		app.writeJSON(w, r, http.StatusUnprocessableEntity, FormErrorResponse{
+			FieldErrors: map[string]string{
+				"email": "exists",
+			},
 		})
 		return
 	}
@@ -173,7 +209,7 @@ func (app *application) signupHandler(w http.ResponseWriter, r *http.Request) {
 		Activated:    false,
 	}
 
-	ctx, cancel := app.createDbContext()
+	ctx, cancel = app.createDbContext()
 	err = newUser.Insert(ctx, app.db, boil.Infer())
 	cancel()
 	if err != nil {
@@ -189,7 +225,7 @@ func (app *application) signupHandler(w http.ResponseWriter, r *http.Request) {
 
 	app.background(func() {
 		data := map[string]interface{}{
-			"confirmationLink": token.plain,
+			"confirmationLink": app.config.BaseUrl + "#/signup-confirm/" + token.plain,
 		}
 
 		err = app.mailer.Send(newUser.Email, "signup-confirm.tmpl", data)
@@ -199,6 +235,43 @@ func (app *application) signupHandler(w http.ResponseWriter, r *http.Request) {
 	})
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func (app *application) signupConfirmHandler(w http.ResponseWriter, r *http.Request) {
+	token, err := app.readString(w, r)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	userId, err := app.getAppUserIdFromToken(scopeSignup, token)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	if userId == 0 {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		return
+	}
+
+	ctx, cancel := app.createDbContext()
+	err = models.AppUsers(models.AppUserWhere.ID.EQ(userId)).UpdateAll(ctx, app.db,
+		models.M{models.AppUserColumns.Activated: true})
+	cancel()
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.deleteAllTokensForUser(userId, scopeSignup)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+
 }
 
 /*

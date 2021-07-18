@@ -1,7 +1,8 @@
 import {Injectable} from '@angular/core';
 import {BehaviorSubject, Observable, of} from 'rxjs';
-import {catchError, map, share, tap} from 'rxjs/operators';
+import {catchError, share, tap} from 'rxjs/operators';
 import {HttpClient, HttpParams} from '@angular/common/http';
+import {FormErrorResponse} from '../model/form-error-response';
 
 @Injectable({
   providedIn: 'root'
@@ -45,16 +46,13 @@ export class AuthService {
       );
   }
 
-  signup(email: string, password: string): Observable<'EMAIL_REGISTERED' | 'WEAK_PASSWORD' | null> {
+  signup(email: string, password: string): Observable<FormErrorResponse | void> {
     const body = new HttpParams().set('email', email).set('password', password);
-    return this.httpClient.post<'EMAIL_REGISTERED' | 'WEAK_PASSWORD' | null>('/be/signup', body);
+    return this.httpClient.post<FormErrorResponse | void>('/v1/signup', body);
   }
 
-  confirmSignup(token: string): Observable<boolean> {
-    return this.httpClient.post('/be/confirm-signup', token, {responseType: 'text'})
-      .pipe(
-        map(response => response === 'true')
-      );
+  confirmSignup(token: string): Observable<void> {
+    return this.httpClient.post<void>('/v1/signup-confirm', token)
   }
 
   resetPasswordRequest(email: string): Observable<void> {
