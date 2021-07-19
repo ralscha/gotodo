@@ -56,16 +56,16 @@ export class AccountPage {
 
     this.profileService.deleteAccount(password)
       .subscribe({
-          next: () => {
-            loading.dismiss();
-            this.messagesService.showSuccessToast('Account successfully deleted');
-            this.authService.logoutClient();
-            this.navCtrl.navigateRoot('/login');
-          },
-          error: err => {
-            loading.dismiss();
-            this.handleErrorResponse(err);
-          }
+        next: () => {
+          loading.dismiss();
+          this.messagesService.showSuccessToast('Account successfully deleted');
+          this.authService.logoutClient();
+          this.navCtrl.navigateRoot('/login');
+        },
+        error: err => {
+          loading.dismiss();
+          this.handleErrorResponse(err);
+        }
       });
   }
 

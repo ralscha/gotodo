@@ -121,7 +121,7 @@ func (app *application) isPasswordCompromised(password string) (bool, error) {
 	suffix := strings.ToUpper(hash[5:])
 
 	httpClient := &http.Client{
-		Timeout: 30 * time.Second,
+		Timeout: 10 * time.Second,
 	}
 
 	req, err := http.NewRequest("GET", "https://api.pwnedpasswords.com/range/"+prefix, nil)

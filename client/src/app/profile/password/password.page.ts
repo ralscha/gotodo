@@ -4,6 +4,9 @@ import {NgForm} from '@angular/forms';
 import {AuthService} from '../../service/auth.service';
 import {NavController} from '@ionic/angular';
 import {ProfileService} from '../profile/profile.service';
+import {HttpErrorResponse} from '@angular/common/http';
+import {FormErrorResponse} from '../../model/form-error-response';
+import {displayFieldErrors} from '../../util';
 
 @Component({
   selector: 'app-password',
@@ -11,8 +14,6 @@ import {ProfileService} from '../profile/profile.service';
   styleUrls: ['./password.page.scss'],
 })
 export class PasswordPage {
-
-  submitError: string | null = null;
 
   @ViewChild('changeForm')
   changeForm!: NgForm;
@@ -26,28 +27,31 @@ export class PasswordPage {
   async changePassword(oldPassword: string, newPassword: string): Promise<void> {
 
     const loading = await this.messagesService.showLoading('Changing password');
-    this.submitError = null;
 
     this.profileService.changePassword(oldPassword, newPassword)
-      .subscribe(async (response) => {
-        await loading.dismiss();
-        if (!response) {
+      .subscribe({
+        next: () => {
+          loading.dismiss();
           this.changeForm.resetForm();
-          await this.messagesService.showSuccessToast('Password successfully changed');
-          // await this.authService.deleteTokens();
-          await this.navCtrl.navigateRoot('/login');
-        } else if (response === 'INVALID') {
-          this.submitError = 'passwordInvalid';
-          await this.messagesService.showErrorToast('Old Password invalid');
-        } else if (response === 'WEAK_PASSWORD') {
-          this.submitError = 'weakPassword';
-          await this.messagesService.showErrorToast('Weak password');
+          this.messagesService.showSuccessToast('Password successfully changed');
+          this.navCtrl.back();
+        },
+        error: err => {
+          loading.dismiss();
+          this.handleErrorResponse(err);
         }
-      }, () => {
-        loading.dismiss();
-        this.messagesService.showErrorToast('Changing password failed');
       });
 
+  }
+
+  private handleErrorResponse(errorResponse: HttpErrorResponse) {
+    const response: FormErrorResponse = errorResponse.error;
+    if (response && response.fieldErrors) {
+      displayFieldErrors(this.changeForm, response.fieldErrors)
+    } else {
+      this.changeForm.resetForm();
+      this.messagesService.showErrorToast('Changing password failed');
+    }
   }
 
 }
