@@ -35,13 +35,14 @@ export class SignupPage {
         next: () => {
           loading.dismiss();
           this.signUpSent = true;
-          this.messagesService.showSuccessToast('Sign-up successful');
+          this.messagesService.showSuccessToast('Sign-up confirmation successful sent');
+          this.navCtrl.navigateRoot('login');
         },
         error: err => {
           loading.dismiss();
           SignupPage.handleErrorResponse(form, err);
         }
-      })
+      });
   }
 
 

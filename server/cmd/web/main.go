@@ -9,6 +9,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/schema"
+	"github.com/volatiletech/sqlboiler/v4/boil"
 	"go.uber.org/zap"
 	"gotodo.rasc.ch/internal/config"
 	"gotodo.rasc.ch/internal/mailer"
@@ -25,14 +26,15 @@ var (
 )
 
 type application struct {
-	config         *config.Config
-	db             *sql.DB
-	sessionManager *scs.SessionManager
-	validator      *validator.Validate
-	decoder        *schema.Decoder
-	wg             sync.WaitGroup
-	logger         *zap.SugaredLogger
-	mailer         mailer.Mailer
+	config           *config.Config
+	db               *sql.DB
+	sessionManager   *scs.SessionManager
+	validator        *validator.Validate
+	decoder          *schema.Decoder
+	wg               sync.WaitGroup
+	logger           *zap.SugaredLogger
+	mailer           mailer.Mailer
+	scheduleStopChan chan struct{}
 }
 
 func main() {
@@ -45,6 +47,7 @@ func main() {
 
 	switch cfg.Environment {
 	case config.Development:
+		boil.DebugMode = true
 		logger, err = zap.NewDevelopment()
 		if err != nil {
 			log.Fatalf("can't initialize development zap logger: %v\n", err)
@@ -70,7 +73,7 @@ func main() {
 
 	sm := scs.New()
 	sm.Store = mysqlstore.NewWithCleanupInterval(db, 30*time.Minute)
-	sm.Lifetime = 24 * time.Hour
+	sm.Lifetime = cfg.Cleanup.SessionLifetime
 	sm.Cookie.SameSite = http.SameSiteStrictMode
 
 	sm.Cookie.Secure = cfg.SecureCookie
@@ -96,14 +99,9 @@ func main() {
 		mailer:         mailer.New(cfg.Smtp.Host, cfg.Smtp.Port, cfg.Smtp.Username, cfg.Smtp.Password, cfg.Smtp.Sender),
 	}
 
-	app.schedule(func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		err := app.deleteExpiredTokens(ctx)
-		if err != nil {
-			app.logger.Error("deleting expired tokens failed", zap.Error(err))
-		}
-	}, time.Hour)
+	app.scheduleStopChan = app.schedule(func() {
+		app.cleanup()
+	}, 20*time.Minute)
 
 	err = app.serve()
 	if err != nil {

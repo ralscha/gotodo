@@ -1,6 +1,11 @@
 import {Component} from '@angular/core';
 import {MessagesService} from '../../service/messages.service';
 import {ProfileService} from '../profile/profile.service';
+import {NgForm} from '@angular/forms';
+import {HttpErrorResponse} from '@angular/common/http';
+import {FormErrorResponse} from '../../model/form-error-response';
+import {displayFieldErrors} from '../../util';
+import {NavController} from '@ionic/angular';
 
 @Component({
   selector: 'app-email',
@@ -9,38 +14,36 @@ import {ProfileService} from '../profile/profile.service';
 })
 export class EmailPage {
 
-  submitError: string | null = null;
   changeSent = false;
 
-  constructor(private readonly profileService: ProfileService,
+  constructor(private readonly navCtrl: NavController,
+              private readonly profileService: ProfileService,
               private readonly messagesService: MessagesService) {
   }
 
-  async changeEmail(newEmail: string, password: string): Promise<void> {
-    const loading = await this.messagesService.showLoading('Saving email change request');
-    this.submitError = null;
+    private static handleErrorResponse(form: NgForm, errorResponse: HttpErrorResponse) {
+        const response: FormErrorResponse = errorResponse.error;
+        if (response && response.fieldErrors) {
+            displayFieldErrors(form, response.fieldErrors)
+        }
+    }
+
+  async changeEmail(form: NgForm, newEmail: string, password: string): Promise<void> {
+    const loading = await this.messagesService.showLoading('Changing email...');
 
     this.profileService.changeEmail(newEmail, password)
-      .subscribe(async (flag) => {
-        await loading.dismiss();
-        if (flag === 'SAME') {
-          this.submitError = 'noChange';
-          await this.messagesService.showErrorToast('New email same as old email');
-        } else if (flag === 'USE') {
-          this.submitError = 'emailRegistered';
-          await this.messagesService.showErrorToast('Email already registered');
-        } else if (flag === 'PASSWORD') {
-          this.submitError = 'passwordInvalid';
-          await this.messagesService.showErrorToast('Password invalid');
-        } else {
-          await this.messagesService.showSuccessToast('Email change request successfully saved');
-          this.changeSent = true;
-        }
-      }, () => {
-        loading.dismiss();
-        this.messagesService.showErrorToast();
-      });
-
+        .subscribe({
+            next: () => {
+                loading.dismiss();
+                this.changeSent = true;
+                this.messagesService.showSuccessToast('Email change confirmation successfully sent');
+                this.navCtrl.back();
+            },
+            error: err => {
+                loading.dismiss();
+                EmailPage.handleErrorResponse(form, err);
+            }
+        });
   }
 
 }

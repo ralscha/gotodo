@@ -6,27 +6,21 @@
 
 <ion-content class="ion-padding">
 
-  <ion-grid *ngIf="success === true" class="ion-margin-top ion-text-center">
+  <ion-list *ngIf="success === true">
+    <ion-text>
+      <p>Email Change successfully confirmed.</p>
+    </ion-text>
 
-    <ion-row>
-      <ion-col offsetLg="4" offsetSm="3" sizeLg="4" sizeSm="6">
-        <ion-text>
-          <p>Email Change successfully confirmed.</p>
-        </ion-text>
-      </ion-col>
-    </ion-row>
+    <div class="ion-padding">
+      <ion-button expand="block" routerDirection="root" routerLink="/login">Go to Login</ion-button>
+    </div>
+  </ion-list>
 
-    <ion-row>
-      <ion-col class="ion-margin-top" offsetLg="4" offsetSm="3" sizeLg="4" sizeSm="6">
-        <ion-button expand="block" routerDirection="root" routerLink="/login">Go to Login</ion-button>
-      </ion-col>
-    </ion-row>
-
-  </ion-grid>
-
-  <ion-text *ngIf="success === false" class="ion-margin-top ion-text-center" color="danger">
-    <p>Something went wrong</p>
-    <p>Please try again later.</p>
-  </ion-text>
+  <ion-list *ngIf="success === false">
+    <ion-text color="danger">
+      <p>Something went wrong</p>
+      <p>Please try again later.</p>
+    </ion-text>
+  </ion-list>
 
 </ion-content>

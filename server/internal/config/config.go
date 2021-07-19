@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/spf13/viper"
+	"time"
 )
 
 type Environment string
@@ -15,7 +16,15 @@ type Config struct {
 	Environment  Environment
 	SecureCookie bool
 	BaseUrl      string
-	Db           struct {
+	Cleanup      struct {
+		InactiveUsersMaxAge      time.Duration
+		ExpiredUsersMaxAge       time.Duration
+		EmailChangeTokenMaxAge   time.Duration
+		SignupTokenMaxAge        time.Duration
+		PasswordResetTokenMaxAge time.Duration
+		SessionLifetime          time.Duration
+	}
+	Db struct {
 		User         string
 		Password     string
 		Connection   string
@@ -61,6 +70,12 @@ func applyDefaults() {
 	viper.SetDefault("argon2.parallelism", 8)
 	viper.SetDefault("argon2.saltLength", 16)
 	viper.SetDefault("argon2.keyLength", 32)
+	viper.SetDefault("cleanup.inactiveUsersMaxAge", "8760h")
+	viper.SetDefault("cleanup.expiredUsersMaxAge", "8760h")
+	viper.SetDefault("cleanup.emailChangeTokenMaxAge", "48h")
+	viper.SetDefault("cleanup.signupTokenMaxAge", "48h")
+	viper.SetDefault("cleanup.passwordResetTokenMaxAge", "2h")
+	viper.SetDefault("cleanup.sessionLifetime", "720h")
 }
 
 func LoadConfig() (Config, error) {

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/alexedwards/argon2id"
+	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"gotodo.rasc.ch/internal/models"
@@ -34,7 +35,7 @@ func (app *application) resetPasswordRequestHandler(w http.ResponseWriter, r *ht
 	}
 
 	if user != nil {
-		token, err := app.insertToken(r.Context(), user.ID, 24*time.Hour, scopePasswordReset)
+		token, err := app.insertToken(r.Context(), user.ID, app.config.Cleanup.PasswordResetTokenMaxAge, scopePasswordReset)
 		if err != nil {
 			app.serverErrorResponse(w, r, err)
 			return
@@ -123,6 +124,24 @@ func (app *application) signupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	exists, err := models.AppUsers(
+		models.AppUserWhere.Email.EQ(input.Email),
+		qm.Or2(models.AppUserWhere.EmailNew.EQ(null.NewString(input.Email, true))),
+	).Exists(r.Context(), app.db)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	if exists {
+		app.writeJSON(w, r, http.StatusUnprocessableEntity, FormErrorResponse{
+			FieldErrors: map[string]string{
+				"email": "exists",
+			},
+		})
+		return
+	}
+
 	compromised, err := app.isPasswordCompromised(input.Password)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -132,21 +151,6 @@ func (app *application) signupHandler(w http.ResponseWriter, r *http.Request) {
 		app.writeJSON(w, r, http.StatusUnprocessableEntity, FormErrorResponse{
 			FieldErrors: map[string]string{
 				"password": "weak",
-			},
-		})
-		return
-	}
-
-	count, err := models.AppUsers(models.AppUserWhere.Email.EQ(input.Email)).Count(r.Context(), app.db)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
-
-	if count > 0 {
-		app.writeJSON(w, r, http.StatusUnprocessableEntity, FormErrorResponse{
-			FieldErrors: map[string]string{
-				"email": "exists",
 			},
 		})
 		return
@@ -177,7 +181,7 @@ func (app *application) signupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := app.insertToken(r.Context(), newUser.ID, 24*time.Hour, scopeSignup)
+	token, err := app.insertToken(r.Context(), newUser.ID, app.config.Cleanup.SignupTokenMaxAge, scopeSignup)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -216,7 +220,7 @@ func (app *application) signupConfirmHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	err = models.AppUsers(models.AppUserWhere.ID.EQ(userId)).UpdateAll(r.Context(), app.db,
-		models.M{models.AppUserColumns.Activated: true})
+		models.M{models.AppUserColumns.Activated: true, models.AppUserColumns.LastAccess: time.Now()})
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

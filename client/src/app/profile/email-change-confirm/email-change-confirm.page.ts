@@ -25,15 +25,18 @@ export class EmailChangeConfirmPage implements OnInit {
       return;
     }
 
-    const loading = await this.messagesService.showLoading('Processing Confirmation');
+    const loading = await this.messagesService.showLoading('Processing confirmation...');
 
     this.profileService.confirmEmailChange(token)
-      .subscribe(async (success) => {
-        await loading.dismiss();
-        this.success = success;
-      }, () => {
-        loading.dismiss();
-        this.success = false;
+      .subscribe({
+        next: () => {
+          loading.dismiss();
+          this.success = true;
+        },
+        error: () => {
+          loading.dismiss();
+          this.success = false;
+        }
       });
   }
 

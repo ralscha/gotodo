@@ -24,13 +24,14 @@ import (
 
 // AppUser is an object representing the database table.
 type AppUser struct {
-	ID           int64     `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Email        string    `boil:"email" json:"email" toml:"email" yaml:"email"`
-	PasswordHash string    `boil:"password_hash" json:"password_hash" toml:"password_hash" yaml:"password_hash"`
-	Authority    string    `boil:"authority" json:"authority" toml:"authority" yaml:"authority"`
-	Activated    bool      `boil:"activated" json:"activated" toml:"activated" yaml:"activated"`
-	Expired      null.Time `boil:"expired" json:"expired,omitempty" toml:"expired" yaml:"expired,omitempty"`
-	LastAccess   null.Time `boil:"last_access" json:"last_access,omitempty" toml:"last_access" yaml:"last_access,omitempty"`
+	ID           int64       `boil:"id" json:"id" toml:"id" yaml:"id"`
+	Email        string      `boil:"email" json:"email" toml:"email" yaml:"email"`
+	EmailNew     null.String `boil:"email_new" json:"email_new,omitempty" toml:"email_new" yaml:"email_new,omitempty"`
+	PasswordHash string      `boil:"password_hash" json:"password_hash" toml:"password_hash" yaml:"password_hash"`
+	Authority    string      `boil:"authority" json:"authority" toml:"authority" yaml:"authority"`
+	Activated    bool        `boil:"activated" json:"activated" toml:"activated" yaml:"activated"`
+	Expired      null.Time   `boil:"expired" json:"expired,omitempty" toml:"expired" yaml:"expired,omitempty"`
+	LastAccess   null.Time   `boil:"last_access" json:"last_access,omitempty" toml:"last_access" yaml:"last_access,omitempty"`
 
 	R *appUserR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L appUserL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -39,6 +40,7 @@ type AppUser struct {
 var AppUserColumns = struct {
 	ID           string
 	Email        string
+	EmailNew     string
 	PasswordHash string
 	Authority    string
 	Activated    string
@@ -47,6 +49,7 @@ var AppUserColumns = struct {
 }{
 	ID:           "id",
 	Email:        "email",
+	EmailNew:     "email_new",
 	PasswordHash: "password_hash",
 	Authority:    "authority",
 	Activated:    "activated",
@@ -57,6 +60,7 @@ var AppUserColumns = struct {
 var AppUserTableColumns = struct {
 	ID           string
 	Email        string
+	EmailNew     string
 	PasswordHash string
 	Authority    string
 	Activated    string
@@ -65,6 +69,7 @@ var AppUserTableColumns = struct {
 }{
 	ID:           "app_user.id",
 	Email:        "app_user.email",
+	EmailNew:     "app_user.email_new",
 	PasswordHash: "app_user.password_hash",
 	Authority:    "app_user.authority",
 	Activated:    "app_user.activated",
@@ -120,6 +125,29 @@ func (w whereHelperstring) NIN(slice []string) qm.QueryMod {
 	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
 }
 
+type whereHelpernull_String struct{ field string }
+
+func (w whereHelpernull_String) EQ(x null.String) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, false, x)
+}
+func (w whereHelpernull_String) NEQ(x null.String) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, true, x)
+}
+func (w whereHelpernull_String) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
+func (w whereHelpernull_String) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
+func (w whereHelpernull_String) LT(x null.String) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelpernull_String) LTE(x null.String) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelpernull_String) GT(x null.String) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelpernull_String) GTE(x null.String) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+
 type whereHelperbool struct{ field string }
 
 func (w whereHelperbool) EQ(x bool) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.EQ, x) }
@@ -155,6 +183,7 @@ func (w whereHelpernull_Time) GTE(x null.Time) qm.QueryMod {
 var AppUserWhere = struct {
 	ID           whereHelperint64
 	Email        whereHelperstring
+	EmailNew     whereHelpernull_String
 	PasswordHash whereHelperstring
 	Authority    whereHelperstring
 	Activated    whereHelperbool
@@ -163,6 +192,7 @@ var AppUserWhere = struct {
 }{
 	ID:           whereHelperint64{field: "`app_user`.`id`"},
 	Email:        whereHelperstring{field: "`app_user`.`email`"},
+	EmailNew:     whereHelpernull_String{field: "`app_user`.`email_new`"},
 	PasswordHash: whereHelperstring{field: "`app_user`.`password_hash`"},
 	Authority:    whereHelperstring{field: "`app_user`.`authority`"},
 	Activated:    whereHelperbool{field: "`app_user`.`activated`"},
@@ -194,8 +224,8 @@ func (*appUserR) NewStruct() *appUserR {
 type appUserL struct{}
 
 var (
-	appUserAllColumns            = []string{"id", "email", "password_hash", "authority", "activated", "expired", "last_access"}
-	appUserColumnsWithoutDefault = []string{"email", "password_hash", "authority", "activated", "expired", "last_access"}
+	appUserAllColumns            = []string{"id", "email", "email_new", "password_hash", "authority", "activated", "expired", "last_access"}
+	appUserColumnsWithoutDefault = []string{"email", "email_new", "password_hash", "authority", "activated", "expired", "last_access"}
 	appUserColumnsWithDefault    = []string{"id"}
 	appUserPrimaryKeyColumns     = []string{"id"}
 )
