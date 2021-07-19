@@ -25,18 +25,16 @@ func (app *application) resetPasswordRequestHandler(w http.ResponseWriter, r *ht
 		return
 	}
 
-	ctx, cancel := app.createDbContext()
 	user, err := models.AppUsers(qm.Select(
 		models.AppUserColumns.ID),
-		models.AppUserWhere.Email.EQ(email)).One(ctx, app.db)
-	cancel()
+		models.AppUserWhere.Email.EQ(email)).One(r.Context(), app.db)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
 	if user != nil {
-		token, err := app.insertToken(user.ID, 24*time.Hour, scopePasswordReset)
+		token, err := app.insertToken(r.Context(), user.ID, 24*time.Hour, scopePasswordReset)
 		if err != nil {
 			app.serverErrorResponse(w, r, err)
 			return
@@ -66,7 +64,7 @@ func (app *application) resetPasswordHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	userId, err := app.getAppUserIdFromToken(scopePasswordReset, resetInput.ResetToken)
+	userId, err := app.getAppUserIdFromToken(r.Context(), scopePasswordReset, resetInput.ResetToken)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -99,16 +97,14 @@ func (app *application) resetPasswordHandler(w http.ResponseWriter, r *http.Requ
 		KeyLength:   app.config.Argon2.KeyLength,
 	})
 
-	ctx, cancel := app.createDbContext()
-	err = models.AppUsers(models.AppUserWhere.ID.EQ(userId)).UpdateAll(ctx, app.db,
+	err = models.AppUsers(models.AppUserWhere.ID.EQ(userId)).UpdateAll(r.Context(), app.db,
 		models.M{models.AppUserColumns.PasswordHash: newPasswordHash})
-	cancel()
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
-	err = app.deleteAllTokensForUser(userId, scopePasswordReset)
+	err = app.deleteAllTokensForUser(r.Context(), userId, scopePasswordReset)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -141,9 +137,7 @@ func (app *application) signupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx, cancel := app.createDbContext()
-	count, err := models.AppUsers(models.AppUserWhere.Email.EQ(input.Email)).Count(ctx, app.db)
-	cancel()
+	count, err := models.AppUsers(models.AppUserWhere.Email.EQ(input.Email)).Count(r.Context(), app.db)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -177,15 +171,13 @@ func (app *application) signupHandler(w http.ResponseWriter, r *http.Request) {
 		Activated:    false,
 	}
 
-	ctx, cancel = app.createDbContext()
-	err = newUser.Insert(ctx, app.db, boil.Infer())
-	cancel()
+	err = newUser.Insert(r.Context(), app.db, boil.Infer())
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
-	token, err := app.insertToken(newUser.ID, 24*time.Hour, scopeSignup)
+	token, err := app.insertToken(r.Context(), newUser.ID, 24*time.Hour, scopeSignup)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -212,7 +204,7 @@ func (app *application) signupConfirmHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	userId, err := app.getAppUserIdFromToken(scopeSignup, token)
+	userId, err := app.getAppUserIdFromToken(r.Context(), scopeSignup, token)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -223,16 +215,14 @@ func (app *application) signupConfirmHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	ctx, cancel := app.createDbContext()
-	err = models.AppUsers(models.AppUserWhere.ID.EQ(userId)).UpdateAll(ctx, app.db,
+	err = models.AppUsers(models.AppUserWhere.ID.EQ(userId)).UpdateAll(r.Context(), app.db,
 		models.M{models.AppUserColumns.Activated: true})
-	cancel()
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
-	err = app.deleteAllTokensForUser(userId, scopeSignup)
+	err = app.deleteAllTokensForUser(r.Context(), userId, scopeSignup)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

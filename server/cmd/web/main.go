@@ -97,9 +97,11 @@ func main() {
 	}
 
 	app.schedule(func() {
-		err := app.deleteExpiredTokens()
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		err := app.deleteExpiredTokens(ctx)
 		if err != nil {
-			app.logger.Error("delete expired tokens failed", zap.Error(err))
+			app.logger.Error("deleting expired tokens failed", zap.Error(err))
 		}
 	}, time.Hour)
 

@@ -15,7 +15,6 @@ export class AppComponent {
   }
 
   logout(): void {
-    this.authService.logout();
-    this.navCtrl.navigateRoot('logout');
+    this.authService.logout().subscribe(() => this.navCtrl.navigateRoot('logout'));
   }
 }

@@ -46,6 +46,10 @@ export class AuthService {
       );
   }
 
+  logoutClient(): void {
+    this.authoritySubject.next(null);
+  }
+
   signup(email: string, password: string): Observable<FormErrorResponse | void> {
     const body = new HttpParams().set('email', email).set('password', password);
     return this.httpClient.post<FormErrorResponse | void>('/v1/signup', body);

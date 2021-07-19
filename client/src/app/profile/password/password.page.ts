@@ -3,7 +3,7 @@ import {MessagesService} from '../../service/messages.service';
 import {NgForm} from '@angular/forms';
 import {AuthService} from '../../service/auth.service';
 import {NavController} from '@ionic/angular';
-import {ProfileService} from '../profile.service';
+import {ProfileService} from '../profile/profile.service';
 
 @Component({
   selector: 'app-password',

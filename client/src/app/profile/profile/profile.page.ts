@@ -23,7 +23,7 @@ export class ProfilePage implements OnInit {
     this.buildInfo.clientVersion = environment.version;
     this.buildInfo.clientBuildTime = new Date(environment.buildTimestamp * 1000).toISOString();
 
-    this.httpClient.get<{ version: string, time: string }>('/v1/build-info')
+    this.httpClient.get<{ version: string, time: string }>('/v1/profile/build-info')
       .subscribe(response => {
         this.buildInfo.serverVersion = response.version;
         this.buildInfo.serverBuildTime = response.time;

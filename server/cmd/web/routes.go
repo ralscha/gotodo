@@ -19,16 +19,14 @@ func (app *application) routes() http.Handler {
 
 	router.Use(httprate.LimitAll(1_000, 1*time.Minute))
 	router.Use(middleware.Recoverer)
-	router.Use(middleware.Timeout(time.Minute))
+	router.Use(middleware.Timeout(15 * time.Second))
 	router.Use(middleware.NoCache)
 
 	router.Route("/v1", func(r chi.Router) {
 		r.Use(app.sessionManager.LoadAndSave)
 		r.Get("/healthcheck", app.healthcheckHandler)
-		r.Get("/build-info", app.buildInfoHandler)
 		r.Post("/authenticate", app.authenticateHandler)
 		r.Post("/login", app.loginHandler)
-		r.Post("/logout", app.logoutHandler)
 		r.Post("/signup", app.signupHandler)
 		r.Post("/signup-confirm", app.signupConfirmHandler)
 		r.Post("/reset-password-request", app.resetPasswordRequestHandler)
@@ -42,9 +40,12 @@ func (app *application) routes() http.Handler {
 func (app *application) authenticatedRouter() http.Handler {
 	r := chi.NewRouter()
 	r.Use(app.authenticatedOnly)
+	r.Post("/logout", app.logoutHandler)
 	r.Get("/todo", app.todoGetHandler)
 	r.Post("/todo", app.todoSaveHandler)
 	r.Delete("/todo/{todoId:\\d+}", app.todoDeleteHandler)
+	r.Get("/profile/build-info", app.buildInfoHandler)
+	r.Post("/profile/delete-account", app.deleteAccountHandler)
 	return r
 }
 

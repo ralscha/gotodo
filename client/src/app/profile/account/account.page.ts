@@ -2,10 +2,11 @@ import {Component, ViewChild} from '@angular/core';
 import {MessagesService} from '../../service/messages.service';
 import {AlertController, NavController} from '@ionic/angular';
 import {NgForm} from '@angular/forms';
-import {ProfileService} from '../profile.service';
+import {ProfileService} from '../profile/profile.service';
 import {HttpErrorResponse} from '@angular/common/http';
 import {FormErrorResponse} from '../../model/form-error-response';
 import {displayFieldErrors} from '../../util';
+import {AuthService} from '../../service/auth.service';
 
 @Component({
   selector: 'app-account',
@@ -20,6 +21,7 @@ export class AccountPage {
   deleteForm!: NgForm;
 
   constructor(private readonly navCtrl: NavController,
+              private readonly authService: AuthService,
               private readonly profileService: ProfileService,
               private readonly messagesService: MessagesService,
               private readonly alertController: AlertController) {
@@ -57,9 +59,13 @@ export class AccountPage {
           next: () => {
             loading.dismiss();
             this.messagesService.showSuccessToast('Account successfully deleted');
+            this.authService.logoutClient();
             this.navCtrl.navigateRoot('/login');
           },
-          error: err => this.handleErrorResponse(err)
+          error: err => {
+            loading.dismiss();
+            this.handleErrorResponse(err);
+          }
       });
   }
 

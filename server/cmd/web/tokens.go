@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/sha256"
 	"database/sql"
@@ -39,7 +40,7 @@ func generateToken() (*token, error) {
 	return &token, nil
 }
 
-func (app *application) insertToken(appUserId int64, ttl time.Duration, scope scope) (*token, error) {
+func (app *application) insertToken(ctx context.Context, appUserId int64, ttl time.Duration, scope scope) (*token, error) {
 	token, err := generateToken()
 	if err != nil {
 		return nil, err
@@ -51,8 +52,6 @@ func (app *application) insertToken(appUserId int64, ttl time.Duration, scope sc
 		Expiry:    time.Now().Add(ttl),
 		Scope:     string(scope),
 	}
-	ctx, cancel := app.createDbContext()
-	defer cancel()
 	err = newToken.Insert(ctx, app.db, boil.Infer())
 
 	if err != nil {
@@ -61,26 +60,20 @@ func (app *application) insertToken(appUserId int64, ttl time.Duration, scope sc
 	return token, nil
 }
 
-func (app *application) deleteAllTokensForUser(appUserId int64, scope scope) error {
-	ctx, cancel := app.createDbContext()
-	defer cancel()
+func (app *application) deleteAllTokensForUser(ctx context.Context, appUserId int64, scope scope) error {
 	err := models.Tokens(models.TokenWhere.AppUserID.EQ(appUserId),
 		models.TokenWhere.Scope.EQ(string(scope))).DeleteAll(ctx, app.db)
 	return err
 }
 
-func (app *application) deleteExpiredTokens() error {
-	ctx, cancel := app.createDbContext()
-	defer cancel()
+func (app *application) deleteExpiredTokens(ctx context.Context) error {
 	err := models.Tokens(models.TokenWhere.Expiry.LT(time.Now())).DeleteAll(ctx, app.db)
 	return err
 }
 
-func (app *application) getAppUserIdFromToken(scope scope, tokenPlain string) (int64, error) {
+func (app *application) getAppUserIdFromToken(ctx context.Context, scope scope, tokenPlain string) (int64, error) {
 	tokenHash := sha256.Sum256([]byte(tokenPlain))
 
-	ctx, cancel := app.createDbContext()
-	defer cancel()
 	token, err := models.Tokens(
 		qm.Select(models.TokenColumns.AppUserID),
 		models.TokenWhere.Hash.EQ(tokenHash[:]),

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"crypto/sha1"
 	"encoding/hex"
 	"encoding/json"
@@ -112,10 +111,6 @@ func (app *application) validate(obj interface{}) (bool, map[string]string) {
 		return false, fieldErrors
 	}
 	return true, nil
-}
-
-func (app *application) createDbContext() (context.Context, context.CancelFunc) {
-	return context.WithTimeout(context.Background(), 3*time.Second)
 }
 
 func (app *application) isPasswordCompromised(password string) (bool, error) {
