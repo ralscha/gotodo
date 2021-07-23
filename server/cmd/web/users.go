@@ -128,7 +128,7 @@ func (app *application) signupHandler(w http.ResponseWriter, r *http.Request) {
 		models.AppUserWhere.Email.EQ(input.Email),
 		qm.Or2(models.AppUserWhere.EmailNew.EQ(null.NewString(input.Email, true))),
 	).Exists(r.Context(), app.db)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}

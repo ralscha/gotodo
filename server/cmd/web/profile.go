@@ -2,10 +2,86 @@ package main
 
 import (
 	"github.com/alexedwards/argon2id"
+	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"gotodo.rasc.ch/internal/models"
 	"net/http"
 )
+
+func (app *application) changeEmailHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Password string `name:"password" validate:"required,gte=8"`
+		NewEmail string `name:"newEmail" validate:"required,email"`
+	}
+	if ok := app.parseFromForm(w, r, &input); !ok {
+		return
+	}
+
+	userId := app.sessionManager.Get(r.Context(), "userId").(int64)
+
+	user, err := models.AppUsers(qm.Select(models.AppUserColumns.PasswordHash),
+		models.AppUserWhere.ID.EQ(userId)).One(r.Context(), app.db)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	match, err := argon2id.ComparePasswordAndHash(input.Password, user.PasswordHash)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+	if !match {
+		app.writeJSON(w, r, http.StatusUnprocessableEntity, FormErrorResponse{
+			FieldErrors: map[string]string{"password": "invalid"},
+		})
+		return
+	}
+
+	exists, err := models.AppUsers(
+		models.AppUserWhere.Email.EQ(input.NewEmail),
+		qm.Or2(models.AppUserWhere.EmailNew.EQ(null.NewString(input.NewEmail, true))),
+	).Exists(r.Context(), app.db)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	if exists {
+		app.writeJSON(w, r, http.StatusUnprocessableEntity, FormErrorResponse{
+			FieldErrors: map[string]string{
+				"newEmail": "exists",
+			},
+		})
+		return
+	}
+
+	err = models.AppUsers(models.AppUserWhere.ID.EQ(userId)).UpdateAll(r.Context(), app.db,
+		models.M{models.AppUserColumns.EmailNew: input.NewEmail})
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	token, err := app.insertToken(r.Context(), user.ID, app.config.Cleanup.EmailChangeTokenMaxAge, scopeEmailChange)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	app.background(func() {
+		data := map[string]interface{}{
+			"confirmationLink": app.config.BaseUrl + "#/email-change-confirm/" + token.plain,
+		}
+
+		err = app.mailer.Send(input.NewEmail, "email-change.tmpl", data)
+		if err != nil {
+			app.logger.Error(err)
+		}
+	})
+
+	w.WriteHeader(http.StatusNoContent)
+}
 
 func (app *application) changePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
