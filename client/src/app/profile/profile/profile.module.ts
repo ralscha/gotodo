@@ -24,6 +24,11 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'email-confirm',
+    loadChildren: () => import('../email-change-confirm/email-change-confirm.module').then(m => m.EmailChangeConfirmPageModule),
+    canActivate: [AuthGuard]
+  },
+  {
     path: 'account',
     loadChildren: () => import('../account/account.module').then(m => m.AccountPageModule),
     canActivate: [AuthGuard]

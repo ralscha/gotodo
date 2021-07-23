@@ -45,6 +45,8 @@ func (app *application) authenticatedRouter() http.Handler {
 	r.Post("/todo", app.todoSaveHandler)
 	r.Delete("/todo/{todoId:\\d+}", app.todoDeleteHandler)
 	r.Get("/profile/build-info", app.buildInfoHandler)
+	r.Post("/profile/email-change", app.changeEmailHandler)
+	r.Post("/profile/email-change-confirm", app.changeConfirmEmailHandler)
 	r.Post("/profile/change-password", app.changePasswordHandler)
 	r.Post("/profile/delete-account", app.deleteAccountHandler)
 	return r

@@ -37,7 +37,7 @@ export class EmailPage {
                 loading.dismiss();
                 this.changeSent = true;
                 this.messagesService.showSuccessToast('Email change confirmation successfully sent');
-                this.navCtrl.back();
+                this.navCtrl.navigateBack("profile");
             },
             error: err => {
                 loading.dismiss();

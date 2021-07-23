@@ -6,6 +6,7 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"gotodo.rasc.ch/internal/models"
 	"net/http"
+	"time"
 )
 
 func (app *application) changeEmailHandler(w http.ResponseWriter, r *http.Request) {
@@ -63,7 +64,7 @@ func (app *application) changeEmailHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	token, err := app.insertToken(r.Context(), user.ID, app.config.Cleanup.EmailChangeTokenMaxAge, scopeEmailChange)
+	token, err := app.insertToken(r.Context(), userId, app.config.Cleanup.EmailChangeTokenMaxAge, scopeEmailChange)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -71,7 +72,7 @@ func (app *application) changeEmailHandler(w http.ResponseWriter, r *http.Reques
 
 	app.background(func() {
 		data := map[string]interface{}{
-			"confirmationLink": app.config.BaseUrl + "#/email-change-confirm/" + token.plain,
+			"confirmationLink": app.config.BaseUrl + "#/profile/email-confirm/" + token.plain,
 		}
 
 		err = app.mailer.Send(input.NewEmail, "email-change.tmpl", data)
@@ -81,6 +82,42 @@ func (app *application) changeEmailHandler(w http.ResponseWriter, r *http.Reques
 	})
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (app *application) changeConfirmEmailHandler(w http.ResponseWriter, r *http.Request) {
+	token, err := app.readString(w, r)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	userId := app.sessionManager.Get(r.Context(), "userId").(int64)
+
+	userIdFromToken, err := app.getAppUserIdFromToken(r.Context(), scopeEmailChange, token)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	if userId != userIdFromToken {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		return
+	}
+
+	err = models.AppUsers(models.AppUserWhere.ID.EQ(userId)).UpdateAll(r.Context(), app.db,
+		models.M{models.AppUserColumns.Email: true, models.AppUserColumns.LastAccess: time.Now()})
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.deleteAllTokensForUser(r.Context(), userId, scopeEmailChange)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func (app *application) changePasswordHandler(w http.ResponseWriter, r *http.Request) {

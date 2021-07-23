@@ -22,7 +22,7 @@ export class ProfileService {
 
   changeEmail(newEmail: string, password: string): Observable<FormErrorResponse> {
     const body = new HttpParams().set('newEmail', newEmail).set('password', password);
-    return this.httpClient.post<FormErrorResponse>('/v1/profile/change-email', body);
+    return this.httpClient.post<FormErrorResponse>('/v1/profile/email-change', body);
   }
 
   confirmEmailChange(token: string): Observable<void> {
