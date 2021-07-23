@@ -29,8 +29,8 @@ func (app *application) routes() http.Handler {
 		r.Post("/login", app.loginHandler)
 		r.Post("/signup", app.signupHandler)
 		r.Post("/signup-confirm", app.signupConfirmHandler)
-		r.Post("/reset-password-request", app.resetPasswordRequestHandler)
-		r.Post("/reset-password", app.resetPasswordHandler)
+		r.Post("/password-reset-request", app.passwordResetRequestHandler)
+		r.Post("/password-reset", app.passwordResetHandler)
 		r.Mount("/", app.authenticatedRouter())
 	})
 
@@ -45,10 +45,10 @@ func (app *application) authenticatedRouter() http.Handler {
 	r.Post("/todo", app.todoSaveHandler)
 	r.Delete("/todo/{todoId:\\d+}", app.todoDeleteHandler)
 	r.Get("/profile/build-info", app.buildInfoHandler)
-	r.Post("/profile/email-change", app.changeEmailHandler)
-	r.Post("/profile/email-change-confirm", app.changeConfirmEmailHandler)
-	r.Post("/profile/change-password", app.changePasswordHandler)
-	r.Post("/profile/delete-account", app.deleteAccountHandler)
+	r.Post("/profile/email-change", app.emailChangeHandler)
+	r.Post("/profile/email-change-confirm", app.emailChangeConfirmHandler)
+	r.Post("/profile/password-change", app.passwordChangeHandler)
+	r.Post("/profile/account-delete", app.accountDeleteHandler)
 	return r
 }
 

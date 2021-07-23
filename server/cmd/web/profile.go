@@ -6,10 +6,9 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"gotodo.rasc.ch/internal/models"
 	"net/http"
-	"time"
 )
 
-func (app *application) changeEmailHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) emailChangeHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Password string `name:"password" validate:"required,gte=8"`
 		NewEmail string `name:"newEmail" validate:"required,email"`
@@ -84,7 +83,7 @@ func (app *application) changeEmailHandler(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (app *application) changeConfirmEmailHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) emailChangeConfirmHandler(w http.ResponseWriter, r *http.Request) {
 	token, err := app.readString(w, r)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -104,8 +103,21 @@ func (app *application) changeConfirmEmailHandler(w http.ResponseWriter, r *http
 		return
 	}
 
+	user, err := models.AppUsers(qm.Select(models.AppUserColumns.EmailNew),
+		models.AppUserWhere.ID.EQ(userId)).One(r.Context(), app.db)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	if !user.EmailNew.Valid {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		return
+	}
+
 	err = models.AppUsers(models.AppUserWhere.ID.EQ(userId)).UpdateAll(r.Context(), app.db,
-		models.M{models.AppUserColumns.Email: true, models.AppUserColumns.LastAccess: time.Now()})
+		models.M{models.AppUserColumns.Email: user.EmailNew,
+			models.AppUserColumns.EmailNew: null.NewString("", false)})
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -120,7 +132,7 @@ func (app *application) changeConfirmEmailHandler(w http.ResponseWriter, r *http
 	w.WriteHeader(http.StatusOK)
 }
 
-func (app *application) changePasswordHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) passwordChangeHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		OldPassword string `name:"oldPassword" validate:"required,gte=8"`
 		NewPassword string `name:"newPassword" validate:"required,gte=8"`
@@ -182,7 +194,7 @@ func (app *application) changePasswordHandler(w http.ResponseWriter, r *http.Req
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (app *application) deleteAccountHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) accountDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	password, err := app.readString(w, r)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)

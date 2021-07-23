@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func (app *application) resetPasswordRequestHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) passwordResetRequestHandler(w http.ResponseWriter, r *http.Request) {
 	email, err := app.readString(w, r)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -56,7 +56,7 @@ func (app *application) resetPasswordRequestHandler(w http.ResponseWriter, r *ht
 	w.WriteHeader(http.StatusOK)
 }
 
-func (app *application) resetPasswordHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) passwordResetHandler(w http.ResponseWriter, r *http.Request) {
 	var resetInput struct {
 		Password   string `name:"password" validate:"required,gte=8"`
 		ResetToken string `name:"resetToken" validate:"required"`

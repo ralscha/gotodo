@@ -60,12 +60,12 @@ export class AuthService {
   }
 
   resetPasswordRequest(email: string): Observable<void> {
-    return this.httpClient.post<void>('/v1/reset-password-request', email);
+    return this.httpClient.post<void>('/v1/password-reset-request', email);
   }
 
   resetPassword(resetToken: string, password: string): Observable<FormErrorResponse | void> {
     const body = new HttpParams().set('resetToken', resetToken).set('password', password);
-    return this.httpClient.post<FormErrorResponse | void>('/v1/reset-password', body);
+    return this.httpClient.post<FormErrorResponse | void>('/v1/password-reset', body);
   }
 
 }

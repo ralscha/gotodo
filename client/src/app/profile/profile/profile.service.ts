@@ -12,12 +12,12 @@ export class ProfileService {
   }
 
   deleteAccount(password: string): Observable<FormErrorResponse | void> {
-    return this.httpClient.post<FormErrorResponse | void>('/v1/profile/delete-account', password);
+    return this.httpClient.post<FormErrorResponse | void>('/v1/profile/account-delete', password);
   }
 
   changePassword(oldPassword: string, newPassword: string): Observable<FormErrorResponse | void> {
     const body = new HttpParams().set('oldPassword', oldPassword).set('newPassword', newPassword);
-    return this.httpClient.post<FormErrorResponse | void>('/v1/profile/change-password', body);
+    return this.httpClient.post<FormErrorResponse | void>('/v1/profile/password-change', body);
   }
 
   changeEmail(newEmail: string, password: string): Observable<FormErrorResponse> {
