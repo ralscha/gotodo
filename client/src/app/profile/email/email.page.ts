@@ -21,29 +21,29 @@ export class EmailPage {
               private readonly messagesService: MessagesService) {
   }
 
-    private static handleErrorResponse(form: NgForm, errorResponse: HttpErrorResponse) {
-        const response: FormErrorResponse = errorResponse.error;
-        if (response && response.fieldErrors) {
-            displayFieldErrors(form, response.fieldErrors)
-        }
+  private static handleErrorResponse(form: NgForm, errorResponse: HttpErrorResponse) {
+    const response: FormErrorResponse = errorResponse.error;
+    if (response && response.fieldErrors) {
+      displayFieldErrors(form, response.fieldErrors)
     }
+  }
 
   async changeEmail(form: NgForm, newEmail: string, password: string): Promise<void> {
     const loading = await this.messagesService.showLoading('Changing email...');
 
     this.profileService.changeEmail(newEmail, password)
-        .subscribe({
-            next: () => {
-                loading.dismiss();
-                this.changeSent = true;
-                this.messagesService.showSuccessToast('Email change confirmation successfully sent');
-                this.navCtrl.navigateBack("profile");
-            },
-            error: err => {
-                loading.dismiss();
-                EmailPage.handleErrorResponse(form, err);
-            }
-        });
+      .subscribe({
+        next: () => {
+          loading.dismiss();
+          this.changeSent = true;
+          this.messagesService.showSuccessToast('Email change confirmation successfully sent');
+          this.navCtrl.navigateBack("profile");
+        },
+        error: err => {
+          loading.dismiss();
+          EmailPage.handleErrorResponse(form, err);
+        }
+      });
   }
 
 }
