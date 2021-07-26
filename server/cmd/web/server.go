@@ -37,7 +37,8 @@ func (app *application) serve() error {
 		}
 
 		app.logger.Info("stopping scheduled jobs")
-		app.scheduleStopChan <- struct{}{}
+		shutdownChannel := app.taskScheduler.Shutdown()
+		<-shutdownChannel
 
 		app.logger.Info("completing background tasks")
 		app.wg.Wait()

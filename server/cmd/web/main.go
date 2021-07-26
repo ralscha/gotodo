@@ -9,6 +9,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/schema"
+	"github.com/procyon-projects/chrono"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"go.uber.org/zap"
 	"gotodo.rasc.ch/internal/config"
@@ -26,15 +27,15 @@ var (
 )
 
 type application struct {
-	config           *config.Config
-	db               *sql.DB
-	sessionManager   *scs.SessionManager
-	validator        *validator.Validate
-	decoder          *schema.Decoder
-	wg               sync.WaitGroup
-	logger           *zap.SugaredLogger
-	mailer           mailer.Mailer
-	scheduleStopChan chan struct{}
+	config         *config.Config
+	db             *sql.DB
+	sessionManager *scs.SessionManager
+	validator      *validator.Validate
+	decoder        *schema.Decoder
+	wg             sync.WaitGroup
+	logger         *zap.SugaredLogger
+	mailer         mailer.Mailer
+	taskScheduler  chrono.TaskScheduler
 }
 
 func main() {
@@ -97,11 +98,16 @@ func main() {
 		decoder:        schema.NewDecoder(),
 		logger:         sugar,
 		mailer:         mailer.New(cfg.Smtp.Host, cfg.Smtp.Port, cfg.Smtp.Username, cfg.Smtp.Password, cfg.Smtp.Sender),
+		taskScheduler:  chrono.NewDefaultTaskScheduler(),
 	}
 
-	app.scheduleStopChan = app.schedule(func() {
+	_, err = app.taskScheduler.ScheduleWithFixedDelay(func(ctx context.Context) {
 		app.cleanup()
 	}, 20*time.Minute)
+
+	if err != nil {
+		sugar.Fatalw("Starting cleanup job failed", zap.Error(err))
+	}
 
 	err = app.serve()
 	if err != nil {

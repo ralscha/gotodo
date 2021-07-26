@@ -27,6 +27,7 @@ Simple todo application with Angular 12 / Ionic 6 (beta) and Go.
 | gorilla/schema  |  https://github.com/gorilla/schema  | Form values to struct  |
 | viper | https://github.com/spf13/viper   | Configuration  |
 | SQLBoiler  |  https://github.com/volatiletech/sqlboiler  | ORM  |
+| chrono | https://github.com/procyon-projects/chrono | Scheduling jobs |
 
 
 
