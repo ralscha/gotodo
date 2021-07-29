@@ -18,7 +18,8 @@ CREATE TABLE tokens (
   app_user_id BIGINT NOT NULL,
   expiry      TIMESTAMP NOT NULL,
   scope       VARCHAR(15) NOT NULL,
-  FOREIGN KEY (app_user_id) REFERENCES app_user(id) ON DELETE CASCADE
+  FOREIGN KEY (app_user_id) REFERENCES app_user(id) ON DELETE CASCADE,
+	CHECK (scope IN ('signup', 'password-reset', 'email-change'))	
 );
 
 CREATE TABLE todo (
