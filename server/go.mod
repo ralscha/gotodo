@@ -17,6 +17,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pressly/goose v2.7.0+incompatible
 	github.com/procyon-projects/chrono v1.0.0
+	github.com/spf13/cast v1.4.0 // indirect
 	github.com/spf13/viper v1.8.1
 	github.com/volatiletech/null/v8 v8.1.2
 	github.com/volatiletech/sqlboiler/v4 v4.6.0
