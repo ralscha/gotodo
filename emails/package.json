@@ -5,6 +5,6 @@
     "start": "mjml src/* -o ../server/internal/mailer/templates --config.minify true"
   },
   "dependencies": {
-    "mjml": "4.10.1"
+    "mjml": "4.11.0"
   }
 }
