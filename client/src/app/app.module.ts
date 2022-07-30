@@ -12,17 +12,16 @@ import {LoginPage} from './login/login.page';
 import {LogoutPage} from './logout/logout.page';
 
 @NgModule({
-  declarations: [AppComponent, LoginPage, LogoutPage],
-  entryComponents: [],
-  imports: [BrowserModule,
-    HttpClientModule,
-    FormsModule,
-    IonicModule.forRoot(),
-    AppRoutingModule],
-  providers: [
-    {provide: RouteReuseStrategy, useClass: IonicRouteStrategy}
-  ],
-  bootstrap: [AppComponent],
+    declarations: [AppComponent, LoginPage, LogoutPage],
+    imports: [BrowserModule,
+        HttpClientModule,
+        FormsModule,
+        IonicModule.forRoot(),
+        AppRoutingModule],
+    providers: [
+        { provide: RouteReuseStrategy, useClass: IonicRouteStrategy }
+    ],
+    bootstrap: [AppComponent]
 })
 export class AppModule {
 }
