@@ -56,7 +56,7 @@ db/run-sqlboiler:
 ## lint: run golangci-lint
 .PHONY: lint
 lint:
-	docker run --rm -v $(shell pwd):/app -w /app golangci/golangci-lint:v1.41.1 golangci-lint run ./...
+	docker run --rm -v $(shell pwd):/app -w /app golangci/golangci-lint:v1.49.0 golangci-lint run ./...
 
 ## upgrade-libraries: upgrade all dependant libraries
 .PHONY: upgrade-libraries
@@ -69,18 +69,14 @@ upgrade-libraries:
 # ==================================================================================== #
 # BUILD
 # ==================================================================================== #
-.PHONY: build/docker
-build/docker:
-	@docker build -t gobuilder -f docker/build.Dockerfile .
-
 current_time = $(shell date --iso-8601=seconds)
 git_description = $(shell git describe --always --dirty --tags --long)
 linker_flags = '-s -X main.appBuildTime=${current_time} -X main.appVersion=${git_description}'
 
 .PHONY: build/web
-build/web: build/docker
+build/web:
 	@echo 'Building cmd/web for ${goos}...'
-	@docker run -v $(shell pwd):/src gobuilder env GOOS=${goos} GOARCH=amd64 go build -ldflags=${linker_flags} -o=./bin/${goos}/gotodo${extension} gotodo.rasc.ch/cmd/web
+	@docker run -w /src -v $(shell pwd):/src golang:1.19.1 env GOOS=${goos} GOARCH=amd64 go build -ldflags=${linker_flags} -o=./bin/${goos}/gotodo${extension} gotodo.rasc.ch/cmd/web
 
 ## build/web/linux: build the cmd/web application for linux
 .PHONY: build/web/linux
