@@ -15,7 +15,8 @@ const (
 type Config struct {
 	Environment  Environment
 	SecureCookie bool
-	BaseUrl      string
+	CookieDomain string
+	BaseURL      string
 	Cleanup      struct {
 		InactiveUsersMaxAge      time.Duration
 		ExpiredUsersMaxAge       time.Duration
@@ -24,7 +25,7 @@ type Config struct {
 		PasswordResetTokenMaxAge time.Duration
 		SessionLifetime          time.Duration
 	}
-	Db struct {
+	DB struct {
 		User         string
 		Password     string
 		Connection   string
@@ -33,14 +34,15 @@ type Config struct {
 		MaxOpenConns int
 		MaxIdleConns int
 		MaxIdleTime  string
+		MaxLifetime  string
 	}
-	Http struct {
+	HTTP struct {
 		Port                  string
 		ReadTimeoutInSeconds  int64
 		WriteTimeoutInSeconds int64
 		IdleTimeoutInSeconds  int64
 	}
-	Smtp struct {
+	SMTP struct {
 		Host     string
 		Port     int
 		Username string
@@ -64,6 +66,7 @@ func applyDefaults() {
 	viper.SetDefault("db.maxOpenConns", 25)
 	viper.SetDefault("db.maxIdleConns", 25)
 	viper.SetDefault("db.maxIdleTime", "15m")
+	viper.SetDefault("db.maxLifetime", "2h")
 	viper.SetDefault("secureCookie", true)
 	viper.SetDefault("argon2.memory", 1<<17)
 	viper.SetDefault("argon2.iterations", 20)

@@ -2,7 +2,8 @@
   "name": "otodo-emails",
   "version": "1.0.0",
   "scripts": {
-    "start": "mjml src/* -o ../server/internal/mailer/templates --config.minify true"
+    "start": "mjml src/* -o ./output --config.minify true",
+		"poststart": "cd ../server && go run gotodo.rasc.ch/cmd/mailgen ../emails/output ./mails" 
   },
   "dependencies": {
     "mjml": "4.13.0"

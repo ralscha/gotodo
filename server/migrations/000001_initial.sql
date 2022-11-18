@@ -4,11 +4,10 @@ CREATE TABLE app_user (
   email            VARCHAR(255) NOT NULL,
   email_new        VARCHAR(255) NULL,
   password_hash    VARCHAR(255) NOT NULL,
-  authority        VARCHAR(10) NOT NULL,
+  authority        ENUM('user', 'admin') NOT NULL,
   activated        BOOLEAN NOT NULL,
   expired          TIMESTAMP NULL,
   last_access      TIMESTAMP NULL,
-  CHECK (authority IN ('USER', 'ADMIN')),
   UNIQUE(email)
 );
 
@@ -17,9 +16,8 @@ CREATE TABLE tokens (
   hash        TINYBLOB NOT NULL,
   app_user_id BIGINT NOT NULL,
   expiry      TIMESTAMP NOT NULL,
-  scope       VARCHAR(15) NOT NULL,
-  FOREIGN KEY (app_user_id) REFERENCES app_user(id) ON DELETE CASCADE,
-	CHECK (scope IN ('signup', 'password-reset', 'email-change'))	
+  scope       ENUM('signup', 'password-reset', 'email-change') NOT NULL,
+  FOREIGN KEY (app_user_id) REFERENCES app_user(id) ON DELETE CASCADE
 );
 
 CREATE TABLE todo (

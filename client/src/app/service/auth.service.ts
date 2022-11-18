@@ -1,8 +1,16 @@
 import {Injectable} from '@angular/core';
 import {BehaviorSubject, Observable, of} from 'rxjs';
 import {catchError, share, tap} from 'rxjs/operators';
-import {HttpClient, HttpParams} from '@angular/common/http';
-import {FormErrorResponse} from '../model/form-error-response';
+import {HttpClient} from '@angular/common/http';
+import {
+  Errors,
+  LoginInput,
+  LoginOutput,
+  PasswordResetInput,
+  PasswordResetRequestInput,
+  SignUpInput,
+  TokenInput
+} from '../api/types';
 
 @Injectable({
   providedIn: 'root'
@@ -31,11 +39,11 @@ export class AuthService {
     return this.authoritySubject.getValue() != null;
   }
 
-  login(email: string, password: string): Observable<string | null> {
-    const body = new HttpParams().set('email', email).set('password', password);
-    return this.httpClient.post<string>('/v1/login', body, {withCredentials: true})
+  login(email: string, password: string): Observable<LoginOutput | null> {
+    const request: LoginInput = {email, password}
+    return this.httpClient.post<LoginOutput>('/v1/login', request, {withCredentials: true})
       .pipe(
-        tap(authority => this.authoritySubject.next(authority)),
+        tap(response => this.authoritySubject.next(response?.authority)),
       );
   }
 
@@ -50,22 +58,24 @@ export class AuthService {
     this.authoritySubject.next(null);
   }
 
-  signup(email: string, password: string): Observable<FormErrorResponse | void> {
-    const body = new HttpParams().set('email', email).set('password', password);
-    return this.httpClient.post<FormErrorResponse | void>('/v1/signup', body);
+  signup(email: string, password: string): Observable<Errors | void> {
+    const request: SignUpInput = {email, password}
+    return this.httpClient.post<Errors | void>('/v1/signup', request);
   }
 
   confirmSignup(token: string): Observable<void> {
-    return this.httpClient.post<void>('/v1/signup-confirm', token)
+    const request: TokenInput = {token}
+    return this.httpClient.post<void>('/v1/signup-confirm', request)
   }
 
   resetPasswordRequest(email: string): Observable<void> {
-    return this.httpClient.post<void>('/v1/password-reset-request', email);
+    const request: PasswordResetRequestInput = {email}
+    return this.httpClient.post<void>('/v1/password-reset-request', request);
   }
 
-  resetPassword(resetToken: string, password: string): Observable<FormErrorResponse | void> {
-    const body = new HttpParams().set('resetToken', resetToken).set('password', password);
-    return this.httpClient.post<FormErrorResponse | void>('/v1/password-reset', body);
+  resetPassword(resetToken: string, password: string): Observable<Errors | void> {
+    const request: PasswordResetInput = {password, resetToken}
+    return this.httpClient.post<Errors | void>('/v1/password-reset', request);
   }
 
 }

@@ -2,81 +2,83 @@ package main
 
 import (
 	"github.com/alexedwards/argon2id"
+	"github.com/gobuffalo/validate"
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+	"golang.org/x/exp/slog"
+	"gotodo.rasc.ch/cmd/web/input"
 	"gotodo.rasc.ch/internal/models"
+	"gotodo.rasc.ch/internal/request"
+	"gotodo.rasc.ch/internal/response"
 	"net/http"
 )
 
 func (app *application) emailChangeHandler(w http.ResponseWriter, r *http.Request) {
-	var input struct {
-		Password string `name:"password" validate:"required,gte=8"`
-		NewEmail string `name:"newEmail" validate:"required,email"`
-	}
-	if ok := app.parseFromForm(w, r, &input); !ok {
+	var emailChangeInput input.EmailChangeInput
+	if ok := request.DecodeJSONValidate(w, r, &emailChangeInput); !ok {
 		return
 	}
 
-	userId := app.sessionManager.Get(r.Context(), "userId").(int64)
+	userID := app.sessionManager.Get(r.Context(), "userID").(int64)
 
 	user, err := models.AppUsers(qm.Select(models.AppUserColumns.PasswordHash),
-		models.AppUserWhere.ID.EQ(userId)).One(r.Context(), app.db)
+		models.AppUserWhere.ID.EQ(userID)).One(r.Context(), app.db)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		response.ServerError(w, err)
 		return
 	}
 
-	match, err := argon2id.ComparePasswordAndHash(input.Password, user.PasswordHash)
+	match, err := argon2id.ComparePasswordAndHash(emailChangeInput.Password, user.PasswordHash)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		response.ServerError(w, err)
 		return
 	}
 	if !match {
-		app.writeJSON(w, r, http.StatusUnprocessableEntity, FormErrorResponse{
-			FieldErrors: map[string]string{"password": "invalid"},
-		})
+		validationError := validate.Errors{
+			Errors: map[string][]string{"password": {"invalid"}},
+		}
+		response.FailedValidation(w, &validationError)
 		return
 	}
 
 	exists, err := models.AppUsers(
-		models.AppUserWhere.Email.EQ(input.NewEmail),
-		qm.Or2(models.AppUserWhere.EmailNew.EQ(null.NewString(input.NewEmail, true))),
+		models.AppUserWhere.Email.EQ(emailChangeInput.NewEmail),
+		qm.Or2(models.AppUserWhere.EmailNew.EQ(null.NewString(emailChangeInput.NewEmail, true))),
 	).Exists(r.Context(), app.db)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		response.ServerError(w, err)
 		return
 	}
 
 	if exists {
-		app.writeJSON(w, r, http.StatusUnprocessableEntity, FormErrorResponse{
-			FieldErrors: map[string]string{
-				"newEmail": "exists",
-			},
-		})
+		validationError := validate.Errors{
+			Errors: map[string][]string{"newEmail": {"exists"}},
+		}
+		response.FailedValidation(w, &validationError)
 		return
 	}
 
-	err = models.AppUsers(models.AppUserWhere.ID.EQ(userId)).UpdateAll(r.Context(), app.db,
-		models.M{models.AppUserColumns.EmailNew: input.NewEmail})
+	err = models.AppUsers(models.AppUserWhere.ID.EQ(userID)).UpdateAll(r.Context(), app.db,
+		models.M{models.AppUserColumns.EmailNew: emailChangeInput.NewEmail})
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		response.ServerError(w, err)
 		return
 	}
 
-	token, err := app.insertToken(r.Context(), userId, app.config.Cleanup.EmailChangeTokenMaxAge, scopeEmailChange)
+	token, err := app.insertToken(r.Context(), userID, app.config.Cleanup.EmailChangeTokenMaxAge, models.TokensScopeEmailChange)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		response.ServerError(w, err)
 		return
 	}
 
 	app.background(func() {
-		data := map[string]interface{}{
-			"confirmationLink": app.config.BaseUrl + "#/profile/email-confirm/" + token.plain,
+		data := map[string]any{
+			"confirmationLink": app.config.BaseURL + "#/profile/email-confirm/" + token.plain,
 		}
 
-		err = app.mailer.Send(input.NewEmail, "email-change.tmpl", data)
+		err = app.mailer.Send(emailChangeInput.NewEmail, "email-change.tmpl", data)
 		if err != nil {
-			app.logger.Error(err)
+			slog.Default().Error("sending email confirm email failed", err)
 		}
 	})
 
@@ -84,29 +86,28 @@ func (app *application) emailChangeHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (app *application) emailChangeConfirmHandler(w http.ResponseWriter, r *http.Request) {
-	token, err := app.readString(w, r)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
+	var tokenInput input.TokenInput
+	if ok := request.DecodeJSONValidate(w, r, &tokenInput); !ok {
 		return
 	}
 
-	userId := app.sessionManager.Get(r.Context(), "userId").(int64)
+	userID := app.sessionManager.Get(r.Context(), "userID").(int64)
 
-	userIdFromToken, err := app.getAppUserIdFromToken(r.Context(), scopeEmailChange, token)
+	userIDFromToken, err := app.getAppUserIDFromToken(r.Context(), models.TokensScopeEmailChange, tokenInput.Token)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		response.ServerError(w, err)
 		return
 	}
 
-	if userId != userIdFromToken {
+	if userID != userIDFromToken {
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
 
 	user, err := models.AppUsers(qm.Select(models.AppUserColumns.EmailNew),
-		models.AppUserWhere.ID.EQ(userId)).One(r.Context(), app.db)
+		models.AppUserWhere.ID.EQ(userID)).One(r.Context(), app.db)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		response.ServerError(w, err)
 		return
 	}
 
@@ -115,17 +116,17 @@ func (app *application) emailChangeConfirmHandler(w http.ResponseWriter, r *http
 		return
 	}
 
-	err = models.AppUsers(models.AppUserWhere.ID.EQ(userId)).UpdateAll(r.Context(), app.db,
+	err = models.AppUsers(models.AppUserWhere.ID.EQ(userID)).UpdateAll(r.Context(), app.db,
 		models.M{models.AppUserColumns.Email: user.EmailNew,
 			models.AppUserColumns.EmailNew: null.NewString("", false)})
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		response.ServerError(w, err)
 		return
 	}
 
-	err = app.deleteAllTokensForUser(r.Context(), userId, scopeEmailChange)
+	err = app.deleteAllTokensForUser(r.Context(), userID, models.TokensScopeEmailChange)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		response.ServerError(w, err)
 		return
 	}
 
@@ -133,61 +134,62 @@ func (app *application) emailChangeConfirmHandler(w http.ResponseWriter, r *http
 }
 
 func (app *application) passwordChangeHandler(w http.ResponseWriter, r *http.Request) {
-	var input struct {
-		OldPassword string `name:"oldPassword" validate:"required,gte=8"`
-		NewPassword string `name:"newPassword" validate:"required,gte=8"`
-	}
-	if ok := app.parseFromForm(w, r, &input); !ok {
+	var passwordChangeInput input.PasswordChangeInput
+	if ok := request.DecodeJSONValidate(w, r, &passwordChangeInput); !ok {
 		return
 	}
 
-	userId := app.sessionManager.Get(r.Context(), "userId").(int64)
+	userID := app.sessionManager.Get(r.Context(), "userID").(int64)
 
 	user, err := models.AppUsers(qm.Select(models.AppUserColumns.PasswordHash),
-		models.AppUserWhere.ID.EQ(userId)).One(r.Context(), app.db)
+		models.AppUserWhere.ID.EQ(userID)).One(r.Context(), app.db)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		response.ServerError(w, err)
 		return
 	}
 
-	match, err := argon2id.ComparePasswordAndHash(input.OldPassword, user.PasswordHash)
+	match, err := argon2id.ComparePasswordAndHash(passwordChangeInput.OldPassword, user.PasswordHash)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		response.ServerError(w, err)
 		return
 	}
 	if !match {
-		app.writeJSON(w, r, http.StatusUnprocessableEntity, FormErrorResponse{
-			FieldErrors: map[string]string{"oldPassword": "invalid"},
-		})
+		validationError := validate.Errors{
+			Errors: map[string][]string{"oldPassword": {"invalid"}},
+		}
+		response.FailedValidation(w, &validationError)
 		return
 	}
 
-	compromised, err := app.isPasswordCompromised(input.NewPassword)
+	compromised, err := app.isPasswordCompromised(passwordChangeInput.NewPassword)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		response.ServerError(w, err)
 		return
 	}
 	if compromised {
-		app.writeJSON(w, r, http.StatusUnprocessableEntity, FormErrorResponse{
-			FieldErrors: map[string]string{
-				"newPassword": "weak",
-			},
-		})
+		validationError := validate.Errors{
+			Errors: map[string][]string{"newPassword": {"weak"}},
+		}
+		response.FailedValidation(w, &validationError)
 		return
 	}
 
-	newPasswordHash, err := argon2id.CreateHash(input.NewPassword, &argon2id.Params{
+	newPasswordHash, err := argon2id.CreateHash(passwordChangeInput.NewPassword, &argon2id.Params{
 		Memory:      app.config.Argon2.Memory,
 		Iterations:  app.config.Argon2.Iterations,
 		Parallelism: app.config.Argon2.Parallelism,
 		SaltLength:  app.config.Argon2.SaltLength,
 		KeyLength:   app.config.Argon2.KeyLength,
 	})
+	if err != nil {
+		response.ServerError(w, err)
+		return
+	}
 
-	err = models.AppUsers(models.AppUserWhere.ID.EQ(userId)).UpdateAll(r.Context(), app.db,
+	err = models.AppUsers(models.AppUserWhere.ID.EQ(userID)).UpdateAll(r.Context(), app.db,
 		models.M{models.AppUserColumns.PasswordHash: newPasswordHash})
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		response.ServerError(w, err)
 		return
 	}
 
@@ -195,73 +197,67 @@ func (app *application) passwordChangeHandler(w http.ResponseWriter, r *http.Req
 }
 
 func (app *application) accountDeleteHandler(w http.ResponseWriter, r *http.Request) {
-	password, err := app.readString(w, r)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
-	if password == "" {
-		app.writeJSON(w, r, http.StatusUnprocessableEntity, FormErrorResponse{
-			FieldErrors: map[string]string{"password": "required"},
-		})
+	var passwordInput input.PasswordInput
+	if ok := request.DecodeJSONValidate(w, r, &passwordInput); !ok {
 		return
 	}
 
-	userId := app.sessionManager.Get(r.Context(), "userId").(int64)
+	userID := app.sessionManager.Get(r.Context(), "userID").(int64)
 
 	user, err := models.AppUsers(qm.Select(models.AppUserColumns.PasswordHash),
-		models.AppUserWhere.ID.EQ(userId)).One(r.Context(), app.db)
+		models.AppUserWhere.ID.EQ(userID)).One(r.Context(), app.db)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		response.ServerError(w, err)
 		return
 	}
 
-	match, err := argon2id.ComparePasswordAndHash(password, user.PasswordHash)
+	match, err := argon2id.ComparePasswordAndHash(passwordInput.Password, user.PasswordHash)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		response.ServerError(w, err)
 		return
 	}
 
 	if !match {
-		app.writeJSON(w, r, http.StatusUnprocessableEntity, FormErrorResponse{
-			FieldErrors: map[string]string{"password": "invalid"},
-		})
+		validationError := validate.Errors{
+			Errors: map[string][]string{"password": {"invalid"}},
+		}
+		response.FailedValidation(w, &validationError)
 		return
 	}
 
 	tx, err := app.db.BeginTx(r.Context(), nil)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		response.ServerError(w, err)
 		return
 	}
 
-	err = models.Todos(models.TodoWhere.AppUserID.EQ(userId)).DeleteAll(r.Context(), tx)
+	err = models.Todos(models.TodoWhere.AppUserID.EQ(userID)).DeleteAll(r.Context(), tx)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		response.ServerError(w, err)
 		return
 	}
 
-	err = models.Tokens(models.TokenWhere.AppUserID.EQ(userId)).DeleteAll(r.Context(), tx)
+	err = models.Tokens(models.TokenWhere.AppUserID.EQ(userID)).DeleteAll(r.Context(), tx)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		response.ServerError(w, err)
 		return
 	}
 
-	err = models.AppUsers(models.AppUserWhere.ID.EQ(userId)).DeleteAll(r.Context(), tx)
+	err = models.AppUsers(models.AppUserWhere.ID.EQ(userID)).DeleteAll(r.Context(), tx)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		response.ServerError(w, err)
 		return
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		response.ServerError(w, err)
 		return
 	}
 
 	err = app.sessionManager.Destroy(r.Context())
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		response.ServerError(w, err)
 		return
 	}
 

@@ -2,8 +2,7 @@ import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {BehaviorSubject, Observable} from 'rxjs';
 import {tap} from 'rxjs/operators';
-import {Todo} from './todo';
-import {FormErrorResponse} from '../model/form-error-response';
+import {Errors, Todo} from '../api/types';
 
 @Injectable({
   providedIn: 'root'
@@ -44,12 +43,12 @@ export class TodoService {
         }));
   }
 
-  save(todo: Todo): Observable<FormErrorResponse | number | void> {
-    return this.httpClient.post<FormErrorResponse | number | void>('/v1/todo', todo)
+  save(todo: Todo): Observable<Errors | Pick<Todo, "id"> | void> {
+    return this.httpClient.post<Errors | Pick<Todo, "id"> | void>('/v1/todo', todo)
       .pipe(
-        tap(id => {
-          if (id) {
-            todo.id = <number>id;
+        tap(pickTodo => {
+          if (pickTodo && 'id' in pickTodo) {
+            todo.id = pickTodo.id;
           }
           this.todosMap.set(todo.id, todo)
           this.publish();

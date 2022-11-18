@@ -1,18 +1,22 @@
 package main
 
 import (
+	"gotodo.rasc.ch/cmd/web/output"
+	"gotodo.rasc.ch/internal/response"
+	"gotodo.rasc.ch/internal/version"
 	"net/http"
 )
 
-func (app *application) healthcheckHandler(w http.ResponseWriter, r *http.Request) {
-	app.writeJSON(w, r, http.StatusOK, map[string]interface{}{
-		"status": "up",
+func (app *application) healthcheckHandler(w http.ResponseWriter, _ *http.Request) {
+	response.JSON(w, http.StatusOK, output.HealthcheckOutput{
+		Status: "up",
 	})
 }
 
-func (app *application) buildInfoHandler(w http.ResponseWriter, r *http.Request) {
-	app.writeJSON(w, r, http.StatusOK, map[string]interface{}{
-		"buildTime": appBuildTime,
-		"version":   appVersion,
+func (app *application) appVersionHandler(w http.ResponseWriter, _ *http.Request) {
+	v := version.Get()
+	response.JSON(w, http.StatusOK, output.AppVersionOutput{
+		BuildTime: v.BuildTime,
+		Version:   v.Version,
 	})
 }

@@ -1,33 +1,31 @@
 # GoTodo
 
-Simple todo application with Angular 12 / Ionic 6 (beta) and Go.
+Simple todo application with Angular 15 / Ionic 6 and Go.
 
 ## Functionality
-
+  - Todo list/add/edit/delete
   - Sign in / off
   - Sign up with email verification
   - Password reset
   - Password change
-  - Email change
-  - Delete account  
+  - Email address change
+  - Delete account
 
 
 ## Dependencies back end
 
 | Name  | Home | Usage | 
 |-------|------|-------|
-| argon2id  | https://github.com/alexedwards/argon2id   | Password hashing  |
-| scs  | https://github.com/alexedwards/scs  | Session Management   |
+| argon2id  | https://github.com/alexedwards/argon2id   | Password hashing |
+| scs  | https://github.com/alexedwards/scs  | Session Management |
 | chi  | https://github.com/go-chi/chi  | Router |
 | go-mail  | https://github.com/go-mail/mail   | Sending emails |
-| validator  | https://github.com/go-playground/validator   | Validation  |
-| mysql  | https://github.com/go-sql-driver/mysql   | MySQL database driver  |
-| goose | https://github.com/pressly/goose   | Database migration  |
-| zap | https://pkg.go.dev/go.uber.org/zap   | Logging  |
-| gorilla/schema  |  https://github.com/gorilla/schema  | Form values to struct  |
-| viper | https://github.com/spf13/viper   | Configuration  |
-| SQLBoiler  |  https://github.com/volatiletech/sqlboiler  | ORM  |
+| validator  | https://github.com/gobuffalo/validate   | Validation |
+| mysql driver  | https://github.com/go-sql-driver/mysql   | MySQL database driver |
+| goose | https://github.com/pressly/goose   | Database migration |
+| slog | https://pkg.go.dev/golang.org/x/exp/slog | Logging |
+| viper | https://github.com/spf13/viper   | Configuration |
+| SQLBoiler  |  https://github.com/volatiletech/sqlboiler  | ORM |
 | chrono | https://github.com/procyon-projects/chrono | Scheduling jobs |
-
-
+| typescriptify | https://github.com/tkrajina/typescriptify-golang-structs | Struct to TypeScript |
 

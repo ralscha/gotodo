@@ -3,18 +3,16 @@ package main
 import (
 	"flag"
 	"fmt"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/pressly/goose/v3"
 	"gotodo.rasc.ch/internal/config"
+	"gotodo.rasc.ch/migrations"
 	"log"
 	"os"
-
-	"github.com/pressly/goose"
-
-	_ "github.com/go-sql-driver/mysql"
 )
 
 var (
 	flags = flag.NewFlagSet("goose", flag.ExitOnError)
-	dir   = flags.String("dir", "./migrations", "directory with migration files")
 )
 
 func main() {
@@ -33,7 +31,7 @@ func main() {
 	}
 
 	dbstring := fmt.Sprintf("%s:%s@%s/%s?%s",
-		cfg.Db.User, cfg.Db.Password, cfg.Db.Connection, cfg.Db.Database, cfg.Db.Parameter)
+		cfg.DB.User, cfg.DB.Password, cfg.DB.Connection, cfg.DB.Database, cfg.DB.Parameter)
 
 	db, err := goose.OpenDBWithDriver("mysql", dbstring)
 	if err != nil {
@@ -51,7 +49,9 @@ func main() {
 		arguments = append(arguments, args[1:]...)
 	}
 
-	if err := goose.Run(command, db, *dir, arguments...); err != nil {
+	goose.SetBaseFS(migrations.EmbeddedFiles)
+
+	if err := goose.Run(command, db, ".", arguments...); err != nil {
 		log.Fatalf("goose %v: %v", command, err)
 	}
 }

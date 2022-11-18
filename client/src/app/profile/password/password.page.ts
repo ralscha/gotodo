@@ -5,8 +5,8 @@ import {AuthService} from '../../service/auth.service';
 import {NavController} from '@ionic/angular';
 import {ProfileService} from '../profile/profile.service';
 import {HttpErrorResponse} from '@angular/common/http';
-import {FormErrorResponse} from '../../model/form-error-response';
 import {displayFieldErrors} from '../../util';
+import {Errors} from '../../api/types';
 
 @Component({
   selector: 'app-password',
@@ -45,9 +45,9 @@ export class PasswordPage {
   }
 
   private handleErrorResponse(errorResponse: HttpErrorResponse) {
-    const response: FormErrorResponse = errorResponse.error;
-    if (response && response.fieldErrors) {
-      displayFieldErrors(this.changeForm, response.fieldErrors)
+    const response: Errors = errorResponse.error;
+    if (response?.errors) {
+      displayFieldErrors(this.changeForm, response.errors)
     } else {
       this.changeForm.resetForm();
       this.messagesService.showErrorToast('Changing password failed');

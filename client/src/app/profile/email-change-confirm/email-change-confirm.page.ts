@@ -5,8 +5,7 @@ import {ProfileService} from '../profile/profile.service';
 
 @Component({
   selector: 'app-email-change-confirm',
-  templateUrl: './email-change-confirm.page.html',
-  styleUrls: ['./email-change-confirm.page.scss'],
+  templateUrl: './email-change-confirm.page.html'
 })
 export class EmailChangeConfirmPage implements OnInit {
 

@@ -3,101 +3,85 @@ package main
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"github.com/alexedwards/scs/mysqlstore"
 	"github.com/alexedwards/scs/v2"
-	"github.com/go-playground/validator/v10"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/gorilla/schema"
 	"github.com/procyon-projects/chrono"
 	"github.com/volatiletech/sqlboiler/v4/boil"
-	"go.uber.org/zap"
+	"golang.org/x/exp/slog"
 	"gotodo.rasc.ch/internal/config"
+	"gotodo.rasc.ch/internal/database"
 	"gotodo.rasc.ch/internal/mailer"
+	"gotodo.rasc.ch/internal/version"
 	"log"
+	"math/rand"
 	"net/http"
-	"reflect"
+	"os"
 	"sync"
 	"time"
-)
-
-var (
-	appBuildTime string
-	appVersion   string
 )
 
 type application struct {
 	config         *config.Config
 	db             *sql.DB
 	sessionManager *scs.SessionManager
-	validator      *validator.Validate
-	decoder        *schema.Decoder
 	wg             sync.WaitGroup
-	logger         *zap.SugaredLogger
 	mailer         mailer.Mailer
 	taskScheduler  chrono.TaskScheduler
 }
 
 func main() {
+	rand.Seed(time.Now().UnixNano())
+
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		log.Fatalf("reading config failed %v\n", err)
 	}
 
-	var logger *zap.Logger
+	var logger *slog.Logger
 
 	switch cfg.Environment {
 	case config.Development:
 		boil.DebugMode = true
-		logger, err = zap.NewDevelopment()
-		if err != nil {
-			log.Fatalf("can't initialize development zap logger: %v\n", err)
-		}
+		logger = slog.New(slog.NewTextHandler(os.Stdout))
 	case config.Production:
-		logger, err = zap.NewProduction()
-		if err != nil {
-			log.Fatalf("can't initialize production zap logger: %v\n", err)
-		}
+		logger = slog.New(slog.NewJSONHandler(os.Stdout))
 	}
 
-	sugar := logger.Sugar()
+	slog.SetDefault(logger)
 
-	db, err := openDB(cfg)
+	db, err := database.New(cfg)
 	if err != nil {
-		sugar.Fatalw("opening database connection failed", zap.Error(err))
+		logger.Error("opening database connection failed", err)
+		os.Exit(1)
 	}
 	defer func(db *sql.DB) {
 		_ = db.Close()
 	}(db)
 
-	sugar.Info("database connection pool established")
+	logger.Info("database connection pool established")
 
 	sm := scs.New()
 	sm.Store = mysqlstore.NewWithCleanupInterval(db, 30*time.Minute)
 	sm.Lifetime = cfg.Cleanup.SessionLifetime
 	sm.Cookie.SameSite = http.SameSiteStrictMode
-
+	if cfg.CookieDomain != "" {
+		sm.Cookie.Domain = cfg.CookieDomain
+	}
 	sm.Cookie.Secure = cfg.SecureCookie
-	sugar.Infof("secure cookie: %t\n", sm.Cookie.Secure)
-
-	vld := validator.New()
-	vld.RegisterTagNameFunc(func(fld reflect.StructField) string {
-		return fld.Tag.Get("name")
-	})
+	logger.Info("secure cookie", "secure", sm.Cookie.Secure)
 
 	err = initAuth(cfg)
 	if err != nil {
-		sugar.Fatalw("init auth failed", zap.Error(err))
+		logger.Error("init auth failed", err)
+		os.Exit(1)
 	}
 
 	app := &application{
 		config:         &cfg,
 		db:             db,
 		sessionManager: sm,
-		validator:      vld,
-		decoder:        schema.NewDecoder(),
-		logger:         sugar,
-		mailer:         mailer.New(cfg.Smtp.Host, cfg.Smtp.Port, cfg.Smtp.Username, cfg.Smtp.Password, cfg.Smtp.Sender),
+		mailer:         mailer.New(cfg.SMTP.Host, cfg.SMTP.Port, cfg.SMTP.Username, cfg.SMTP.Password, cfg.SMTP.Sender),
 		taskScheduler:  chrono.NewDefaultTaskScheduler(),
 	}
 
@@ -106,42 +90,17 @@ func main() {
 	}, 20*time.Minute)
 
 	if err != nil {
-		sugar.Fatalw("Starting cleanup job failed", zap.Error(err))
+		logger.Error("scheduling cleanup task failed", err)
+		os.Exit(1)
 	}
+
+	logger.Info("starting server", "addr", app.config.HTTP.Port, "version", version.Get().Version)
 
 	err = app.serve()
 	if err != nil {
-		sugar.Fatalw("http serve failed", zap.Error(err))
+		logger.Error("http serve failed", err)
+		os.Exit(1)
 	}
 
-}
-
-func openDB(cfg config.Config) (*sql.DB, error) {
-	dbstring := fmt.Sprintf("%s:%s@%s/%s?%s",
-		cfg.Db.User, cfg.Db.Password, cfg.Db.Connection, cfg.Db.Database, cfg.Db.Parameter)
-
-	db, err := sql.Open("mysql", dbstring)
-	if err != nil {
-		return nil, err
-	}
-
-	db.SetMaxOpenConns(cfg.Db.MaxOpenConns)
-	db.SetMaxIdleConns(cfg.Db.MaxIdleConns)
-
-	duration, err := time.ParseDuration(cfg.Db.MaxIdleTime)
-	if err != nil {
-		return nil, err
-	}
-
-	db.SetConnMaxIdleTime(duration)
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	err = db.PingContext(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return db, nil
+	logger.Info("server stopped")
 }

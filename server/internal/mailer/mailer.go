@@ -2,15 +2,12 @@ package mailer
 
 import (
 	"bytes"
-	"embed"
+	"gotodo.rasc.ch/mails"
 	"html/template"
 	"time"
 
 	"github.com/go-mail/mail/v2"
 )
-
-//go:embed "templates"
-var templateFS embed.FS
 
 type Mailer struct {
 	dialer *mail.Dialer
@@ -28,7 +25,7 @@ func New(host string, port int, username, password, sender string) Mailer {
 }
 
 func (m Mailer) Send(recipient, templateFile string, data interface{}) error {
-	tmpl, err := template.New("email").ParseFS(templateFS, "templates/"+templateFile)
+	tmpl, err := template.New("email").ParseFS(mails.EmbeddedFiles, templateFile)
 	if err != nil {
 		return err
 	}

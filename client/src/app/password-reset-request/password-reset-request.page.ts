@@ -5,8 +5,7 @@ import {MessagesService} from '../service/messages.service';
 
 @Component({
   selector: 'app-password-reset-request',
-  templateUrl: './password-reset-request.page.html',
-  styleUrls: ['./password-reset-request.page.scss'],
+  templateUrl: './password-reset-request.page.html'
 })
 export class PasswordResetRequestPage {
 

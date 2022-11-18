@@ -3,11 +3,10 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {MessagesService} from '../../service/messages.service';
 import {AlertController} from '@ionic/angular';
 import {NgForm} from '@angular/forms';
-import {Todo} from '../todo';
 import {TodoService} from '../todo.service';
 import {displayFieldErrors} from '../../util';
-import {FormErrorResponse} from '../../model/form-error-response';
 import {HttpErrorResponse} from '@angular/common/http';
+import {Errors, Todo} from '../../api/types';
 
 @Component({
   selector: 'app-edit',
@@ -16,7 +15,7 @@ import {HttpErrorResponse} from '@angular/common/http';
 })
 export class EditPage implements OnInit {
 
-  selectedTodo: Todo | undefined;
+  selectedTodo?: Todo;
 
   constructor(private readonly route: ActivatedRoute,
               private readonly router: Router,
@@ -32,8 +31,8 @@ export class EditPage implements OnInit {
     } else {
       this.selectedTodo = {
         id: 0,
-        subject: null,
-        description: null,
+        subject: "",
+        description: undefined,
       };
     }
   }
@@ -75,13 +74,11 @@ export class EditPage implements OnInit {
 
   private handleErrorResponse(form: NgForm) {
     return (errorResponse: HttpErrorResponse) => {
-      const response: FormErrorResponse = errorResponse.error;
-      if (response) {
-        if (response.fieldErrors) {
-          displayFieldErrors(form, response.fieldErrors)
-        } else {
-          this.messagesService.showErrorToast('Saving Todo failed');
-        }
+      const response: Errors = errorResponse.error;
+      if (response?.errors) {
+        displayFieldErrors(form, response.errors)
+      } else {
+        this.messagesService.showErrorToast('Saving Todo failed');
       }
     };
   }

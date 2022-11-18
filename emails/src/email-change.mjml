@@ -21,7 +21,7 @@
         </mj-text>
 
         <mj-text>
-          You have requested an email change. <br>
+          You have requested an email address change. <br>
           Please click on the link below to confirm the change. 
         </mj-text>
 
@@ -31,7 +31,7 @@
     <mj-section>
       <mj-column>
         <mj-button href="{{.confirmationLink}}">
-          Confirm my email change
+          Confirm my email address change
         </mj-button>
       </mj-column>
     </mj-section>

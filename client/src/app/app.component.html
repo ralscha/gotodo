@@ -4,6 +4,20 @@
     <ion-menu [hidden]="!authService.isAuthenticated()" contentId="main-content">
       <ion-content>
         <ion-list *ngIf="authService.isAuthenticated()" lines="none">
+
+          <ion-list-header>
+            GoTodo
+          </ion-list-header>
+
+          <ion-menu-toggle autoHide="false">
+            <ion-item routerDirection="root" routerLink="todo" routerLinkActive="active">
+              <ion-icon name="person" slot="start"></ion-icon>
+              <ion-label>
+                My Todos
+              </ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+
           <ion-list-header>
             Account
           </ion-list-header>

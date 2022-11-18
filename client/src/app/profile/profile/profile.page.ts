@@ -1,6 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../../environments/environment';
+import {AppVersionOutput} from '../../api/types';
 
 @Component({
   selector: 'app-profile',
@@ -23,10 +24,10 @@ export class ProfilePage implements OnInit {
     this.buildInfo.clientVersion = environment.version;
     this.buildInfo.clientBuildTime = new Date(environment.buildTimestamp * 1000).toISOString();
 
-    this.httpClient.get<{ version: string, time: string }>('/v1/profile/build-info')
+    this.httpClient.get<AppVersionOutput>('/v1/profile/build-info')
       .subscribe(response => {
         this.buildInfo.serverVersion = response.version;
-        this.buildInfo.serverBuildTime = response.time;
+        this.buildInfo.serverBuildTime = response.buildTime;
       });
   }
 

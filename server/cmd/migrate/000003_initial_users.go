@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"github.com/alexedwards/argon2id"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/pressly/goose"
+	"github.com/pressly/goose/v3"
 )
 
 func init() {
@@ -27,7 +27,7 @@ func upInitialUsers(tx *sql.Tx) error {
 
 	stmt := `
 	INSERT INTO app_user (email, password_hash, authority, activated, expired, last_access) 
-	VALUES ('admin@test.ch', ?, 'ADMIN', 1, null, null)
+	VALUES ('admin@test.ch', ?, 'admin', 1, null, null)
     `
 	_, err = tx.Exec(stmt, hash)
 	if err != nil {

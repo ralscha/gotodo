@@ -3,9 +3,9 @@ import {MessagesService} from '../../service/messages.service';
 import {ProfileService} from '../profile/profile.service';
 import {NgForm} from '@angular/forms';
 import {HttpErrorResponse} from '@angular/common/http';
-import {FormErrorResponse} from '../../model/form-error-response';
 import {displayFieldErrors} from '../../util';
 import {NavController} from '@ionic/angular';
+import {Errors} from '../../api/types';
 
 @Component({
   selector: 'app-email',
@@ -22,9 +22,9 @@ export class EmailPage {
   }
 
   private static handleErrorResponse(form: NgForm, errorResponse: HttpErrorResponse) {
-    const response: FormErrorResponse = errorResponse.error;
-    if (response && response.fieldErrors) {
-      displayFieldErrors(form, response.fieldErrors)
+    const response: Errors = errorResponse.error;
+    if (response?.errors) {
+      displayFieldErrors(form, response.errors)
     }
   }
 

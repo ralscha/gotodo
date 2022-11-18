@@ -5,24 +5,29 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/httprate"
 	"gotodo.rasc.ch/internal/config"
+	"gotodo.rasc.ch/internal/response"
 	"net/http"
 	"time"
 )
 
 func (app *application) routes() http.Handler {
-	router := chi.NewRouter()
-	router.Use(middleware.RealIP)
+	mux := chi.NewRouter()
 
+	mux.NotFound(response.NotFound)
+	mux.MethodNotAllowed(response.MethodNotAllowed)
+
+	// Middleware
+	mux.Use(middleware.RealIP)
 	if app.config.Environment == config.Development {
-		router.Use(middleware.Logger)
+		mux.Use(middleware.Logger)
 	}
 
-	router.Use(httprate.LimitAll(1_000, 1*time.Minute))
-	router.Use(middleware.Recoverer)
-	router.Use(middleware.Timeout(15 * time.Second))
-	router.Use(middleware.NoCache)
+	mux.Use(middleware.Recoverer)
+	mux.Use(httprate.LimitAll(1_000, 1*time.Minute))
+	mux.Use(middleware.Timeout(15 * time.Second))
+	mux.Use(middleware.NoCache)
 
-	router.Route("/v1", func(r chi.Router) {
+	mux.Route("/v1", func(r chi.Router) {
 		r.Use(app.sessionManager.LoadAndSave)
 		r.Get("/healthcheck", app.healthcheckHandler)
 		r.Post("/authenticate", app.authenticateHandler)
@@ -34,7 +39,7 @@ func (app *application) routes() http.Handler {
 		r.Mount("/", app.authenticatedRouter())
 	})
 
-	return router
+	return mux
 }
 
 func (app *application) authenticatedRouter() http.Handler {
@@ -43,8 +48,8 @@ func (app *application) authenticatedRouter() http.Handler {
 	r.Post("/logout", app.logoutHandler)
 	r.Get("/todo", app.todoGetHandler)
 	r.Post("/todo", app.todoSaveHandler)
-	r.Delete("/todo/{todoId:\\d+}", app.todoDeleteHandler)
-	r.Get("/profile/build-info", app.buildInfoHandler)
+	r.Delete("/todo/{todoID:\\d+}", app.todoDeleteHandler)
+	r.Get("/profile/build-info", app.appVersionHandler)
 	r.Post("/profile/email-change", app.emailChangeHandler)
 	r.Post("/profile/email-change-confirm", app.emailChangeConfirmHandler)
 	r.Post("/profile/password-change", app.passwordChangeHandler)
@@ -54,9 +59,9 @@ func (app *application) authenticatedRouter() http.Handler {
 
 func (app *application) authenticatedOnly(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		value := app.sessionManager.Get(r.Context(), "userId")
-		userId, ok := value.(int64)
-		if ok && userId > 0 {
+		value := app.sessionManager.Get(r.Context(), "userID")
+		userID, ok := value.(int64)
+		if ok && userID > 0 {
 			next.ServeHTTP(w, r)
 		} else {
 			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)

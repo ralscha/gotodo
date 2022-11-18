@@ -5,8 +5,7 @@ import {ActivatedRoute} from '@angular/router';
 
 @Component({
   selector: 'app-signup-confirm',
-  templateUrl: './signup-confirm.page.html',
-  styleUrls: ['./signup-confirm.page.scss'],
+  templateUrl: './signup-confirm.page.html'
 })
 export class SignupConfirmPage implements OnInit {
 

@@ -4,9 +4,15 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/alexedwards/argon2id"
+	"github.com/gobuffalo/validate"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+	"golang.org/x/exp/slog"
+	"gotodo.rasc.ch/cmd/web/input"
+	"gotodo.rasc.ch/cmd/web/output"
 	"gotodo.rasc.ch/internal/config"
 	"gotodo.rasc.ch/internal/models"
+	"gotodo.rasc.ch/internal/request"
+	"gotodo.rasc.ch/internal/response"
 	"net/http"
 	"time"
 )
@@ -26,26 +32,24 @@ func initAuth(config config.Config) error {
 }
 
 func (app *application) authenticateHandler(w http.ResponseWriter, r *http.Request) {
-	value := app.sessionManager.Get(r.Context(), "userId")
-	userId, ok := value.(int64)
+	value := app.sessionManager.Get(r.Context(), "userID")
+	userID, ok := value.(int64)
 	if !ok {
-		userId = 0
+		userID = 0
 	}
 
-	if userId > 0 {
+	if userID > 0 {
 		user, err := models.AppUsers(qm.Select(
 			models.AppUserColumns.Authority,
 			models.AppUserColumns.Expired,
 			models.AppUserColumns.Activated),
-			models.AppUserWhere.ID.EQ(userId)).One(r.Context(), app.db)
+			models.AppUserWhere.ID.EQ(userID)).One(r.Context(), app.db)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
-			app.serverErrorResponse(w, r, err)
+			response.ServerError(w, err)
 			return
 		}
 		if user != nil && user.Activated && user.Expired.IsZero() {
-			app.writeJSON(w, r, http.StatusOK, map[string]interface{}{
-				"authority": user.Authority,
-			})
+			response.JSON(w, http.StatusOK, output.LoginOutput{Authority: user.Authority})
 			return
 		}
 	}
@@ -55,15 +59,11 @@ func (app *application) authenticateHandler(w http.ResponseWriter, r *http.Reque
 func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
 	err := app.sessionManager.RenewToken(r.Context())
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		response.ServerError(w, err)
 	}
 
-	var loginInput struct {
-		Password string `name:"password" validate:"required,gte=8"`
-		Email    string `name:"email" validate:"required,email"`
-	}
-
-	if ok := app.parseFromForm(w, r, &loginInput); !ok {
+	var loginInput input.LoginInput
+	if ok := request.DecodeJSONValidate(w, r, &loginInput); !ok {
 		return
 	}
 
@@ -75,46 +75,138 @@ func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
 		models.AppUserColumns.Activated),
 		models.AppUserWhere.Email.EQ(loginInput.Email)).One(r.Context(), app.db)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		app.serverErrorResponse(w, r, err)
+		response.ServerError(w, err)
 		return
 	}
 
 	if user != nil && user.Activated && user.Expired.IsZero() {
 		match, err := argon2id.ComparePasswordAndHash(loginInput.Password, user.PasswordHash)
 		if err != nil {
-			app.serverErrorResponse(w, r, err)
+			response.ServerError(w, err)
 			return
 		}
 		if match {
 			err := models.AppUsers(models.AppUserWhere.ID.EQ(user.ID)).UpdateAll(r.Context(), app.db,
 				models.M{models.AppUserColumns.LastAccess: time.Now()})
 			if err != nil {
-				app.serverErrorResponse(w, r, err)
+				response.ServerError(w, err)
 				return
 			}
 
-			app.sessionManager.Put(r.Context(), "userId", user.ID)
+			app.sessionManager.Put(r.Context(), "userID", user.ID)
 
-			app.writeJSON(w, r, http.StatusOK, map[string]interface{}{
-				"authority": user.Authority,
-			})
+			response.JSON(w, http.StatusOK, output.LoginOutput{Authority: user.Authority})
 			return
 		}
 	} else {
-		_, err := argon2id.ComparePasswordAndHash(loginInput.Password, userNotFoundPasswordHash)
-		if err != nil {
-			app.serverErrorResponse(w, r, err)
+		if _, err := argon2id.ComparePasswordAndHash(loginInput.Password, userNotFoundPasswordHash); err != nil {
+			response.ServerError(w, err)
 			return
 		}
 	}
+
 	w.WriteHeader(http.StatusUnauthorized)
 }
 
 func (app *application) logoutHandler(w http.ResponseWriter, r *http.Request) {
-	err := app.sessionManager.Destroy(r.Context())
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
+	if err := app.sessionManager.Destroy(r.Context()); err != nil {
+		response.ServerError(w, err)
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (app *application) passwordResetRequestHandler(w http.ResponseWriter, r *http.Request) {
+	var passwordResetRequestInput input.PasswordResetRequestInput
+	if ok := request.DecodeJSONValidate(w, r, &passwordResetRequestInput); !ok {
+		return
+	}
+
+	user, err := models.AppUsers(qm.Select(
+		models.AppUserColumns.ID),
+		models.AppUserWhere.Email.EQ(passwordResetRequestInput.Email)).One(r.Context(), app.db)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		response.ServerError(w, err)
+		return
+	}
+
+	if user != nil {
+		token, err := app.insertToken(r.Context(), user.ID, app.config.Cleanup.PasswordResetTokenMaxAge, models.TokensScopePasswordReset)
+		if err != nil {
+			response.ServerError(w, err)
+			return
+		}
+
+		app.background(func() {
+			data := map[string]any{
+				"resetLink": app.config.BaseURL + "#/password-reset/" + token.plain,
+			}
+
+			err = app.mailer.Send(passwordResetRequestInput.Email, "password-reset.tmpl", data)
+			if err != nil {
+				slog.Default().Error("sending password reset email failed", err)
+			}
+		})
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (app *application) passwordResetHandler(w http.ResponseWriter, r *http.Request) {
+	var passwordResetInput input.PasswordResetInput
+	if ok := request.DecodeJSONValidate(w, r, &passwordResetInput); !ok {
+		return
+	}
+
+	userID, err := app.getAppUserIDFromToken(r.Context(), models.TokensScopePasswordReset, passwordResetInput.ResetToken)
+	if err != nil {
+		response.ServerError(w, err)
+		return
+	}
+
+	if userID == 0 {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		return
+	}
+
+	compromised, err := app.isPasswordCompromised(passwordResetInput.Password)
+	if err != nil {
+		response.ServerError(w, err)
+		return
+	}
+	if compromised {
+		validationError := validate.Errors{
+			Errors: map[string][]string{"password": {"weak"}},
+		}
+		response.FailedValidation(w, &validationError)
+		return
+	}
+
+	newPasswordHash, err := argon2id.CreateHash(passwordResetInput.Password, &argon2id.Params{
+		Memory:      app.config.Argon2.Memory,
+		Iterations:  app.config.Argon2.Iterations,
+		Parallelism: app.config.Argon2.Parallelism,
+		SaltLength:  app.config.Argon2.SaltLength,
+		KeyLength:   app.config.Argon2.KeyLength,
+	})
+	if err != nil {
+		response.ServerError(w, err)
+		return
+	}
+
+	err = models.AppUsers(models.AppUserWhere.ID.EQ(userID)).UpdateAll(r.Context(), app.db,
+		models.M{models.AppUserColumns.PasswordHash: newPasswordHash})
+	if err != nil {
+		response.ServerError(w, err)
+		return
+	}
+
+	err = app.deleteAllTokensForUser(r.Context(), userID, models.TokensScopePasswordReset)
+	if err != nil {
+		response.ServerError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+
 }

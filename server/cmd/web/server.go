@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"golang.org/x/exp/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -12,11 +13,11 @@ import (
 
 func (app *application) serve() error {
 	srv := &http.Server{
-		Addr:         app.config.Http.Port,
+		Addr:         app.config.HTTP.Port,
 		Handler:      app.routes(),
-		ReadTimeout:  time.Duration(app.config.Http.ReadTimeoutInSeconds) * time.Second,
-		WriteTimeout: time.Duration(app.config.Http.WriteTimeoutInSeconds) * time.Second,
-		IdleTimeout:  time.Duration(app.config.Http.IdleTimeoutInSeconds) * time.Second,
+		ReadTimeout:  time.Duration(app.config.HTTP.ReadTimeoutInSeconds) * time.Second,
+		WriteTimeout: time.Duration(app.config.HTTP.WriteTimeoutInSeconds) * time.Second,
+		IdleTimeout:  time.Duration(app.config.HTTP.IdleTimeoutInSeconds) * time.Second,
 	}
 
 	shutdownError := make(chan error)
@@ -24,43 +25,47 @@ func (app *application) serve() error {
 	go func() {
 		quit := make(chan os.Signal, 1)
 		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-		s := <-quit
-
-		app.logger.Infof("caught signal: %s", s.String())
+		<-quit
 
 		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 		defer cancel()
+
+		shutdownChannel := app.taskScheduler.Shutdown()
 
 		err := srv.Shutdown(ctx)
 		if err != nil {
 			shutdownError <- err
 		}
 
-		app.logger.Info("stopping scheduled jobs")
-		shutdownChannel := app.taskScheduler.Shutdown()
 		<-shutdownChannel
-
-		app.logger.Info("completing background tasks")
 		app.wg.Wait()
 
 		shutdownError <- nil
 	}()
-
-	app.logger.Infow("starting server", "addr", srv.Addr)
 
 	err := srv.ListenAndServe()
 	if !errors.Is(err, http.ErrServerClosed) {
 		return err
 	}
 
-	err = <-shutdownError
-	if err != nil {
-		return err
-	}
+	return <-shutdownError
+}
 
-	app.logger.Infow("server stopped", "addr", srv.Addr)
+func (app *application) background(fn func()) {
+	app.wg.Add(1)
 
-	_ = app.logger.Sync()
+	go func() {
+		defer app.wg.Done()
+		defer func() {
+			if err := recover(); err != nil {
+				if e, ok := err.(error); ok {
+					slog.Error("background job failed", e)
+				} else {
+					slog.Default().Error("background job failed", nil, err)
+				}
+			}
+		}()
 
-	return nil
+		fn()
+	}()
 }

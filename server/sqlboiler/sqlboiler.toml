@@ -5,6 +5,7 @@ no-auto-timestamps = "true"
 no-rows-affected = "true"
 no-tests = "true"
 tag-ignore = ["todo.app_user_id"]
+add-enum-types = true
 
 [mysql]
   dbname = "gotodo"

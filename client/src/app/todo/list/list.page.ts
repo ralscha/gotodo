@@ -1,12 +1,11 @@
 import {Component, OnInit} from '@angular/core';
 import {Observable} from 'rxjs';
 import {TodoService} from '../todo.service';
-import {Todo} from '../todo';
+import {Todo} from '../../api/types';
 
 @Component({
   selector: 'app-list',
-  templateUrl: './list.page.html',
-  styleUrls: ['./list.page.scss'],
+  templateUrl: './list.page.html'
 })
 export class ListPage implements OnInit {
 

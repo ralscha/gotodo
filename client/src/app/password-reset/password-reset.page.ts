@@ -4,13 +4,12 @@ import {ActivatedRoute} from '@angular/router';
 import {MessagesService} from '../service/messages.service';
 import {NgForm} from '@angular/forms';
 import {HttpErrorResponse} from '@angular/common/http';
-import {FormErrorResponse} from '../model/form-error-response';
 import {displayFieldErrors} from '../util';
+import {Errors} from '../api/types';
 
 @Component({
   selector: 'app-password-reset',
-  templateUrl: './password-reset.page.html',
-  styleUrls: ['./password-reset.page.scss'],
+  templateUrl: './password-reset.page.html'
 })
 export class PasswordResetPage implements OnInit {
 
@@ -50,9 +49,9 @@ export class PasswordResetPage implements OnInit {
   }
 
   private handleErrorResponse(form: NgForm, errorResponse: HttpErrorResponse) {
-    const response: FormErrorResponse = errorResponse.error;
-    if (response && response.fieldErrors) {
-      displayFieldErrors(form, response.fieldErrors)
+    const response: Errors = errorResponse.error;
+    if (response?.errors) {
+      displayFieldErrors(form, response.errors)
       this.success = false;
     } else {
       this.showForm = false;

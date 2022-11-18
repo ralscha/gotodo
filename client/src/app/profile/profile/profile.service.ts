@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
-import {HttpClient, HttpParams} from '@angular/common/http';
+import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
-import {FormErrorResponse} from '../../model/form-error-response';
+import {EmailChangeInput, Errors, PasswordChangeInput, PasswordInput, TokenInput} from '../../api/types';
 
 @Injectable({
   providedIn: 'root'
@@ -11,21 +11,23 @@ export class ProfileService {
   constructor(private readonly httpClient: HttpClient) {
   }
 
-  deleteAccount(password: string): Observable<FormErrorResponse | void> {
-    return this.httpClient.post<FormErrorResponse | void>('/v1/profile/account-delete', password);
+  deleteAccount(password: string): Observable<Errors | void> {
+    const request: PasswordInput = {password};
+    return this.httpClient.post<Errors | void>('/v1/profile/account-delete', request);
   }
 
-  changePassword(oldPassword: string, newPassword: string): Observable<FormErrorResponse | void> {
-    const body = new HttpParams().set('oldPassword', oldPassword).set('newPassword', newPassword);
-    return this.httpClient.post<FormErrorResponse | void>('/v1/profile/password-change', body);
+  changePassword(oldPassword: string, newPassword: string): Observable<Errors | void> {
+    const request: PasswordChangeInput = {oldPassword, newPassword};
+    return this.httpClient.post<Errors | void>('/v1/profile/password-change', request);
   }
 
-  changeEmail(newEmail: string, password: string): Observable<FormErrorResponse> {
-    const body = new HttpParams().set('newEmail', newEmail).set('password', password);
-    return this.httpClient.post<FormErrorResponse>('/v1/profile/email-change', body);
+  changeEmail(newEmail: string, password: string): Observable<Errors> {
+    const request: EmailChangeInput = {newEmail, password};
+    return this.httpClient.post<Errors>('/v1/profile/email-change', request);
   }
 
   confirmEmailChange(token: string): Observable<void> {
-    return this.httpClient.post<void>('/v1/profile/email-change-confirm', token);
+    const request: TokenInput = {token};
+    return this.httpClient.post<void>('/v1/profile/email-change-confirm', request);
   }
 }

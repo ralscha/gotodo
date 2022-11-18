@@ -4,14 +4,13 @@ import {AlertController, NavController} from '@ionic/angular';
 import {NgForm} from '@angular/forms';
 import {ProfileService} from '../profile/profile.service';
 import {HttpErrorResponse} from '@angular/common/http';
-import {FormErrorResponse} from '../../model/form-error-response';
 import {displayFieldErrors} from '../../util';
 import {AuthService} from '../../service/auth.service';
+import {Errors} from '../../api/types';
 
 @Component({
   selector: 'app-account',
-  templateUrl: './account.page.html',
-  styleUrls: ['./account.page.scss'],
+  templateUrl: './account.page.html'
 })
 export class AccountPage {
 
@@ -70,9 +69,9 @@ export class AccountPage {
   }
 
   private handleErrorResponse(errorResponse: HttpErrorResponse) {
-    const response: FormErrorResponse = errorResponse.error;
-    if (response && response.fieldErrors) {
-      displayFieldErrors(this.deleteForm, response.fieldErrors)
+    const response: Errors = errorResponse.error;
+    if (response?.errors) {
+      displayFieldErrors(this.deleteForm, response.errors)
     } else {
       this.deleteForm.resetForm();
       this.messagesService.showErrorToast('Deleting account failed');

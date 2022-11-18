@@ -2,83 +2,95 @@ package main
 
 import (
 	"github.com/go-chi/chi/v5"
+	"github.com/gobuffalo/validate"
+	"github.com/gobuffalo/validate/validators"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"gotodo.rasc.ch/internal/models"
+	"gotodo.rasc.ch/internal/request"
+	"gotodo.rasc.ch/internal/response"
 	"net/http"
 	"strconv"
 )
 
-func (app *application) todoGetHandler(w http.ResponseWriter, r *http.Request) {
-	userId := app.sessionManager.Get(r.Context(), "userId").(int64)
+type ValidatedTodo models.Todo
 
-	todos, err := models.Todos(models.TodoWhere.AppUserID.EQ(userId)).All(r.Context(), app.db)
+func (v *ValidatedTodo) Validate() *validate.Errors {
+	return validate.Validate(
+		&validators.StringIsPresent{
+			Name:    "subject",
+			Field:   v.Subject,
+			Message: "required",
+		},
+	)
+}
+
+func (app *application) todoGetHandler(w http.ResponseWriter, r *http.Request) {
+	userID := app.sessionManager.Get(r.Context(), "userID").(int64)
+
+	todos, err := models.Todos(models.TodoWhere.AppUserID.EQ(userID)).All(r.Context(), app.db)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		response.ServerError(w, err)
 		return
 	}
 
-	if todos != nil {
-		app.writeJSON(w, r, http.StatusOK, todos)
-	} else {
-		app.writeJSON(w, r, http.StatusOK, make([]interface{}, 0))
+	if todos == nil {
+		todos = []*models.Todo{}
 	}
+	response.JSON(w, http.StatusOK, todos)
 }
 
 func (app *application) todoSaveHandler(w http.ResponseWriter, r *http.Request) {
-	var todoInput struct {
-		Id          int64
-		Subject     string `name:"subject" validate:"required"`
-		Description string
-	}
-
-	if ok := app.parseFromJson(w, r, &todoInput); !ok {
+	var todoInput ValidatedTodo
+	if ok := request.DecodeJSONValidate(w, r, &todoInput); !ok {
 		return
 	}
 
-	userId := app.sessionManager.Get(r.Context(), "userId").(int64)
+	userID := app.sessionManager.Get(r.Context(), "userID").(int64)
 
-	var response interface{}
+	var newID int64
 	var httpStatus int
 	var err error
 
-	if todoInput.Id > 0 {
-		err = models.Todos(models.TodoWhere.ID.EQ(todoInput.Id), models.TodoWhere.AppUserID.EQ(userId)).
+	if todoInput.ID > 0 {
+		err = models.Todos(models.TodoWhere.ID.EQ(todoInput.ID), models.TodoWhere.AppUserID.EQ(userID)).
 			UpdateAll(r.Context(), app.db, models.M{models.TodoColumns.Subject: todoInput.Subject,
-				models.TodoColumns.Description: app.newNullString(todoInput.Description)})
+				models.TodoColumns.Description: todoInput.Description})
 		httpStatus = http.StatusOK
 	} else {
 		newTodo := models.Todo{
 			Subject:     todoInput.Subject,
-			Description: app.newNullString(todoInput.Description),
-			AppUserID:   userId,
+			Description: todoInput.Description,
+			AppUserID:   userID,
 		}
 		err = newTodo.Insert(r.Context(), app.db, boil.Infer())
-		response = newTodo.ID
+		newID = newTodo.ID
 		httpStatus = http.StatusCreated
 	}
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		response.ServerError(w, err)
 		return
 	}
 
-	if response != nil {
-		app.writeJSON(w, r, httpStatus, response)
+	if newID > 0 {
+		response.JSON(w, httpStatus, models.Todo{
+			ID: newID,
+		})
 	} else {
 		w.WriteHeader(httpStatus)
 	}
 }
 
 func (app *application) todoDeleteHandler(w http.ResponseWriter, r *http.Request) {
-	todoIdStr := chi.URLParam(r, "todoId")
-	todoId, err := strconv.Atoi(todoIdStr)
+	todoIDStr := chi.URLParam(r, "todoID")
+	todoID, err := strconv.Atoi(todoIDStr)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		response.ServerError(w, err)
 		return
 	}
 
-	err = models.Todos(models.TodoWhere.ID.EQ(int64(todoId))).DeleteAll(r.Context(), app.db)
+	err = models.Todos(models.TodoWhere.ID.EQ(int64(todoID))).DeleteAll(r.Context(), app.db)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		response.ServerError(w, err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
