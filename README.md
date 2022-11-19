@@ -29,3 +29,7 @@ Simple todo application with Angular 15 / Ionic 6 and Go.
 | chrono | https://github.com/procyon-projects/chrono | Scheduling jobs |
 | typescriptify | https://github.com/tkrajina/typescriptify-golang-structs | Struct to TypeScript |
 
+
+## Setup
+
+Initial project set up with https://autostrada.dev/
