@@ -2,57 +2,46 @@
 
 
 export interface Todo {
-  id: number;
-  subject: string;
-  description?: string;
+    id: number;
+    subject: string;
+    description?: string;
 }
-
 export interface LoginInput {
-  password: string;
-  email: string;
+    password: string;
+    email: string;
 }
-
 export interface PasswordResetInput {
-  password: string;
-  resetToken: string;
+    password: string;
+    resetToken: string;
 }
-
 export interface PasswordResetRequestInput {
-  email: string;
+    email: string;
 }
-
 export interface EmailChangeInput {
-  password: string;
-  newEmail: string;
+    password: string;
+    newEmail: string;
 }
-
 export interface PasswordInput {
-  password: string;
+    password: string;
 }
-
 export interface TokenInput {
-  token: string;
+    token: string;
 }
-
 export interface PasswordChangeInput {
-  oldPassword: string;
-  newPassword: string;
+    oldPassword: string;
+    newPassword: string;
 }
-
 export interface SignUpInput {
-  email: string;
-  password: string;
+    email: string;
+    password: string;
 }
-
 export interface LoginOutput {
-  authority: string;
+    authority: string;
 }
-
 export interface Errors {
-  errors: { [key: string]: string[] };
+    errors: {[key: string]: string[]};
 }
-
 export interface AppVersionOutput {
-  buildTime: string;
-  version: string;
+    buildTime: string;
+    version: string;
 }
