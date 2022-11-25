@@ -1,0 +1,86 @@
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  CURRENT_DIR:
+    sh: pwd
+  SUFFIX: '{{if eq OS "windows"}}.exe{{end}}'
+
+tasks:
+  default:
+    cmds:
+      - task --list-all
+
+  lint:
+    cmds:
+      - docker run --rm -v {{toSlash .CURRENT_DIR}}:/app -w /app golangci/golangci-lint:v1.50.1 golangci-lint run -v --timeout 5m
+
+  upgrade-libraries:
+    cmds:
+      - go get -u ./...
+      - go fmt ./...
+      - go mod tidy
+      - go mod verify
+
+  tidy:
+    cmds:
+      - go fmt ./...
+      - go mod tidy -v
+
+  audit:
+    cmds:
+      - go vet ./...
+      - go run honnef.co/go/tools/cmd/staticcheck@latest -checks=all,-ST1000,-U1000 ./...
+      - go mod verify
+
+  build:
+    cmds:
+      - go build -ldflags='-s' -o=./bin/web{{.SUFFIX}} ./cmd/web
+
+  run:
+    deps: [build]
+    cmds:
+      - ./bin/web{{.SUFFIX}}
+
+  build-goose:
+    cmds:
+      - go build -o ./migrate{{.SUFFIX}} gotodo.rasc.ch/cmd/migrate
+    sources:
+      - ./cmd/migrate/*.go
+      - ./migrations/*.sql
+    generates:
+      - ./migrate{{.SUFFIX}}
+
+  db-migration-new:
+    deps: [build-goose]
+    cmds:
+      - ./migrate{{.SUFFIX}} create {{.CLI_ARGS}} sql
+
+  db-migration-new-go:
+    deps: [build-goose]
+    cmds:
+      - ./migrate{{.SUFFIX}} create {{.CLI_ARGS}} go
+
+  db-migration-up:
+    deps: [build-goose]
+    cmds:
+      - ./migrate{{.SUFFIX}} up
+
+  db-migration-reset:
+    deps: [build-goose]
+    cmds:
+      - ./migrate{{.SUFFIX}} reset
+
+  db-migration-status:
+    deps: [build-goose]
+    cmds:
+      - ./migrate{{.SUFFIX}} status
+
+  db-codegen:
+    cmds:
+      - docker build -t sqlboilercodegen -f sqlboiler/Dockerfile .
+      - docker run -v {{toSlash .CURRENT_DIR}}:/src sqlboilercodegen
+      - go run gotodo.rasc.ch/cmd/tsgen
+
+
