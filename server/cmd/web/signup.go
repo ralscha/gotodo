@@ -26,7 +26,7 @@ func (app *application) signupHandler(w http.ResponseWriter, r *http.Request) {
 		qm.Or2(models.AppUserWhere.EmailNew.EQ(null.NewString(signUpInput.Email, true))),
 	).Exists(r.Context(), app.db)
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 
@@ -40,7 +40,7 @@ func (app *application) signupHandler(w http.ResponseWriter, r *http.Request) {
 
 	compromised, err := app.isPasswordCompromised(signUpInput.Password)
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 	if compromised {
@@ -59,7 +59,7 @@ func (app *application) signupHandler(w http.ResponseWriter, r *http.Request) {
 		KeyLength:   app.config.Argon2.KeyLength,
 	})
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 
@@ -72,13 +72,13 @@ func (app *application) signupHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = newUser.Insert(r.Context(), app.db, boil.Infer())
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 
 	token, err := app.insertToken(r.Context(), newUser.ID, app.config.Cleanup.SignupTokenMaxAge, models.TokensScopeSignup)
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 
@@ -104,7 +104,7 @@ func (app *application) signupConfirmHandler(w http.ResponseWriter, r *http.Requ
 
 	userID, err := app.getAppUserIDFromToken(r.Context(), models.TokensScopeSignup, tokenInput.Token)
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 
@@ -116,13 +116,13 @@ func (app *application) signupConfirmHandler(w http.ResponseWriter, r *http.Requ
 	err = models.AppUsers(models.AppUserWhere.ID.EQ(userID)).UpdateAll(r.Context(), app.db,
 		models.M{models.AppUserColumns.Activated: true, models.AppUserColumns.LastAccess: time.Now()})
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 
 	err = app.deleteAllTokensForUser(r.Context(), userID, models.TokensScopeSignup)
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 

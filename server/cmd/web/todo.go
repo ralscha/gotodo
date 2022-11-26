@@ -29,7 +29,7 @@ func (app *application) todoGetHandler(w http.ResponseWriter, r *http.Request) {
 
 	todos, err := models.Todos(models.TodoWhere.AppUserID.EQ(userID)).All(r.Context(), app.db)
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 
@@ -67,7 +67,7 @@ func (app *application) todoSaveHandler(w http.ResponseWriter, r *http.Request) 
 		httpStatus = http.StatusCreated
 	}
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 
@@ -84,13 +84,13 @@ func (app *application) todoDeleteHandler(w http.ResponseWriter, r *http.Request
 	todoIDStr := chi.URLParam(r, "todoID")
 	todoID, err := strconv.Atoi(todoIDStr)
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 
 	err = models.Todos(models.TodoWhere.ID.EQ(int64(todoID))).DeleteAll(r.Context(), app.db)
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)

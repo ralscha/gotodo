@@ -45,7 +45,7 @@ func (app *application) authenticateHandler(w http.ResponseWriter, r *http.Reque
 			models.AppUserColumns.Activated),
 			models.AppUserWhere.ID.EQ(userID)).One(r.Context(), app.db)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
-			response.ServerError(w, err)
+			response.InternalServerError(w, err)
 			return
 		}
 		if user != nil && user.Activated && user.Expired.IsZero() {
@@ -59,7 +59,7 @@ func (app *application) authenticateHandler(w http.ResponseWriter, r *http.Reque
 func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
 	err := app.sessionManager.RenewToken(r.Context())
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 	}
 
 	var loginInput input.LoginInput
@@ -75,21 +75,21 @@ func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
 		models.AppUserColumns.Activated),
 		models.AppUserWhere.Email.EQ(loginInput.Email)).One(r.Context(), app.db)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 
 	if user != nil && user.Activated && user.Expired.IsZero() {
 		match, err := argon2id.ComparePasswordAndHash(loginInput.Password, user.PasswordHash)
 		if err != nil {
-			response.ServerError(w, err)
+			response.InternalServerError(w, err)
 			return
 		}
 		if match {
 			err := models.AppUsers(models.AppUserWhere.ID.EQ(user.ID)).UpdateAll(r.Context(), app.db,
 				models.M{models.AppUserColumns.LastAccess: time.Now()})
 			if err != nil {
-				response.ServerError(w, err)
+				response.InternalServerError(w, err)
 				return
 			}
 
@@ -100,7 +100,7 @@ func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		if _, err := argon2id.ComparePasswordAndHash(loginInput.Password, userNotFoundPasswordHash); err != nil {
-			response.ServerError(w, err)
+			response.InternalServerError(w, err)
 			return
 		}
 	}
@@ -110,7 +110,7 @@ func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) logoutHandler(w http.ResponseWriter, r *http.Request) {
 	if err := app.sessionManager.Destroy(r.Context()); err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
@@ -126,14 +126,14 @@ func (app *application) passwordResetRequestHandler(w http.ResponseWriter, r *ht
 		models.AppUserColumns.ID),
 		models.AppUserWhere.Email.EQ(passwordResetRequestInput.Email)).One(r.Context(), app.db)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 
 	if user != nil {
 		token, err := app.insertToken(r.Context(), user.ID, app.config.Cleanup.PasswordResetTokenMaxAge, models.TokensScopePasswordReset)
 		if err != nil {
-			response.ServerError(w, err)
+			response.InternalServerError(w, err)
 			return
 		}
 
@@ -160,7 +160,7 @@ func (app *application) passwordResetHandler(w http.ResponseWriter, r *http.Requ
 
 	userID, err := app.getAppUserIDFromToken(r.Context(), models.TokensScopePasswordReset, passwordResetInput.ResetToken)
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 
@@ -171,7 +171,7 @@ func (app *application) passwordResetHandler(w http.ResponseWriter, r *http.Requ
 
 	compromised, err := app.isPasswordCompromised(passwordResetInput.Password)
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 	if compromised {
@@ -190,20 +190,20 @@ func (app *application) passwordResetHandler(w http.ResponseWriter, r *http.Requ
 		KeyLength:   app.config.Argon2.KeyLength,
 	})
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 
 	err = models.AppUsers(models.AppUserWhere.ID.EQ(userID)).UpdateAll(r.Context(), app.db,
 		models.M{models.AppUserColumns.PasswordHash: newPasswordHash})
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 
 	err = app.deleteAllTokensForUser(r.Context(), userID, models.TokensScopePasswordReset)
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 

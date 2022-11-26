@@ -11,7 +11,7 @@ func errorMessage(w http.ResponseWriter, status int, message string, headers htt
 	JSONWithHeaders(w, status, map[string]string{"error": message}, headers)
 }
 
-func ServerError(w http.ResponseWriter, err error) {
+func InternalServerError(w http.ResponseWriter, err error) {
 	slog.Default().Error(err.Error(), err)
 
 	message := "The server encountered a problem and could not process your request"

@@ -12,7 +12,7 @@ func JSON(w http.ResponseWriter, status int, data any) bool {
 func JSONWithHeaders(w http.ResponseWriter, status int, data any, headers http.Header) bool {
 	js, err := json.Marshal(data)
 	if err != nil {
-		ServerError(w, err)
+		InternalServerError(w, err)
 		return false
 	}
 
@@ -24,7 +24,7 @@ func JSONWithHeaders(w http.ResponseWriter, status int, data any, headers http.H
 	w.WriteHeader(status)
 	_, err = w.Write(js)
 	if err != nil {
-		ServerError(w, err)
+		InternalServerError(w, err)
 		return false
 	}
 

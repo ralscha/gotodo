@@ -24,13 +24,13 @@ func (app *application) emailChangeHandler(w http.ResponseWriter, r *http.Reques
 	user, err := models.AppUsers(qm.Select(models.AppUserColumns.PasswordHash),
 		models.AppUserWhere.ID.EQ(userID)).One(r.Context(), app.db)
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 
 	match, err := argon2id.ComparePasswordAndHash(emailChangeInput.Password, user.PasswordHash)
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 	if !match {
@@ -46,7 +46,7 @@ func (app *application) emailChangeHandler(w http.ResponseWriter, r *http.Reques
 		qm.Or2(models.AppUserWhere.EmailNew.EQ(null.NewString(emailChangeInput.NewEmail, true))),
 	).Exists(r.Context(), app.db)
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 
@@ -61,13 +61,13 @@ func (app *application) emailChangeHandler(w http.ResponseWriter, r *http.Reques
 	err = models.AppUsers(models.AppUserWhere.ID.EQ(userID)).UpdateAll(r.Context(), app.db,
 		models.M{models.AppUserColumns.EmailNew: emailChangeInput.NewEmail})
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 
 	token, err := app.insertToken(r.Context(), userID, app.config.Cleanup.EmailChangeTokenMaxAge, models.TokensScopeEmailChange)
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 
@@ -95,7 +95,7 @@ func (app *application) emailChangeConfirmHandler(w http.ResponseWriter, r *http
 
 	userIDFromToken, err := app.getAppUserIDFromToken(r.Context(), models.TokensScopeEmailChange, tokenInput.Token)
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 
@@ -107,7 +107,7 @@ func (app *application) emailChangeConfirmHandler(w http.ResponseWriter, r *http
 	user, err := models.AppUsers(qm.Select(models.AppUserColumns.EmailNew),
 		models.AppUserWhere.ID.EQ(userID)).One(r.Context(), app.db)
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 
@@ -120,13 +120,13 @@ func (app *application) emailChangeConfirmHandler(w http.ResponseWriter, r *http
 		models.M{models.AppUserColumns.Email: user.EmailNew,
 			models.AppUserColumns.EmailNew: null.NewString("", false)})
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 
 	err = app.deleteAllTokensForUser(r.Context(), userID, models.TokensScopeEmailChange)
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 
@@ -144,13 +144,13 @@ func (app *application) passwordChangeHandler(w http.ResponseWriter, r *http.Req
 	user, err := models.AppUsers(qm.Select(models.AppUserColumns.PasswordHash),
 		models.AppUserWhere.ID.EQ(userID)).One(r.Context(), app.db)
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 
 	match, err := argon2id.ComparePasswordAndHash(passwordChangeInput.OldPassword, user.PasswordHash)
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 	if !match {
@@ -163,7 +163,7 @@ func (app *application) passwordChangeHandler(w http.ResponseWriter, r *http.Req
 
 	compromised, err := app.isPasswordCompromised(passwordChangeInput.NewPassword)
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 	if compromised {
@@ -182,14 +182,14 @@ func (app *application) passwordChangeHandler(w http.ResponseWriter, r *http.Req
 		KeyLength:   app.config.Argon2.KeyLength,
 	})
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 
 	err = models.AppUsers(models.AppUserWhere.ID.EQ(userID)).UpdateAll(r.Context(), app.db,
 		models.M{models.AppUserColumns.PasswordHash: newPasswordHash})
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 
@@ -207,13 +207,13 @@ func (app *application) accountDeleteHandler(w http.ResponseWriter, r *http.Requ
 	user, err := models.AppUsers(qm.Select(models.AppUserColumns.PasswordHash),
 		models.AppUserWhere.ID.EQ(userID)).One(r.Context(), app.db)
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 
 	match, err := argon2id.ComparePasswordAndHash(passwordInput.Password, user.PasswordHash)
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 
@@ -227,37 +227,37 @@ func (app *application) accountDeleteHandler(w http.ResponseWriter, r *http.Requ
 
 	tx, err := app.db.BeginTx(r.Context(), nil)
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 
 	err = models.Todos(models.TodoWhere.AppUserID.EQ(userID)).DeleteAll(r.Context(), tx)
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 
 	err = models.Tokens(models.TokenWhere.AppUserID.EQ(userID)).DeleteAll(r.Context(), tx)
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 
 	err = models.AppUsers(models.AppUserWhere.ID.EQ(userID)).DeleteAll(r.Context(), tx)
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 
 	err = app.sessionManager.Destroy(r.Context())
 	if err != nil {
-		response.ServerError(w, err)
+		response.InternalServerError(w, err)
 		return
 	}
 
