@@ -31,13 +31,13 @@
       </ion-item>
 
       <ion-text [hidden]="password.valid || !changeForm.submitted" class="ion-padding-start" color="danger">
-        <div *ngIf="password.errors?.required" class="ion-padding-start">
+        <div *ngIf="password.errors?.['required']" class="ion-padding-start">
           Password is required
         </div>
-        <div *ngIf="password.errors?.minlength || password.errors?.gte" class="ion-padding-start">
+        <div *ngIf="password.errors?.['minlength'] || password.errors?.['gte']" class="ion-padding-start">
           Minimum length is 8 characters
         </div>
-        <div *ngIf="password.errors?.invalid" class="ion-padding-start">
+        <div *ngIf="password.errors?.['invalid']" class="ion-padding-start">
           Password is invalid
         </div>
       </ion-text>
@@ -51,16 +51,16 @@
       </ion-item>
 
       <ion-text [hidden]="newEmail.valid || !changeForm.submitted" class="ion-padding-start" color="danger">
-        <div *ngIf="newEmail.errors?.required" class="ion-padding-start">
+        <div *ngIf="newEmail.errors?.['required']" class="ion-padding-start">
           Email is required
         </div>
-        <div *ngIf="newEmail.errors?.email" class="ion-padding-start">
+        <div *ngIf="newEmail.errors?.['email']" class="ion-padding-start">
           Not a valid email address
         </div>
-        <div *ngIf="newEmail.errors?.exists" class="ion-padding-start">
+        <div *ngIf="newEmail.errors?.['exists']" class="ion-padding-start">
           User with this email address already exists
         </div>
-        <div *ngIf="newEmail.errors?.noChange" class="ion-padding-start">
+        <div *ngIf="newEmail.errors?.['noChange']" class="ion-padding-start">
           New and old email address are the same
         </div>
       </ion-text>

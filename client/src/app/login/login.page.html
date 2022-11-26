@@ -17,10 +17,10 @@
                    ngModel type="email"></ion-input>
       </ion-item>
       <ion-text [hidden]="email.valid || !loginForm.submitted" class="ion-padding-start" color="danger">
-        <div *ngIf="email.errors?.required" class="ion-padding-start">
+        <div *ngIf="email.errors?.['required']" class="ion-padding-start">
           Email is required
         </div>
-        <div *ngIf="email.errors?.email" class="ion-padding-start">
+        <div *ngIf="email.errors?.['email']" class="ion-padding-start">
           Not a valid email address
         </div>
       </ion-text>
@@ -34,10 +34,10 @@
       </ion-item>
 
       <ion-text [hidden]="password.valid || !loginForm.submitted" class="ion-padding-start" color="danger">
-        <div *ngIf="password.errors?.required" class="ion-padding-start">
+        <div *ngIf="password.errors?.['required']" class="ion-padding-start">
           Password is required
         </div>
-        <div *ngIf="password.errors?.minlength || password.errors?.gte" class="ion-padding-start">
+        <div *ngIf="password.errors?.['minlength'] || password.errors?.['gte']" class="ion-padding-start">
           Minimum length is 8 characters
         </div>
       </ion-text>

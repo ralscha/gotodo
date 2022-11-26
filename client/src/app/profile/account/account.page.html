@@ -30,13 +30,13 @@
 
 
       <ion-text [hidden]="password.valid || !deleteForm.submitted" class="ion-padding-start" color="danger">
-        <div *ngIf="password.errors?.required" class="ion-padding-start">
+        <div *ngIf="password.errors?.['required']" class="ion-padding-start">
           Password is required
         </div>
-        <div *ngIf="password.errors?.minlength || password.errors?.gte" class="ion-padding-start">
+        <div *ngIf="password.errors?.['minlength'] || password.errors?.['gte']" class="ion-padding-start">
           Minimum length is 8 characters
         </div>
-        <div *ngIf="password.errors?.invalid" class="ion-padding-start">
+        <div *ngIf="password.errors?.['invalid']" class="ion-padding-start">
           Password is invalid
         </div>
       </ion-text>

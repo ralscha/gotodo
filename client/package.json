@@ -4,9 +4,9 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "prebuild": "node ./build-info-env.js",
-    "build": "ng build",
     "postbuild": "bread-compressor dist/app",
     "lint": "ng lint",
     "serve-dist": "ws --hostname localhost -d dist/app -p 1234 -o --log.format stats"
