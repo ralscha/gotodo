@@ -59,9 +59,8 @@ func (app *application) authenticatedRouter() http.Handler {
 
 func (app *application) authenticatedOnly(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		value := app.sessionManager.Get(r.Context(), "userID")
-		userID, ok := value.(int64)
-		if ok && userID > 0 {
+		userID := app.sessionManager.GetInt64(r.Context(), "userID")
+		if userID > 0 {
 			next.ServeHTTP(w, r)
 		} else {
 			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)

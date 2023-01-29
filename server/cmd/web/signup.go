@@ -89,7 +89,7 @@ func (app *application) signupHandler(w http.ResponseWriter, r *http.Request) {
 
 		err = app.mailer.Send(newUser.Email, "signup-confirm.tmpl", data)
 		if err != nil {
-			slog.Default().Error("sending signup confirmation email failed", err)
+			slog.Error("sending signup confirmation email failed", err)
 		}
 	})
 

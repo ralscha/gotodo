@@ -19,7 +19,7 @@ func (app *application) emailChangeHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	userID := app.sessionManager.Get(r.Context(), "userID").(int64)
+	userID := app.sessionManager.GetInt64(r.Context(), "userID")
 
 	user, err := models.AppUsers(qm.Select(models.AppUserColumns.PasswordHash),
 		models.AppUserWhere.ID.EQ(userID)).One(r.Context(), app.db)
@@ -78,7 +78,7 @@ func (app *application) emailChangeHandler(w http.ResponseWriter, r *http.Reques
 
 		err = app.mailer.Send(emailChangeInput.NewEmail, "email-change.tmpl", data)
 		if err != nil {
-			slog.Default().Error("sending email confirm email failed", err)
+			slog.Error("sending email confirm email failed", err)
 		}
 	})
 
@@ -91,7 +91,7 @@ func (app *application) emailChangeConfirmHandler(w http.ResponseWriter, r *http
 		return
 	}
 
-	userID := app.sessionManager.Get(r.Context(), "userID").(int64)
+	userID := app.sessionManager.GetInt64(r.Context(), "userID")
 
 	userIDFromToken, err := app.getAppUserIDFromToken(r.Context(), models.TokensScopeEmailChange, tokenInput.Token)
 	if err != nil {
@@ -139,7 +139,7 @@ func (app *application) passwordChangeHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	userID := app.sessionManager.Get(r.Context(), "userID").(int64)
+	userID := app.sessionManager.GetInt64(r.Context(), "userID")
 
 	user, err := models.AppUsers(qm.Select(models.AppUserColumns.PasswordHash),
 		models.AppUserWhere.ID.EQ(userID)).One(r.Context(), app.db)
@@ -202,7 +202,7 @@ func (app *application) accountDeleteHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	userID := app.sessionManager.Get(r.Context(), "userID").(int64)
+	userID := app.sessionManager.GetInt64(r.Context(), "userID")
 
 	user, err := models.AppUsers(qm.Select(models.AppUserColumns.PasswordHash),
 		models.AppUserWhere.ID.EQ(userID)).One(r.Context(), app.db)

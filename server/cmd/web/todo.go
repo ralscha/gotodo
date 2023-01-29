@@ -25,7 +25,7 @@ func (v *ValidatedTodo) Validate() *validate.Errors {
 }
 
 func (app *application) todoGetHandler(w http.ResponseWriter, r *http.Request) {
-	userID := app.sessionManager.Get(r.Context(), "userID").(int64)
+	userID := app.sessionManager.GetInt64(r.Context(), "userID")
 
 	todos, err := models.Todos(models.TodoWhere.AppUserID.EQ(userID)).All(r.Context(), app.db)
 	if err != nil {
@@ -45,7 +45,7 @@ func (app *application) todoSaveHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	userID := app.sessionManager.Get(r.Context(), "userID").(int64)
+	userID := app.sessionManager.GetInt64(r.Context(), "userID")
 
 	var newID int64
 	var httpStatus int

@@ -12,7 +12,7 @@ func errorMessage(w http.ResponseWriter, status int, message string, headers htt
 }
 
 func InternalServerError(w http.ResponseWriter, err error) {
-	slog.Default().Error(err.Error(), err)
+	slog.Error(err.Error(), err)
 
 	message := "The server encountered a problem and could not process your request"
 	errorMessage(w, http.StatusInternalServerError, message, nil)

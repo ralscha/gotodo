@@ -32,12 +32,7 @@ func initAuth(config config.Config) error {
 }
 
 func (app *application) authenticateHandler(w http.ResponseWriter, r *http.Request) {
-	value := app.sessionManager.Get(r.Context(), "userID")
-	userID, ok := value.(int64)
-	if !ok {
-		userID = 0
-	}
-
+	userID := app.sessionManager.GetInt64(r.Context(), "userID")
 	if userID > 0 {
 		user, err := models.AppUsers(qm.Select(
 			models.AppUserColumns.Authority,
@@ -144,7 +139,7 @@ func (app *application) passwordResetRequestHandler(w http.ResponseWriter, r *ht
 
 			err = app.mailer.Send(passwordResetRequestInput.Email, "password-reset.tmpl", data)
 			if err != nil {
-				slog.Default().Error("sending password reset email failed", err)
+				slog.Error("sending password reset email failed", err)
 			}
 		})
 	}

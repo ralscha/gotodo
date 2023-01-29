@@ -61,7 +61,7 @@ func (app *application) background(fn func()) {
 				if e, ok := err.(error); ok {
 					slog.Error("background job failed", e)
 				} else {
-					slog.Default().Error("background job failed", nil, err)
+					slog.Error("background job failed", nil, err)
 				}
 			}
 		}()
