@@ -14,7 +14,6 @@ import (
 	"gotodo.rasc.ch/internal/mailer"
 	"gotodo.rasc.ch/internal/version"
 	"log"
-	"math/rand"
 	"net/http"
 	"os"
 	"sync"
@@ -31,8 +30,6 @@ type application struct {
 }
 
 func main() {
-	rand.Seed(time.Now().UnixNano())
-
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		log.Fatalf("reading config failed %v\n", err)

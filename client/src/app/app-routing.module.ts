@@ -1,20 +1,36 @@
-import {NgModule} from '@angular/core';
-import {PreloadAllModules, RouterModule, Routes} from '@angular/router';
-import {AuthGuard} from './service/auth.guard';
+import {inject, NgModule} from '@angular/core';
+import {PreloadAllModules, Router, RouterModule, Routes} from '@angular/router';
 import {LoginPage} from './login/login.page';
 import {LogoutPage} from './logout/logout.page';
+import {map} from "rxjs/operators";
+import {AuthService} from "./service/auth.service";
+
+export const authGuard = (authService = inject(AuthService), router = inject(Router)) => {
+  if (authService.isAuthenticated()) {
+    return true;
+  }
+
+  return authService.authenticate().pipe(map(authority => {
+      if (authority !== null) {
+        return true;
+      } else {
+        return router.createUrlTree(['login']);
+      }
+    }
+  ));
+}
 
 const routes: Routes = [
   {path: '', redirectTo: 'todo', pathMatch: 'full'},
   {
     path: 'todo',
     loadChildren: () => import('./todo/todo.module').then(m => m.TodoModule),
-    canActivate: [AuthGuard]
+    canActivate: [() => authGuard()]
   },
   {
     path: 'profile',
     loadChildren: () => import('./profile/profile/profile.module').then(m => m.ProfilePageModule),
-    canActivate: [AuthGuard]
+    canActivate: [() => authGuard()]
   },
   {path: 'login', component: LoginPage},
   {path: 'logout', component: LogoutPage},

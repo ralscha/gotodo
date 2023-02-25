@@ -5,18 +5,18 @@ import {IonicModule} from '@ionic/angular';
 import {RouterModule, Routes} from '@angular/router';
 import {ListPage} from './list/list.page';
 import {EditPage} from './edit/edit.page';
-import {AuthGuard} from '../service/auth.guard';
 import {TodoService} from './todo.service';
+import {authGuard} from "../app-routing.module";
 
 const routes: Routes = [
   {
     path: '',
     component: ListPage,
-    canActivate: [AuthGuard],
+    canActivate: [() => authGuard()],
   },
   {
     path: 'edit',
-    canActivate: [AuthGuard],
+    canActivate: [() => authGuard()],
     children: [
       {
         path: ':id',

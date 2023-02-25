@@ -3,35 +3,35 @@ import {CommonModule} from '@angular/common';
 import {RouterModule, Routes} from '@angular/router';
 import {IonicModule} from '@ionic/angular';
 import {ProfilePage} from './profile.page';
-import {AuthGuard} from '../../service/auth.guard';
 import {ProfileService} from './profile.service';
+import {authGuard} from "../../app-routing.module";
 
 const routes: Routes = [
   {
     path: '',
     component: ProfilePage,
-    canActivate: [AuthGuard],
+    canActivate: [() => authGuard()],
     pathMatch: 'full'
   },
   {
     path: 'password',
     loadChildren: () => import('../password/password.module').then(m => m.PasswordPageModule),
-    canActivate: [AuthGuard]
+    canActivate: [() => authGuard()]
   },
   {
     path: 'email',
     loadChildren: () => import('../email/email.module').then(m => m.EmailPageModule),
-    canActivate: [AuthGuard]
+    canActivate: [() => authGuard()]
   },
   {
     path: 'email-confirm',
     loadChildren: () => import('../email-change-confirm/email-change-confirm.module').then(m => m.EmailChangeConfirmPageModule),
-    canActivate: [AuthGuard]
+    canActivate: [() => authGuard()]
   },
   {
     path: 'account',
     loadChildren: () => import('../account/account.module').then(m => m.AccountPageModule),
-    canActivate: [AuthGuard]
+    canActivate: [() => authGuard()]
   },
   {
     path: '**',
