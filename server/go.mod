@@ -3,23 +3,23 @@ module gotodo.rasc.ch
 go 1.20
 
 require (
-	github.com/alexedwards/argon2id v0.0.0-20211130144151-3585854a6387
-	github.com/alexedwards/scs/mysqlstore v0.0.0-20230217120314-6b1bedc0f08c
-	github.com/alexedwards/scs/v2 v2.5.0
+	github.com/alexedwards/argon2id v0.0.0-20230305115115-4b3c3280a736
+	github.com/alexedwards/scs/mysqlstore v0.0.0-20230327161757-10d4299e3b24
+	github.com/alexedwards/scs/v2 v2.5.1
 	github.com/friendsofgo/errors v0.9.2
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-chi/httprate v0.7.1
 	github.com/go-mail/mail/v2 v2.3.0
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/gobuffalo/validate v2.0.4+incompatible
-	github.com/pressly/goose/v3 v3.9.0
+	github.com/pressly/goose/v3 v3.10.0
 	github.com/procyon-projects/chrono v1.1.2
 	github.com/spf13/viper v1.15.0
 	github.com/tkrajina/typescriptify-golang-structs v0.1.10
 	github.com/volatiletech/null/v8 v8.1.2
-	github.com/volatiletech/sqlboiler/v4 v4.14.1
+	github.com/volatiletech/sqlboiler/v4 v4.14.2
 	github.com/volatiletech/strmangle v0.0.4
-	golang.org/x/exp v0.0.0-20230224173230-c95f2b4c22f2
+	golang.org/x/exp v0.0.0-20230321023759-10a507213a29
 )
 
 require (
@@ -31,10 +31,10 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/onsi/ginkgo v1.16.4 // indirect
 	github.com/onsi/gomega v1.15.0 // indirect
-	github.com/pelletier/go-toml/v2 v2.0.6 // indirect
+	github.com/pelletier/go-toml/v2 v2.0.7 // indirect
 	github.com/rogpeppe/go-internal v1.8.0 // indirect
 	github.com/serenize/snaker v0.0.0-20201027110005-a7ad2135616e // indirect
-	github.com/spf13/afero v1.9.4 // indirect
+	github.com/spf13/afero v1.9.5 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
@@ -42,9 +42,9 @@ require (
 	github.com/tkrajina/go-reflector v0.5.6 // indirect
 	github.com/volatiletech/inflect v0.0.1 // indirect
 	github.com/volatiletech/randomize v0.0.1 // indirect
-	golang.org/x/crypto v0.6.0 // indirect
-	golang.org/x/sys v0.5.0 // indirect
-	golang.org/x/text v0.7.0 // indirect
+	golang.org/x/crypto v0.7.0 // indirect
+	golang.org/x/sys v0.6.0 // indirect
+	golang.org/x/text v0.8.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
