@@ -10,9 +10,9 @@
 
     <ion-list>
       <ion-item>
-        <ion-label position="stacked">Email</ion-label>
         <ion-input #email="ngModel" [required]="true" [spellcheck]="false" autocapitalize="off"
                    autocomplete="username" email
+                   label="Email" labelPlacement="stacked"
                    name="email"
                    ngModel type="email"></ion-input>
       </ion-item>
@@ -26,8 +26,8 @@
       </ion-text>
 
       <ion-item>
-        <ion-label position="stacked">Password</ion-label>
         <ion-input #password="ngModel" [minlength]="8" [required]="true" autocomplete="current-password"
+                   label="Password" labelPlacement="stacked"
                    name="password"
                    ngModel
                    type="password"></ion-input>

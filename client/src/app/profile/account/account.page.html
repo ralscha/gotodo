@@ -22,9 +22,9 @@
       </ion-text>
 
       <ion-item>
-        <ion-label position="stacked">Password</ion-label>
         <ion-input #password="ngModel" [minlength]="8" [required]="true"
-                   autocomplete="current-password" name="password"
+                   autocomplete="current-password" label="Password"
+                   labelPlacement="stacked" name="password"
                    ngModel type="password"></ion-input>
       </ion-item>
 

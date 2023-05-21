@@ -16,8 +16,9 @@
 
     <ion-list *ngIf="selectedTodo">
       <ion-item>
-        <ion-label position="stacked">Subject</ion-label>
-        <ion-input #subject="ngModel" [ngModel]="selectedTodo.subject" [required]="true" name="subject"></ion-input>
+        <ion-input #subject="ngModel" [ngModel]="selectedTodo.subject" [required]="true"
+                   label="Subject" labelPlacement="stacked"
+                   name="subject"></ion-input>
       </ion-item>
       <ion-text [hidden]="subject.valid || !todoForm.submitted" class="ion-padding-start" color="danger">
         <div class="ion-padding-start">
@@ -26,8 +27,8 @@
       </ion-text>
 
       <ion-item>
-        <ion-label position="stacked">Description</ion-label>
         <ion-textarea [ngModel]="selectedTodo.description" [rows]="3"
+                      label="Description" labelPlacement="stacked"
                       name="description"></ion-textarea>
       </ion-item>
     </ion-list>

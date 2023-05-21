@@ -40,9 +40,9 @@ func main() {
 	switch cfg.Environment {
 	case config.Development:
 		boil.DebugMode = true
-		logger = slog.New(slog.NewTextHandler(os.Stdout))
+		logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 	case config.Production:
-		logger = slog.New(slog.NewJSONHandler(os.Stdout))
+		logger = slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	}
 
 	slog.SetDefault(logger)
