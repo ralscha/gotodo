@@ -1,6 +1,6 @@
 # GoTodo
 
-Simple todo application with Angular 15 / Ionic 6 and Go.
+Simple todo application with Angular 16 / Ionic 7 and Go.
 
 ## Functionality
   - Todo list/add/edit/delete
