@@ -23,7 +23,6 @@ Simple todo application with Angular 16 / Ionic 7 and Go.
 | validator  | https://github.com/gobuffalo/validate   | Validation |
 | mysql driver  | https://github.com/go-sql-driver/mysql   | MySQL database driver |
 | goose | https://github.com/pressly/goose   | Database migration |
-| slog | https://pkg.go.dev/golang.org/x/exp/slog | Logging |
 | viper | https://github.com/spf13/viper   | Configuration |
 | SQLBoiler  |  https://github.com/volatiletech/sqlboiler  | ORM |
 | chrono | https://github.com/procyon-projects/chrono | Scheduling jobs |
