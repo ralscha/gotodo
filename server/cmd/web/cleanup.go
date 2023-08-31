@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"github.com/volatiletech/null/v8"
-	"golang.org/x/exp/slog"
 	"gotodo.rasc.ch/internal/models"
+	"log/slog"
 	"time"
 )
 

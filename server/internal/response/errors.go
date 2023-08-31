@@ -3,7 +3,7 @@ package response
 import (
 	"fmt"
 	"github.com/gobuffalo/validate"
-	"golang.org/x/exp/slog"
+	"log/slog"
 	"net/http"
 )
 

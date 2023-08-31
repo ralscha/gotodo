@@ -171,8 +171,8 @@ type tokenL struct{}
 
 var (
 	tokenAllColumns            = []string{"id", "hash", "app_user_id", "expiry", "scope"}
-	tokenColumnsWithoutDefault = []string{"hash", "app_user_id", "scope"}
-	tokenColumnsWithDefault    = []string{"id", "expiry"}
+	tokenColumnsWithoutDefault = []string{"hash", "app_user_id", "expiry", "scope"}
+	tokenColumnsWithDefault    = []string{"id"}
 	tokenPrimaryKeyColumns     = []string{"id"}
 	tokenGeneratedColumns      = []string{}
 )

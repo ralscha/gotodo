@@ -5,11 +5,11 @@ import (
 	"github.com/gobuffalo/validate"
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
-	"golang.org/x/exp/slog"
 	"gotodo.rasc.ch/cmd/web/input"
 	"gotodo.rasc.ch/internal/models"
 	"gotodo.rasc.ch/internal/request"
 	"gotodo.rasc.ch/internal/response"
+	"log/slog"
 	"net/http"
 )
 
