@@ -14,7 +14,7 @@ tasks:
 
   lint:
     cmds:
-      - docker run --rm -v {{toSlash .CURRENT_DIR}}:/app -w /app golangci/golangci-lint:v1.52.2 golangci-lint run -v --timeout 5m
+      - docker run --rm -v {{toSlash .CURRENT_DIR}}:/app -w /app golangci/golangci-lint:v1.55.2 golangci-lint run -v --timeout 5m
 
   upgrade-libraries:
     cmds:
