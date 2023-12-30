@@ -1,12 +1,12 @@
 package main
 
 import (
+	"codnect.io/chrono"
 	"context"
 	"database/sql"
 	"github.com/alexedwards/scs/mysqlstore"
 	"github.com/alexedwards/scs/v2"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/procyon-projects/chrono"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"gotodo.rasc.ch/internal/config"
 	"gotodo.rasc.ch/internal/database"
