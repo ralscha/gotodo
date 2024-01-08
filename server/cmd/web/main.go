@@ -25,7 +25,7 @@ type application struct {
 	db             *sql.DB
 	sessionManager *scs.SessionManager
 	wg             sync.WaitGroup
-	mailer         mailer.Mailer
+	mailer         *mailer.Mailer
 	taskScheduler  chrono.TaskScheduler
 }
 
@@ -74,11 +74,17 @@ func main() {
 		os.Exit(1)
 	}
 
+	m, err := mailer.New(cfg.SMTP.Host, cfg.SMTP.Port, cfg.SMTP.Username, cfg.SMTP.Password, cfg.SMTP.Sender)
+	if err != nil {
+		logger.Error("init mailer failed", err)
+		os.Exit(1)
+	}
+
 	app := &application{
 		config:         &cfg,
 		db:             db,
 		sessionManager: sm,
-		mailer:         mailer.New(cfg.SMTP.Host, cfg.SMTP.Port, cfg.SMTP.Username, cfg.SMTP.Password, cfg.SMTP.Sender),
+		mailer:         m,
 		taskScheduler:  chrono.NewDefaultTaskScheduler(),
 	}
 
