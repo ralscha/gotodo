@@ -16,7 +16,7 @@ require (
 	github.com/spf13/viper v1.18.2
 	github.com/tkrajina/typescriptify-golang-structs v0.1.11
 	github.com/volatiletech/null/v8 v8.1.2
-	github.com/volatiletech/sqlboiler/v4 v4.15.0
+	github.com/volatiletech/sqlboiler/v4 v4.16.1
 	github.com/volatiletech/strmangle v0.0.6
 	github.com/wneessen/go-mail v0.4.0
 )
@@ -44,8 +44,8 @@ require (
 	github.com/volatiletech/inflect v0.0.1 // indirect
 	github.com/volatiletech/randomize v0.0.1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.17.0 // indirect
-	golang.org/x/exp v0.0.0-20240103183307-be819d1f06fc // indirect
+	golang.org/x/crypto v0.18.0 // indirect
+	golang.org/x/exp v0.0.0-20240119083558-1b970713d09a // indirect
 	golang.org/x/sync v0.6.0 // indirect
 	golang.org/x/sys v0.16.0 // indirect
 	golang.org/x/text v0.14.0 // indirect

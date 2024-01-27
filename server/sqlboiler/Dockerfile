@@ -1,4 +1,4 @@
-FROM golang:1.21.5
+FROM golang:1.21.6
 RUN go install github.com/volatiletech/sqlboiler/v4@latest
 RUN go install github.com/volatiletech/sqlboiler/v4/drivers/sqlboiler-mysql@latest
 WORKDIR /src/sqlboiler
