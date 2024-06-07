@@ -5,7 +5,7 @@ import {AlertController} from '@ionic/angular';
 import {NgForm} from '@angular/forms';
 import {TodoService} from '../todo.service';
 import {displayFieldErrors} from '../../util';
-import {HttpErrorResponse} from '@angular/common/http';
+import { HttpErrorResponse } from '@angular/common/http';
 import {Errors, Todo} from '../../api/types';
 
 @Component({

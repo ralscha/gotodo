@@ -4,7 +4,7 @@ import {NgForm} from '@angular/forms';
 import {AuthService} from '../../service/auth.service';
 import {NavController} from '@ionic/angular';
 import {ProfileService} from '../profile/profile.service';
-import {HttpErrorResponse} from '@angular/common/http';
+import { HttpErrorResponse } from '@angular/common/http';
 import {displayFieldErrors} from '../../util';
 import {Errors} from '../../api/types';
 

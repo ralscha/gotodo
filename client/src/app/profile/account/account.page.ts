@@ -3,7 +3,7 @@ import {MessagesService} from '../../service/messages.service';
 import {AlertController, NavController} from '@ionic/angular';
 import {NgForm} from '@angular/forms';
 import {ProfileService} from '../profile/profile.service';
-import {HttpErrorResponse} from '@angular/common/http';
+import { HttpErrorResponse } from '@angular/common/http';
 import {displayFieldErrors} from '../../util';
 import {AuthService} from '../../service/auth.service';
 import {Errors} from '../../api/types';

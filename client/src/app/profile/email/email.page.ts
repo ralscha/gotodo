@@ -2,7 +2,7 @@ import {Component} from '@angular/core';
 import {MessagesService} from '../../service/messages.service';
 import {ProfileService} from '../profile/profile.service';
 import {NgForm} from '@angular/forms';
-import {HttpErrorResponse} from '@angular/common/http';
+import { HttpErrorResponse } from '@angular/common/http';
 import {displayFieldErrors} from '../../util';
 import {NavController} from '@ionic/angular';
 import {Errors} from '../../api/types';

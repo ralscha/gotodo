@@ -3,7 +3,7 @@ import {NavController} from '@ionic/angular';
 import {AuthService} from '../service/auth.service';
 import {MessagesService} from '../service/messages.service';
 import {take} from 'rxjs';
-import {HttpErrorResponse} from '@angular/common/http';
+import { HttpErrorResponse } from '@angular/common/http';
 import {NgForm} from '@angular/forms';
 import {displayFieldErrors} from '../util';
 import {Errors} from '../api/types';

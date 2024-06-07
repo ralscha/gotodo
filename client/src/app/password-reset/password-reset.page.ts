@@ -3,7 +3,7 @@ import {AuthService} from '../service/auth.service';
 import {ActivatedRoute} from '@angular/router';
 import {MessagesService} from '../service/messages.service';
 import {NgForm} from '@angular/forms';
-import {HttpErrorResponse} from '@angular/common/http';
+import { HttpErrorResponse } from '@angular/common/http';
 import {displayFieldErrors} from '../util';
 import {Errors} from '../api/types';
 
