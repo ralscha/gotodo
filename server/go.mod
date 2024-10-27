@@ -14,11 +14,11 @@ require (
 	github.com/gobuffalo/validate v2.0.4+incompatible
 	github.com/pressly/goose/v3 v3.22.1
 	github.com/spf13/viper v1.19.0
-	github.com/tkrajina/typescriptify-golang-structs v0.1.11
+	github.com/tkrajina/typescriptify-golang-structs v0.2.0
 	github.com/volatiletech/null/v8 v8.1.2
 	github.com/volatiletech/sqlboiler/v4 v4.16.2
-	github.com/volatiletech/strmangle v0.0.6
-	github.com/wneessen/go-mail v0.5.0
+	github.com/volatiletech/strmangle v0.0.7
+	github.com/wneessen/go-mail v0.5.1
 )
 
 require (
