@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {LoadingController, ToastController} from '@ionic/angular';
+import {LoadingController, ToastController} from '@ionic/angular/standalone';
 
 @Injectable({
   providedIn: 'root'
@@ -24,7 +24,7 @@ export class MessagesService {
       message,
       duration,
       position: 'bottom',
-      color: 'success'
+      color: 'success',
     });
     await toast.present();
   }

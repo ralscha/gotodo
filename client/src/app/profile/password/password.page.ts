@@ -1,8 +1,17 @@
 import {Component, ViewChild} from '@angular/core';
 import {MessagesService} from '../../service/messages.service';
-import {NgForm} from '@angular/forms';
-import {AuthService} from '../../service/auth.service';
-import {NavController} from '@ionic/angular';
+import { NgForm, FormsModule } from '@angular/forms';
+import {
+  IonBackButton,
+  IonButton, IonButtons,
+  IonContent,
+  IonHeader, IonInput, IonItem,
+  IonList,
+  IonText,
+  IonTitle,
+  IonToolbar,
+  NavController
+} from '@ionic/angular/standalone';
 import {ProfileService} from '../profile/profile.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import {displayFieldErrors} from '../../util';
@@ -12,7 +21,7 @@ import {Errors} from '../../api/types';
     selector: 'app-password',
     templateUrl: './password.page.html',
     styleUrls: ['./password.page.scss'],
-    standalone: false
+  imports: [FormsModule, IonContent, IonList, IonText, IonButton, IonHeader, IonToolbar, IonTitle, IonItem, IonInput, IonButtons, IonBackButton]
 })
 export class PasswordPage {
 
@@ -20,7 +29,6 @@ export class PasswordPage {
   changeForm!: NgForm;
 
   constructor(private readonly profileService: ProfileService,
-              private readonly authService: AuthService,
               private readonly navCtrl: NavController,
               private readonly messagesService: MessagesService) {
   }

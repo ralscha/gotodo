@@ -1,17 +1,27 @@
 import {Component} from '@angular/core';
 import {MessagesService} from '../../service/messages.service';
 import {ProfileService} from '../profile/profile.service';
-import {NgForm} from '@angular/forms';
+import { NgForm, FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import {displayFieldErrors} from '../../util';
-import {NavController} from '@ionic/angular';
+import {
+  IonBackButton,
+  IonButton, IonButtons,
+  IonContent,
+  IonHeader, IonInput, IonItem,
+  IonList,
+  IonText,
+  IonTitle,
+  IonToolbar,
+  NavController
+} from '@ionic/angular/standalone';
 import {Errors} from '../../api/types';
 
 @Component({
     selector: 'app-email',
     templateUrl: './email.page.html',
     styleUrls: ['./email.page.scss'],
-    standalone: false
+  imports: [FormsModule, IonContent, IonList, IonText, IonButton, IonHeader, IonToolbar, IonTitle, IonItem, IonInput, IonButtons, IonBackButton]
 })
 export class EmailPage {
 

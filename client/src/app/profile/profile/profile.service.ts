@@ -3,9 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {EmailChangeInput, Errors, PasswordChangeInput, PasswordInput, TokenInput} from '../../api/types';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable()
 export class ProfileService {
 
   constructor(private readonly httpClient: HttpClient) {

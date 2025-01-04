@@ -1,7 +1,15 @@
 import {Component, ViewChild} from '@angular/core';
 import {MessagesService} from '../../service/messages.service';
-import {AlertController, NavController} from '@ionic/angular';
-import {NgForm} from '@angular/forms';
+import {
+  AlertController, IonBackButton,
+  IonButton, IonButtons,
+  IonContent,
+  IonHeader, IonInput, IonItem,
+  IonList,
+  IonText, IonTitle, IonToolbar,
+  NavController
+} from '@ionic/angular/standalone';
+import { NgForm, FormsModule } from '@angular/forms';
 import {ProfileService} from '../profile/profile.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import {displayFieldErrors} from '../../util';
@@ -11,7 +19,7 @@ import {Errors} from '../../api/types';
 @Component({
     selector: 'app-account',
     templateUrl: './account.page.html',
-    standalone: false
+  imports: [FormsModule, IonContent, IonList, IonText, IonButton, IonHeader, IonToolbar, IonTitle, IonItem, IonInput, IonButtons, IonBackButton]
 })
 export class AccountPage {
 

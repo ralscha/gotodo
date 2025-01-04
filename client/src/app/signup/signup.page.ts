@@ -1,8 +1,15 @@
 import {Component} from '@angular/core';
-import {NavController} from '@ionic/angular';
+import {
+  NavController,
+  IonContent,
+  IonList,
+  IonText,
+  IonButton,
+  IonHeader, IonToolbar, IonTitle, IonItem, IonInput, IonBackButton, IonButtons
+} from '@ionic/angular/standalone';
 import {AuthService} from '../service/auth.service';
 import {MessagesService} from '../service/messages.service';
-import {NgForm} from '@angular/forms';
+import { NgForm, FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import {displayFieldErrors} from '../util';
 import {Errors} from '../api/types';
@@ -11,7 +18,7 @@ import {Errors} from '../api/types';
     selector: 'app-signup',
     templateUrl: './signup.page.html',
     styleUrls: ['./signup.page.scss'],
-    standalone: false
+  imports: [FormsModule, IonContent, IonList, IonText, IonButton, IonHeader, IonToolbar, IonTitle, IonItem, IonInput, IonBackButton, IonButtons]
 })
 export class SignupPage {
 

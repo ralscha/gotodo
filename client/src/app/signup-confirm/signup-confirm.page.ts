@@ -1,12 +1,20 @@
 import {Component, OnInit} from '@angular/core';
 import {AuthService} from '../service/auth.service';
 import {MessagesService} from '../service/messages.service';
-import {ActivatedRoute} from '@angular/router';
+import {ActivatedRoute, RouterLink} from '@angular/router';
+import {
+  IonButton,
+  IonContent,
+  IonHeader, IonList, IonRouterLink,
+  IonText,
+  IonTitle,
+  IonToolbar
+} from "@ionic/angular/standalone";
 
 @Component({
     selector: 'app-signup-confirm',
     templateUrl: './signup-confirm.page.html',
-    standalone: false
+    imports: [RouterLink, IonRouterLink, IonContent, IonList, IonText, IonButton, IonHeader, IonToolbar, IonTitle]
 })
 export class SignupConfirmPage implements OnInit {
 

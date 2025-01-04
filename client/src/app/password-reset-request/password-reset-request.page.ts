@@ -1,19 +1,29 @@
 import {Component} from '@angular/core';
-import {NavController} from '@ionic/angular';
 import {AuthService} from '../service/auth.service';
 import {MessagesService} from '../service/messages.service';
+import { FormsModule } from '@angular/forms';
+import {
+  IonBackButton,
+  IonButton, IonButtons,
+  IonContent,
+  IonHeader, IonInput,
+  IonItem,
+  IonList,
+  IonText,
+  IonTitle,
+  IonToolbar
+} from "@ionic/angular/standalone";
 
 @Component({
     selector: 'app-password-reset-request',
     templateUrl: './password-reset-request.page.html',
-    standalone: false
+  imports: [FormsModule, IonContent, IonList, IonText, IonButton, IonHeader, IonToolbar, IonTitle, IonItem, IonInput, IonButtons, IonBackButton]
 })
 export class PasswordResetRequestPage {
 
   resetSent = false;
 
-  constructor(private readonly navCtrl: NavController,
-              private readonly authService: AuthService,
+  constructor(private readonly authService: AuthService,
               private readonly messagesService: MessagesService) {
   }
 

@@ -4,11 +4,9 @@ import {BehaviorSubject, Observable} from 'rxjs';
 import {tap} from 'rxjs/operators';
 import {Errors, Todo} from '../api/types';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable()
 export class TodoService {
-  private todosMap: Map<number, Todo> = new Map();
+  private todosMap = new Map<number, Todo>();
 
   private readonly todosSubject = new BehaviorSubject<Todo[]>([]);
   private readonly todos$ = this.todosSubject.asObservable();
