@@ -19,7 +19,7 @@
     <ion-list lines="full">
       @for (todo of todos; track todo.id) {
         <ion-item [detail]="true" routerLink="./edit/{{todo.id}}">
-          <ion-label>{{todo.subject}}</ion-label>
+          <ion-label>{{ todo.subject }}</ion-label>
         </ion-item>
       }
     </ion-list>

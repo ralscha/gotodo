@@ -5,16 +5,18 @@ import {ActivatedRoute, RouterLink} from '@angular/router';
 import {
   IonButton,
   IonContent,
-  IonHeader, IonList, IonRouterLink,
+  IonHeader,
+  IonList,
+  IonRouterLink,
   IonText,
   IonTitle,
   IonToolbar
 } from "@ionic/angular/standalone";
 
 @Component({
-    selector: 'app-signup-confirm',
-    templateUrl: './signup-confirm.page.html',
-    imports: [RouterLink, IonRouterLink, IonContent, IonList, IonText, IonButton, IonHeader, IonToolbar, IonTitle]
+  selector: 'app-signup-confirm',
+  templateUrl: './signup-confirm.page.html',
+  imports: [RouterLink, IonRouterLink, IonContent, IonList, IonText, IonButton, IonHeader, IonToolbar, IonTitle]
 })
 export class SignupConfirmPage implements OnInit {
 

@@ -6,16 +6,17 @@ import {
   IonButton,
   IonContent,
   IonHeader,
-  IonList, IonRouterLink,
+  IonList,
+  IonRouterLink,
   IonText,
   IonTitle,
   IonToolbar
 } from '@ionic/angular/standalone';
 
 @Component({
-    selector: 'app-email-change-confirm',
-    templateUrl: './email-change-confirm.page.html',
-    imports: [RouterLink, IonRouterLink, IonContent, IonList, IonText, IonButton, IonHeader, IonToolbar, IonTitle]
+  selector: 'app-email-change-confirm',
+  templateUrl: './email-change-confirm.page.html',
+  imports: [RouterLink, IonRouterLink, IonContent, IonList, IonText, IonButton, IonHeader, IonToolbar, IonTitle]
 })
 export class EmailChangeConfirmPage implements OnInit {
 

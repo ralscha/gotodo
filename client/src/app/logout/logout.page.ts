@@ -12,8 +12,8 @@ import {
 import {RouterLink} from "@angular/router";
 
 @Component({
-    selector: 'app-logout',
-    templateUrl: './logout.page.html',
+  selector: 'app-logout',
+  templateUrl: './logout.page.html',
   imports: [RouterLink, IonRouterLink, IonContent, IonList, IonText, IonButton, IonHeader, IonToolbar, IonTitle]
 })
 export class LogoutPage {

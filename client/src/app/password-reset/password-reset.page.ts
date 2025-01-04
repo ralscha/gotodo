@@ -2,23 +2,26 @@ import {Component, OnInit} from '@angular/core';
 import {AuthService} from '../service/auth.service';
 import {ActivatedRoute, RouterLink} from '@angular/router';
 import {MessagesService} from '../service/messages.service';
-import { NgForm, FormsModule } from '@angular/forms';
-import { HttpErrorResponse } from '@angular/common/http';
+import {FormsModule, NgForm} from '@angular/forms';
+import {HttpErrorResponse} from '@angular/common/http';
 import {displayFieldErrors} from '../util';
 import {Errors} from '../api/types';
 import {
   IonButton,
   IonContent,
-  IonHeader, IonInput,
+  IonHeader,
+  IonInput,
   IonItem,
-  IonList, IonRouterLink,
+  IonList,
+  IonRouterLink,
   IonText,
   IonTitle,
   IonToolbar
 } from "@ionic/angular/standalone";
+
 @Component({
-    selector: 'app-password-reset',
-    templateUrl: './password-reset.page.html',
+  selector: 'app-password-reset',
+  templateUrl: './password-reset.page.html',
   imports: [FormsModule, RouterLink, IonRouterLink, IonContent, IonList, IonText, IonButton, IonHeader, IonToolbar, IonTitle, IonItem, IonInput]
 })
 export class PasswordResetPage implements OnInit {

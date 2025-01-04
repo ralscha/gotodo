@@ -10,14 +10,14 @@
 <ion-content class="ion-padding">
   @if (!signUpSent) {
     <form #signupForm="ngForm" (ngSubmit)="signupForm.valid && signup(signupForm, email.value, password.value)"
-      [ngFormOptions]="{updateOn: 'submit'}" novalidate>
+          [ngFormOptions]="{updateOn: 'submit'}" novalidate>
       <ion-list>
         <ion-item>
           <ion-input #email="ngModel" [required]="true" [spellcheck]="false" autocapitalize="off"
-            autocomplete="username" email
-            label="Email" labelPlacement="stacked"
-            name="email"
-          ngModel type="email"></ion-input>
+                     autocomplete="username" email
+                     label="Email" labelPlacement="stacked"
+                     name="email"
+                     ngModel type="email"></ion-input>
         </ion-item>
         <ion-text [hidden]="email.valid || !signupForm.submitted" class="ion-padding-start" color="danger">
           @if (email.errors?.['required']) {
@@ -38,9 +38,9 @@
         </ion-text>
         <ion-item>
           <ion-input #password="ngModel" [minlength]="8" [required]="true" autocomplete="new-password"
-            label="New Password"
-            labelPlacement="stacked" name="password"
-          ngModel type="password"></ion-input>
+                     label="New Password"
+                     labelPlacement="stacked" name="password"
+                     ngModel type="password"></ion-input>
         </ion-item>
         <ion-text [hidden]="password.valid || !signupForm.submitted" class="ion-padding-start" color="danger">
           @if (password.errors?.['required']) {

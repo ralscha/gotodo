@@ -1,23 +1,29 @@
 import {Component} from '@angular/core';
 import {
-  NavController,
+  IonBackButton,
+  IonButton,
+  IonButtons,
   IonContent,
+  IonHeader,
+  IonInput,
+  IonItem,
   IonList,
   IonText,
-  IonButton,
-  IonHeader, IonToolbar, IonTitle, IonItem, IonInput, IonBackButton, IonButtons
+  IonTitle,
+  IonToolbar,
+  NavController
 } from '@ionic/angular/standalone';
 import {AuthService} from '../service/auth.service';
 import {MessagesService} from '../service/messages.service';
-import { NgForm, FormsModule } from '@angular/forms';
-import { HttpErrorResponse } from '@angular/common/http';
+import {FormsModule, NgForm} from '@angular/forms';
+import {HttpErrorResponse} from '@angular/common/http';
 import {displayFieldErrors} from '../util';
 import {Errors} from '../api/types';
 
 @Component({
-    selector: 'app-signup',
-    templateUrl: './signup.page.html',
-    styleUrls: ['./signup.page.scss'],
+  selector: 'app-signup',
+  templateUrl: './signup.page.html',
+  styleUrls: ['./signup.page.scss'],
   imports: [FormsModule, IonContent, IonList, IonText, IonButton, IonHeader, IonToolbar, IonTitle, IonItem, IonInput, IonBackButton, IonButtons]
 })
 export class SignupPage {

@@ -6,15 +6,15 @@
 
 <ion-content class="ion-padding">
   <form #loginForm="ngForm" (ngSubmit)="loginForm.valid && login(loginForm, email.value, password.value)"
-    [ngFormOptions]="{updateOn: 'submit'}" novalidate>
+        [ngFormOptions]="{updateOn: 'submit'}" novalidate>
 
     <ion-list>
       <ion-item>
         <ion-input #email="ngModel" [required]="true" [spellcheck]="false" autocapitalize="off"
-          autocomplete="username" email
-          label="Email" labelPlacement="stacked"
-          name="email"
-        ngModel type="email"></ion-input>
+                   autocomplete="username" email
+                   label="Email" labelPlacement="stacked"
+                   name="email"
+                   ngModel type="email"></ion-input>
       </ion-item>
       <ion-text [hidden]="email.valid || !loginForm.submitted" class="ion-padding-start" color="danger">
         @if (email.errors?.['required']) {
@@ -31,10 +31,10 @@
 
       <ion-item>
         <ion-input #password="ngModel" [minlength]="8" [required]="true" autocomplete="current-password"
-          label="Password" labelPlacement="stacked"
-          name="password"
-          ngModel
-        type="password"></ion-input>
+                   label="Password" labelPlacement="stacked"
+                   name="password"
+                   ngModel
+                   type="password"></ion-input>
       </ion-item>
 
       <ion-text [hidden]="password.valid || !loginForm.submitted" class="ion-padding-start" color="danger">
@@ -60,7 +60,7 @@
     </div>
     <div class="ion-padding">
       <ion-button expand="block" fill="clear" routerDirection="forward" routerLink="/password-reset-request"
-        type="button">Forgot my Password
+                  type="button">Forgot my Password
       </ion-button>
     </div>
 

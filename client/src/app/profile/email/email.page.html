@@ -12,20 +12,20 @@
 <ion-content class="ion-padding">
   @if (!changeSent) {
     <form #changeForm="ngForm" (ngSubmit)="changeForm.valid && changeEmail(changeForm, newEmail.value, password.value)"
-      [ngFormOptions]="{updateOn: 'submit'}" novalidate>
+          [ngFormOptions]="{updateOn: 'submit'}" novalidate>
       <ion-list>
         <ion-text>
           <p>
             An email change is not going to be active immediately.
           </p>
           <p>After you've sent the change request we will send you
-          a confirmation email to the new address.</p>
+            a confirmation email to the new address.</p>
         </ion-text>
         <ion-item>
           <ion-input #password="ngModel" [minlength]="8" [required]="true"
-            autocomplete="current-password" label="Password"
-            labelPlacement="stacked" name="password"
-          ngModel type="password"></ion-input>
+                     autocomplete="current-password" label="Password"
+                     labelPlacement="stacked" name="password"
+                     ngModel type="password"></ion-input>
         </ion-item>
         <ion-text [hidden]="password.valid || !changeForm.submitted" class="ion-padding-start" color="danger">
           @if (password.errors?.['required']) {
@@ -46,10 +46,10 @@
         </ion-text>
         <ion-item>
           <ion-input #newEmail="ngModel" [required]="true" [spellcheck]="false" autocapitalize="off"
-            autocomplete="username" email
-            label="New Email"
-            labelPlacement="stacked"
-          name="newEmail" ngModel type="email"></ion-input>
+                     autocomplete="username" email
+                     label="New Email"
+                     labelPlacement="stacked"
+                     name="newEmail" ngModel type="email"></ion-input>
         </ion-item>
         <ion-text [hidden]="newEmail.valid || !changeForm.submitted" class="ion-padding-start" color="danger">
           @if (newEmail.errors?.['required']) {

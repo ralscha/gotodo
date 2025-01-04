@@ -2,26 +2,35 @@ import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {MessagesService} from '../../service/messages.service';
 import {
-  AlertController, IonBackButton,
-  IonButton, IonButtons,
-  IonContent, IonFab, IonFabButton,
-  IonHeader, IonIcon,
-  IonInput, IonItem,
+  AlertController,
+  IonBackButton,
+  IonButton,
+  IonButtons,
+  IonContent,
+  IonFab,
+  IonFabButton,
+  IonHeader,
+  IonIcon,
+  IonInput,
+  IonItem,
   IonList,
-  IonText, IonTextarea, IonTitle, IonToolbar
+  IonText,
+  IonTextarea,
+  IonTitle,
+  IonToolbar
 } from '@ionic/angular/standalone';
-import { NgForm, FormsModule } from '@angular/forms';
+import {FormsModule, NgForm} from '@angular/forms';
 import {TodoService} from '../todo.service';
 import {displayFieldErrors} from '../../util';
-import { HttpErrorResponse } from '@angular/common/http';
+import {HttpErrorResponse} from '@angular/common/http';
 import {Errors, Todo} from '../../api/types';
 import {addIcons} from "ionicons";
 import {trash} from "ionicons/icons";
 
 @Component({
-    selector: 'app-edit',
-    templateUrl: './edit.page.html',
-    styleUrls: ['./edit.page.scss'],
+  selector: 'app-edit',
+  templateUrl: './edit.page.html',
+  styleUrls: ['./edit.page.scss'],
   imports: [FormsModule, IonContent, IonList, IonText, IonButton, IonHeader, IonToolbar, IonTitle, IonItem, IonInput, IonTextarea, IonFab, IonFabButton, IonIcon, IonBackButton, IonButtons]
 })
 export class EditPage implements OnInit {
@@ -33,7 +42,7 @@ export class EditPage implements OnInit {
               private readonly messagesService: MessagesService,
               private readonly alertController: AlertController,
               private readonly todoService: TodoService) {
-    addIcons({ trash });
+    addIcons({trash});
   }
 
   async ngOnInit(): Promise<void> {

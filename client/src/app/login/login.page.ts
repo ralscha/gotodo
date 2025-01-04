@@ -2,8 +2,11 @@ import {Component, OnInit} from '@angular/core';
 import {
   IonButton,
   IonContent,
-  IonHeader, IonInput, IonItem,
-  IonList, IonRouterLink,
+  IonHeader,
+  IonInput,
+  IonItem,
+  IonList,
+  IonRouterLink,
   IonText,
   IonTitle,
   IonToolbar,
@@ -12,17 +15,17 @@ import {
 import {AuthService} from '../service/auth.service';
 import {MessagesService} from '../service/messages.service';
 import {take} from 'rxjs';
-import { HttpErrorResponse } from '@angular/common/http';
-import { NgForm, FormsModule } from '@angular/forms';
+import {HttpErrorResponse} from '@angular/common/http';
+import {FormsModule, NgForm} from '@angular/forms';
 import {displayFieldErrors} from '../util';
 import {Errors} from '../api/types';
 import {RouterLink} from "@angular/router";
 
 @Component({
-    selector: 'app-login',
-    templateUrl: './login.page.html',
-    styleUrls: ['./login.page.scss'],
-    imports: [FormsModule, RouterLink, IonRouterLink, IonContent, IonList, IonText, IonButton, IonHeader, IonToolbar, IonTitle, IonItem, IonInput]
+  selector: 'app-login',
+  templateUrl: './login.page.html',
+  styleUrls: ['./login.page.scss'],
+  imports: [FormsModule, RouterLink, IonRouterLink, IonContent, IonList, IonText, IonButton, IonHeader, IonToolbar, IonTitle, IonItem, IonInput]
 })
 export class LoginPage implements OnInit {
 

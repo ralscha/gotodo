@@ -1,20 +1,28 @@
 import {Component, OnInit} from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import {HttpClient} from '@angular/common/http';
 import {environment} from '../../../environments/environment';
 import {AppVersionOutput} from '../../api/types';
 import {
-  IonButton, IonButtons, IonCol,
-  IonContent, IonFooter, IonGrid,
-  IonHeader, IonMenuButton, IonNote, IonRouterLink, IonRow,
+  IonButton,
+  IonButtons,
+  IonCol,
+  IonContent,
+  IonFooter,
+  IonGrid,
+  IonHeader,
+  IonMenuButton,
+  IonNote,
+  IonRouterLink,
+  IonRow,
   IonTitle,
   IonToolbar
 } from "@ionic/angular/standalone";
 import {RouterLink} from "@angular/router";
 
 @Component({
-    selector: 'app-profile',
-    templateUrl: './profile.page.html',
-    styleUrls: ['./profile.page.scss'],
+  selector: 'app-profile',
+  templateUrl: './profile.page.html',
+  styleUrls: ['./profile.page.scss'],
   imports: [RouterLink, IonRouterLink, IonContent, IonButton, IonHeader, IonToolbar, IonTitle, IonButtons, IonMenuButton, IonGrid, IonRow, IonCol, IonFooter, IonNote]
 })
 export class ProfilePage implements OnInit {

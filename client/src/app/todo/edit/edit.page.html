@@ -12,14 +12,14 @@
 <ion-content class="ion-padding">
 
   <form #todoForm="ngForm" (ngSubmit)="todoForm.valid && save(todoForm)"
-    [ngFormOptions]="{updateOn: 'submit'}" novalidate>
+        [ngFormOptions]="{updateOn: 'submit'}" novalidate>
 
     @if (selectedTodo) {
       <ion-list>
         <ion-item>
           <ion-input #subject="ngModel" [ngModel]="selectedTodo.subject" [required]="true"
-            label="Subject" labelPlacement="stacked"
-          name="subject"></ion-input>
+                     label="Subject" labelPlacement="stacked"
+                     name="subject"></ion-input>
         </ion-item>
         <ion-text [hidden]="subject.valid || !todoForm.submitted" class="ion-padding-start" color="danger">
           <div class="ion-padding-start">
@@ -28,8 +28,8 @@
         </ion-text>
         <ion-item>
           <ion-textarea [ngModel]="selectedTodo.description" [rows]="3"
-            label="Description" labelPlacement="stacked"
-          name="description"></ion-textarea>
+                        label="Description" labelPlacement="stacked"
+                        name="description"></ion-textarea>
         </ion-item>
       </ion-list>
     }

@@ -1,11 +1,14 @@
 import {Component, ViewChild} from '@angular/core';
 import {MessagesService} from '../../service/messages.service';
-import { NgForm, FormsModule } from '@angular/forms';
+import {FormsModule, NgForm} from '@angular/forms';
 import {
   IonBackButton,
-  IonButton, IonButtons,
+  IonButton,
+  IonButtons,
   IonContent,
-  IonHeader, IonInput, IonItem,
+  IonHeader,
+  IonInput,
+  IonItem,
   IonList,
   IonText,
   IonTitle,
@@ -13,14 +16,14 @@ import {
   NavController
 } from '@ionic/angular/standalone';
 import {ProfileService} from '../profile/profile.service';
-import { HttpErrorResponse } from '@angular/common/http';
+import {HttpErrorResponse} from '@angular/common/http';
 import {displayFieldErrors} from '../../util';
 import {Errors} from '../../api/types';
 
 @Component({
-    selector: 'app-password',
-    templateUrl: './password.page.html',
-    styleUrls: ['./password.page.scss'],
+  selector: 'app-password',
+  templateUrl: './password.page.html',
+  styleUrls: ['./password.page.scss'],
   imports: [FormsModule, IonContent, IonList, IonText, IonButton, IonHeader, IonToolbar, IonTitle, IonItem, IonInput, IonButtons, IonBackButton]
 })
 export class PasswordPage {

@@ -1,12 +1,14 @@
 import {Component} from '@angular/core';
 import {AuthService} from '../service/auth.service';
 import {MessagesService} from '../service/messages.service';
-import { FormsModule } from '@angular/forms';
+import {FormsModule} from '@angular/forms';
 import {
   IonBackButton,
-  IonButton, IonButtons,
+  IonButton,
+  IonButtons,
   IonContent,
-  IonHeader, IonInput,
+  IonHeader,
+  IonInput,
   IonItem,
   IonList,
   IonText,
@@ -15,8 +17,8 @@ import {
 } from "@ionic/angular/standalone";
 
 @Component({
-    selector: 'app-password-reset-request',
-    templateUrl: './password-reset-request.page.html',
+  selector: 'app-password-reset-request',
+  templateUrl: './password-reset-request.page.html',
   imports: [FormsModule, IonContent, IonList, IonText, IonButton, IonHeader, IonToolbar, IonTitle, IonItem, IonInput, IonButtons, IonBackButton]
 })
 export class PasswordResetRequestPage {

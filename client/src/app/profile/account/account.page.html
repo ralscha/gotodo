@@ -12,7 +12,7 @@
 <ion-content class="ion-padding">
 
   <form #deleteForm="ngForm" (ngSubmit)="deleteForm.valid && deleteAccount(password.value)"
-    [ngFormOptions]="{updateOn: 'submit'}" novalidate>
+        [ngFormOptions]="{updateOn: 'submit'}" novalidate>
 
     <ion-list>
 
@@ -23,9 +23,9 @@
 
       <ion-item>
         <ion-input #password="ngModel" [minlength]="8" [required]="true"
-          autocomplete="current-password" label="Password"
-          labelPlacement="stacked" name="password"
-        ngModel type="password"></ion-input>
+                   autocomplete="current-password" label="Password"
+                   labelPlacement="stacked" name="password"
+                   ngModel type="password"></ion-input>
       </ion-item>
 
 

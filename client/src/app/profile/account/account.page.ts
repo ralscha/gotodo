@@ -1,24 +1,30 @@
 import {Component, ViewChild} from '@angular/core';
 import {MessagesService} from '../../service/messages.service';
 import {
-  AlertController, IonBackButton,
-  IonButton, IonButtons,
+  AlertController,
+  IonBackButton,
+  IonButton,
+  IonButtons,
   IonContent,
-  IonHeader, IonInput, IonItem,
+  IonHeader,
+  IonInput,
+  IonItem,
   IonList,
-  IonText, IonTitle, IonToolbar,
+  IonText,
+  IonTitle,
+  IonToolbar,
   NavController
 } from '@ionic/angular/standalone';
-import { NgForm, FormsModule } from '@angular/forms';
+import {FormsModule, NgForm} from '@angular/forms';
 import {ProfileService} from '../profile/profile.service';
-import { HttpErrorResponse } from '@angular/common/http';
+import {HttpErrorResponse} from '@angular/common/http';
 import {displayFieldErrors} from '../../util';
 import {AuthService} from '../../service/auth.service';
 import {Errors} from '../../api/types';
 
 @Component({
-    selector: 'app-account',
-    templateUrl: './account.page.html',
+  selector: 'app-account',
+  templateUrl: './account.page.html',
   imports: [FormsModule, IonContent, IonList, IonText, IonButton, IonHeader, IonToolbar, IonTitle, IonItem, IonInput, IonButtons, IonBackButton]
 })
 export class AccountPage {
