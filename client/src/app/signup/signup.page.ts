@@ -8,9 +8,10 @@ import {displayFieldErrors} from '../util';
 import {Errors} from '../api/types';
 
 @Component({
-  selector: 'app-signup',
-  templateUrl: './signup.page.html',
-  styleUrls: ['./signup.page.scss'],
+    selector: 'app-signup',
+    templateUrl: './signup.page.html',
+    styleUrls: ['./signup.page.scss'],
+    standalone: false
 })
 export class SignupPage {
 

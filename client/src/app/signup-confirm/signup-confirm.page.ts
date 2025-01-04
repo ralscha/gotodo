@@ -4,8 +4,9 @@ import {MessagesService} from '../service/messages.service';
 import {ActivatedRoute} from '@angular/router';
 
 @Component({
-  selector: 'app-signup-confirm',
-  templateUrl: './signup-confirm.page.html'
+    selector: 'app-signup-confirm',
+    templateUrl: './signup-confirm.page.html',
+    standalone: false
 })
 export class SignupConfirmPage implements OnInit {
 

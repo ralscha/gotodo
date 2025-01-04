@@ -12,7 +12,7 @@
 <ion-content class="ion-padding">
 
   <form #deleteForm="ngForm" (ngSubmit)="deleteForm.valid && deleteAccount(password.value)"
-        [ngFormOptions]="{updateOn: 'submit'}" novalidate>
+    [ngFormOptions]="{updateOn: 'submit'}" novalidate>
 
     <ion-list>
 
@@ -23,22 +23,28 @@
 
       <ion-item>
         <ion-input #password="ngModel" [minlength]="8" [required]="true"
-                   autocomplete="current-password" label="Password"
-                   labelPlacement="stacked" name="password"
-                   ngModel type="password"></ion-input>
+          autocomplete="current-password" label="Password"
+          labelPlacement="stacked" name="password"
+        ngModel type="password"></ion-input>
       </ion-item>
 
 
       <ion-text [hidden]="password.valid || !deleteForm.submitted" class="ion-padding-start" color="danger">
-        <div *ngIf="password.errors?.['required']" class="ion-padding-start">
-          Password is required
-        </div>
-        <div *ngIf="password.errors?.['minlength'] || password.errors?.['gte']" class="ion-padding-start">
-          Minimum length is 8 characters
-        </div>
-        <div *ngIf="password.errors?.['invalid']" class="ion-padding-start">
-          Password is invalid
-        </div>
+        @if (password.errors?.['required']) {
+          <div class="ion-padding-start">
+            Password is required
+          </div>
+        }
+        @if (password.errors?.['minlength'] || password.errors?.['gte']) {
+          <div class="ion-padding-start">
+            Minimum length is 8 characters
+          </div>
+        }
+        @if (password.errors?.['invalid']) {
+          <div class="ion-padding-start">
+            Password is invalid
+          </div>
+        }
       </ion-text>
 
       <div class="ion-padding">

@@ -10,74 +10,84 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-  <form #changeForm="ngForm" (ngSubmit)="changeForm.valid && changeEmail(changeForm, newEmail.value, password.value)"
-        *ngIf="!changeSent" [ngFormOptions]="{updateOn: 'submit'}" novalidate>
-
-    <ion-list>
-
-      <ion-text>
-        <p>
-          An email change is not going to be active immediately.
-        </p>
-        <p>After you've sent the change request we will send you
+  @if (!changeSent) {
+    <form #changeForm="ngForm" (ngSubmit)="changeForm.valid && changeEmail(changeForm, newEmail.value, password.value)"
+      [ngFormOptions]="{updateOn: 'submit'}" novalidate>
+      <ion-list>
+        <ion-text>
+          <p>
+            An email change is not going to be active immediately.
+          </p>
+          <p>After you've sent the change request we will send you
           a confirmation email to the new address.</p>
+        </ion-text>
+        <ion-item>
+          <ion-input #password="ngModel" [minlength]="8" [required]="true"
+            autocomplete="current-password" label="Password"
+            labelPlacement="stacked" name="password"
+          ngModel type="password"></ion-input>
+        </ion-item>
+        <ion-text [hidden]="password.valid || !changeForm.submitted" class="ion-padding-start" color="danger">
+          @if (password.errors?.['required']) {
+            <div class="ion-padding-start">
+              Password is required
+            </div>
+          }
+          @if (password.errors?.['minlength'] || password.errors?.['gte']) {
+            <div class="ion-padding-start">
+              Minimum length is 8 characters
+            </div>
+          }
+          @if (password.errors?.['invalid']) {
+            <div class="ion-padding-start">
+              Password is invalid
+            </div>
+          }
+        </ion-text>
+        <ion-item>
+          <ion-input #newEmail="ngModel" [required]="true" [spellcheck]="false" autocapitalize="off"
+            autocomplete="username" email
+            label="New Email"
+            labelPlacement="stacked"
+          name="newEmail" ngModel type="email"></ion-input>
+        </ion-item>
+        <ion-text [hidden]="newEmail.valid || !changeForm.submitted" class="ion-padding-start" color="danger">
+          @if (newEmail.errors?.['required']) {
+            <div class="ion-padding-start">
+              Email is required
+            </div>
+          }
+          @if (newEmail.errors?.['email']) {
+            <div class="ion-padding-start">
+              Not a valid email address
+            </div>
+          }
+          @if (newEmail.errors?.['exists']) {
+            <div class="ion-padding-start">
+              User with this email address already exists
+            </div>
+          }
+          @if (newEmail.errors?.['noChange']) {
+            <div class="ion-padding-start">
+              New and old email address are the same
+            </div>
+          }
+        </ion-text>
+        <div class="ion-padding">
+          <ion-button expand="block" type="submit">Change Email</ion-button>
+        </div>
+      </ion-list>
+    </form>
+  }
+
+  @if (changeSent) {
+    <ion-list class="ion-margin-top">
+      <ion-text>
+        <p>We successfully received your email change request.</p>
+        <p>Before we activate the change we need to verify your new email address.</p>
+        <p>We sent you an email to the new address with a confirmation link.</p>
+        <p><strong>Please check your inbox and click on the link.</strong></p>
       </ion-text>
-
-      <ion-item>
-        <ion-input #password="ngModel" [minlength]="8" [required]="true"
-                   autocomplete="current-password" label="Password"
-                   labelPlacement="stacked" name="password"
-                   ngModel type="password"></ion-input>
-      </ion-item>
-
-      <ion-text [hidden]="password.valid || !changeForm.submitted" class="ion-padding-start" color="danger">
-        <div *ngIf="password.errors?.['required']" class="ion-padding-start">
-          Password is required
-        </div>
-        <div *ngIf="password.errors?.['minlength'] || password.errors?.['gte']" class="ion-padding-start">
-          Minimum length is 8 characters
-        </div>
-        <div *ngIf="password.errors?.['invalid']" class="ion-padding-start">
-          Password is invalid
-        </div>
-      </ion-text>
-
-      <ion-item>
-        <ion-input #newEmail="ngModel" [required]="true" [spellcheck]="false" autocapitalize="off"
-                   autocomplete="username" email
-                   label="New Email"
-                   labelPlacement="stacked"
-                   name="newEmail" ngModel type="email"></ion-input>
-      </ion-item>
-
-      <ion-text [hidden]="newEmail.valid || !changeForm.submitted" class="ion-padding-start" color="danger">
-        <div *ngIf="newEmail.errors?.['required']" class="ion-padding-start">
-          Email is required
-        </div>
-        <div *ngIf="newEmail.errors?.['email']" class="ion-padding-start">
-          Not a valid email address
-        </div>
-        <div *ngIf="newEmail.errors?.['exists']" class="ion-padding-start">
-          User with this email address already exists
-        </div>
-        <div *ngIf="newEmail.errors?.['noChange']" class="ion-padding-start">
-          New and old email address are the same
-        </div>
-      </ion-text>
-
-      <div class="ion-padding">
-        <ion-button expand="block" type="submit">Change Email</ion-button>
-      </div>
-
     </ion-list>
-  </form>
-
-  <ion-list *ngIf="changeSent" class="ion-margin-top">
-    <ion-text>
-      <p>We successfully received your email change request.</p>
-      <p>Before we activate the change we need to verify your new email address.</p>
-      <p>We sent you an email to the new address with a confirmation link.</p>
-      <p><strong>Please check your inbox and click on the link.</strong></p>
-    </ion-text>
-  </ion-list>
+  }
 </ion-content>

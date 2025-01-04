@@ -6,21 +6,24 @@
 
 <ion-content class="ion-padding">
 
-  <ion-list *ngIf="success === true">
-    <ion-text>
-      <p>Email Change successfully confirmed.</p>
-    </ion-text>
+  @if (success === true) {
+    <ion-list>
+      <ion-text>
+        <p>Email Change successfully confirmed.</p>
+      </ion-text>
+      <div class="ion-padding">
+        <ion-button expand="block" routerDirection="root" routerLink="/login">Go to Login</ion-button>
+      </div>
+    </ion-list>
+  }
 
-    <div class="ion-padding">
-      <ion-button expand="block" routerDirection="root" routerLink="/login">Go to Login</ion-button>
-    </div>
-  </ion-list>
-
-  <ion-list *ngIf="success === false">
-    <ion-text color="danger">
-      <p>Something went wrong</p>
-      <p>Please try again later.</p>
-    </ion-text>
-  </ion-list>
+  @if (success === false) {
+    <ion-list>
+      <ion-text color="danger">
+        <p>Something went wrong</p>
+        <p>Please try again later.</p>
+      </ion-text>
+    </ion-list>
+  }
 
 </ion-content>

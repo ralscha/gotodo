@@ -6,40 +6,48 @@
 
 <ion-content class="ion-padding">
   <form #loginForm="ngForm" (ngSubmit)="loginForm.valid && login(loginForm, email.value, password.value)"
-        [ngFormOptions]="{updateOn: 'submit'}" novalidate>
+    [ngFormOptions]="{updateOn: 'submit'}" novalidate>
 
     <ion-list>
       <ion-item>
         <ion-input #email="ngModel" [required]="true" [spellcheck]="false" autocapitalize="off"
-                   autocomplete="username" email
-                   label="Email" labelPlacement="stacked"
-                   name="email"
-                   ngModel type="email"></ion-input>
+          autocomplete="username" email
+          label="Email" labelPlacement="stacked"
+          name="email"
+        ngModel type="email"></ion-input>
       </ion-item>
       <ion-text [hidden]="email.valid || !loginForm.submitted" class="ion-padding-start" color="danger">
-        <div *ngIf="email.errors?.['required']" class="ion-padding-start">
-          Email is required
-        </div>
-        <div *ngIf="email.errors?.['email']" class="ion-padding-start">
-          Not a valid email address
-        </div>
+        @if (email.errors?.['required']) {
+          <div class="ion-padding-start">
+            Email is required
+          </div>
+        }
+        @if (email.errors?.['email']) {
+          <div class="ion-padding-start">
+            Not a valid email address
+          </div>
+        }
       </ion-text>
 
       <ion-item>
         <ion-input #password="ngModel" [minlength]="8" [required]="true" autocomplete="current-password"
-                   label="Password" labelPlacement="stacked"
-                   name="password"
-                   ngModel
-                   type="password"></ion-input>
+          label="Password" labelPlacement="stacked"
+          name="password"
+          ngModel
+        type="password"></ion-input>
       </ion-item>
 
       <ion-text [hidden]="password.valid || !loginForm.submitted" class="ion-padding-start" color="danger">
-        <div *ngIf="password.errors?.['required']" class="ion-padding-start">
-          Password is required
-        </div>
-        <div *ngIf="password.errors?.['minlength'] || password.errors?.['gte']" class="ion-padding-start">
-          Minimum length is 8 characters
-        </div>
+        @if (password.errors?.['required']) {
+          <div class="ion-padding-start">
+            Password is required
+          </div>
+        }
+        @if (password.errors?.['minlength'] || password.errors?.['gte']) {
+          <div class="ion-padding-start">
+            Minimum length is 8 characters
+          </div>
+        }
       </ion-text>
     </ion-list>
 
@@ -52,7 +60,7 @@
     </div>
     <div class="ion-padding">
       <ion-button expand="block" fill="clear" routerDirection="forward" routerLink="/password-reset-request"
-                  type="button">Forgot my Password
+        type="button">Forgot my Password
       </ion-button>
     </div>
 

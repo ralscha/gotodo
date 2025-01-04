@@ -8,9 +8,10 @@ import {NavController} from '@ionic/angular';
 import {Errors} from '../../api/types';
 
 @Component({
-  selector: 'app-email',
-  templateUrl: './email.page.html',
-  styleUrls: ['./email.page.scss'],
+    selector: 'app-email',
+    templateUrl: './email.page.html',
+    styleUrls: ['./email.page.scss'],
+    standalone: false
 })
 export class EmailPage {
 

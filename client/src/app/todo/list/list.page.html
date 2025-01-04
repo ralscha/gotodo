@@ -15,13 +15,15 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <ng-container *ngIf="todos$ | async as todos">
+  @if (todos$ | async; as todos) {
     <ion-list lines="full">
-      <ion-item *ngFor="let todo of todos;trackBy: trackById" [detail]="true" routerLink="./edit/{{todo.id}}">
-        <ion-label>{{todo.subject}}</ion-label>
-      </ion-item>
+      @for (todo of todos; track todo.id) {
+        <ion-item [detail]="true" routerLink="./edit/{{todo.id}}">
+          <ion-label>{{todo.subject}}</ion-label>
+        </ion-item>
+      }
     </ion-list>
-  </ng-container>
+  }
 
   <ion-fab horizontal="end" slot="fixed" vertical="bottom">
     <ion-fab-button routerDirection="forward" routerLink="./edit">

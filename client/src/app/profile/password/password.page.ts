@@ -9,9 +9,10 @@ import {displayFieldErrors} from '../../util';
 import {Errors} from '../../api/types';
 
 @Component({
-  selector: 'app-password',
-  templateUrl: './password.page.html',
-  styleUrls: ['./password.page.scss'],
+    selector: 'app-password',
+    templateUrl: './password.page.html',
+    styleUrls: ['./password.page.scss'],
+    standalone: false
 })
 export class PasswordPage {
 

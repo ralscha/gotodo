@@ -8,8 +8,9 @@ import {displayFieldErrors} from '../util';
 import {Errors} from '../api/types';
 
 @Component({
-  selector: 'app-password-reset',
-  templateUrl: './password-reset.page.html'
+    selector: 'app-password-reset',
+    templateUrl: './password-reset.page.html',
+    standalone: false
 })
 export class PasswordResetPage implements OnInit {
 

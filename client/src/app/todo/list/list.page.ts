@@ -4,8 +4,9 @@ import {TodoService} from '../todo.service';
 import {Todo} from '../../api/types';
 
 @Component({
-  selector: 'app-list',
-  templateUrl: './list.page.html'
+    selector: 'app-list',
+    templateUrl: './list.page.html',
+    standalone: false
 })
 export class ListPage implements OnInit {
 
@@ -22,10 +23,6 @@ export class ListPage implements OnInit {
   refresh(event: Event): void {
     this.todoService.loadTodos();
     (event as CustomEvent).detail.complete();
-  }
-
-  trackById(index: number, item: any): number {
-    return item.id;
   }
 
 }

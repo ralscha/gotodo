@@ -12,26 +12,27 @@
 <ion-content class="ion-padding">
 
   <form #todoForm="ngForm" (ngSubmit)="todoForm.valid && save(todoForm)"
-        [ngFormOptions]="{updateOn: 'submit'}" novalidate>
+    [ngFormOptions]="{updateOn: 'submit'}" novalidate>
 
-    <ion-list *ngIf="selectedTodo">
-      <ion-item>
-        <ion-input #subject="ngModel" [ngModel]="selectedTodo.subject" [required]="true"
-                   label="Subject" labelPlacement="stacked"
-                   name="subject"></ion-input>
-      </ion-item>
-      <ion-text [hidden]="subject.valid || !todoForm.submitted" class="ion-padding-start" color="danger">
-        <div class="ion-padding-start">
-          Subject is required
-        </div>
-      </ion-text>
-
-      <ion-item>
-        <ion-textarea [ngModel]="selectedTodo.description" [rows]="3"
-                      label="Description" labelPlacement="stacked"
-                      name="description"></ion-textarea>
-      </ion-item>
-    </ion-list>
+    @if (selectedTodo) {
+      <ion-list>
+        <ion-item>
+          <ion-input #subject="ngModel" [ngModel]="selectedTodo.subject" [required]="true"
+            label="Subject" labelPlacement="stacked"
+          name="subject"></ion-input>
+        </ion-item>
+        <ion-text [hidden]="subject.valid || !todoForm.submitted" class="ion-padding-start" color="danger">
+          <div class="ion-padding-start">
+            Subject is required
+          </div>
+        </ion-text>
+        <ion-item>
+          <ion-textarea [ngModel]="selectedTodo.description" [rows]="3"
+            label="Description" labelPlacement="stacked"
+          name="description"></ion-textarea>
+        </ion-item>
+      </ion-list>
+    }
 
     <div class="ion-padding">
       <ion-button expand="block" type="submit">Save</ion-button>
@@ -39,10 +40,12 @@
 
   </form>
 
-  <ion-fab *ngIf="selectedTodo?.id" horizontal="start" slot="fixed" vertical="bottom">
-    <ion-fab-button (click)="deleteTodo()" color="danger">
-      <ion-icon name="trash"></ion-icon>
-    </ion-fab-button>
-  </ion-fab>
+  @if (selectedTodo?.id) {
+    <ion-fab horizontal="start" slot="fixed" vertical="bottom">
+      <ion-fab-button (click)="deleteTodo()" color="danger">
+        <ion-icon name="trash"></ion-icon>
+      </ion-fab-button>
+    </ion-fab>
+  }
 
 </ion-content>

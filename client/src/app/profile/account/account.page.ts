@@ -9,8 +9,9 @@ import {AuthService} from '../../service/auth.service';
 import {Errors} from '../../api/types';
 
 @Component({
-  selector: 'app-account',
-  templateUrl: './account.page.html'
+    selector: 'app-account',
+    templateUrl: './account.page.html',
+    standalone: false
 })
 export class AccountPage {
 
