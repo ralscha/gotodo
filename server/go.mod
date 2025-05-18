@@ -1,6 +1,6 @@
 module gotodo.rasc.ch
 
-go 1.24.2
+go 1.24.3
 
 require (
 	codnect.io/chrono v1.1.3
@@ -12,11 +12,11 @@ require (
 	github.com/go-chi/httprate v0.15.0
 	github.com/go-sql-driver/mysql v1.9.2
 	github.com/gobuffalo/validate v2.0.4+incompatible
-	github.com/pressly/goose/v3 v3.24.2
+	github.com/pressly/goose/v3 v3.24.3
 	github.com/spf13/viper v1.20.1
 	github.com/tkrajina/typescriptify-golang-structs v0.2.0
 	github.com/volatiletech/null/v8 v8.1.2
-	github.com/volatiletech/sqlboiler/v4 v4.18.0
+	github.com/volatiletech/sqlboiler/v4 v4.19.0
 	github.com/volatiletech/strmangle v0.0.8
 	github.com/wneessen/go-mail v0.6.2
 )
@@ -36,7 +36,7 @@ require (
 	github.com/sethvargo/go-retry v0.3.0 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.14.0 // indirect
-	github.com/spf13/cast v1.7.1 // indirect
+	github.com/spf13/cast v1.8.0 // indirect
 	github.com/spf13/pflag v1.0.6 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/tkrajina/go-reflector v0.5.8 // indirect
@@ -44,10 +44,10 @@ require (
 	github.com/volatiletech/randomize v0.0.1 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.37.0 // indirect
-	golang.org/x/sync v0.13.0 // indirect
-	golang.org/x/sys v0.32.0 // indirect
-	golang.org/x/text v0.24.0 // indirect
+	golang.org/x/crypto v0.38.0 // indirect
+	golang.org/x/sync v0.14.0 // indirect
+	golang.org/x/sys v0.33.0 // indirect
+	golang.org/x/text v0.25.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
