@@ -1,4 +1,4 @@
-import {Component, ViewChild} from '@angular/core';
+import {Component, inject, ViewChild} from '@angular/core';
 import {MessagesService} from '../../service/messages.service';
 import {FormsModule, NgForm} from '@angular/forms';
 import {
@@ -27,14 +27,11 @@ import {Errors} from '../../api/types';
   imports: [FormsModule, IonContent, IonList, IonText, IonButton, IonHeader, IonToolbar, IonTitle, IonItem, IonInput, IonButtons, IonBackButton]
 })
 export class PasswordPage {
-
   @ViewChild('changeForm')
   changeForm!: NgForm;
-
-  constructor(private readonly profileService: ProfileService,
-              private readonly navCtrl: NavController,
-              private readonly messagesService: MessagesService) {
-  }
+  private readonly profileService = inject(ProfileService);
+  private readonly navCtrl = inject(NavController);
+  private readonly messagesService = inject(MessagesService);
 
   async changePassword(oldPassword: string, newPassword: string): Promise<void> {
 

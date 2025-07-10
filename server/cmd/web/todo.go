@@ -1,10 +1,10 @@
 package main
 
 import (
+	"github.com/aarondl/sqlboiler/v4/boil"
 	"github.com/go-chi/chi/v5"
 	"github.com/gobuffalo/validate"
 	"github.com/gobuffalo/validate/validators"
-	"github.com/volatiletech/sqlboiler/v4/boil"
 	"gotodo.rasc.ch/internal/models"
 	"gotodo.rasc.ch/internal/request"
 	"gotodo.rasc.ch/internal/response"

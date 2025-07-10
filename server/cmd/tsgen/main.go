@@ -1,9 +1,9 @@
 package main
 
 import (
+	"github.com/aarondl/null/v8"
 	"github.com/gobuffalo/validate"
 	"github.com/tkrajina/typescriptify-golang-structs/typescriptify"
-	"github.com/volatiletech/null/v8"
 	"gotodo.rasc.ch/cmd/web/input"
 	"gotodo.rasc.ch/cmd/web/output"
 	"gotodo.rasc.ch/internal/models"

@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, inject} from '@angular/core';
 import {AuthService} from './service/auth.service';
 import {
   IonApp,
@@ -26,10 +26,11 @@ import {RouterLink, RouterLinkActive} from "@angular/router";
   imports: [IonContent, IonList, IonItem, IonMenu, IonSplitPane, IonListHeader, IonMenuToggle, IonIcon, IonLabel, IonRouterOutlet, IonApp, RouterLink, IonRouterLink, RouterLinkActive]
 })
 export class AppComponent {
+  readonly authService = inject(AuthService);
   dark = false
+  private readonly navCtrl = inject(NavController);
 
-  constructor(readonly authService: AuthService,
-              private readonly navCtrl: NavController) {
+  constructor() {
     addIcons({person, logOutOutline});
   }
 

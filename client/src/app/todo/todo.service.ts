@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import {inject, Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {BehaviorSubject, Observable} from 'rxjs';
 import {tap} from 'rxjs/operators';
@@ -6,13 +6,12 @@ import {Errors, Todo} from '../api/types';
 
 @Injectable()
 export class TodoService {
+  private readonly httpClient = inject(HttpClient);
+
   private todosMap = new Map<number, Todo>();
 
   private readonly todosSubject = new BehaviorSubject<Todo[]>([]);
   private readonly todos$ = this.todosSubject.asObservable();
-
-  constructor(private readonly httpClient: HttpClient) {
-  }
 
   loadTodos(): void {
     this.httpClient.get<Todo[]>('/v1/todo').subscribe(todos => {

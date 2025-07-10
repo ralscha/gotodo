@@ -1,4 +1,4 @@
-import {Component, ViewChild} from '@angular/core';
+import {Component, inject, ViewChild} from '@angular/core';
 import {MessagesService} from '../../service/messages.service';
 import {
   AlertController,
@@ -28,18 +28,14 @@ import {Errors} from '../../api/types';
   imports: [FormsModule, IonContent, IonList, IonText, IonButton, IonHeader, IonToolbar, IonTitle, IonItem, IonInput, IonButtons, IonBackButton]
 })
 export class AccountPage {
-
   submitError: string | null = null;
-
   @ViewChild('deleteForm')
   deleteForm!: NgForm;
-
-  constructor(private readonly navCtrl: NavController,
-              private readonly authService: AuthService,
-              private readonly profileService: ProfileService,
-              private readonly messagesService: MessagesService,
-              private readonly alertController: AlertController) {
-  }
+  private readonly navCtrl = inject(NavController);
+  private readonly authService = inject(AuthService);
+  private readonly profileService = inject(ProfileService);
+  private readonly messagesService = inject(MessagesService);
+  private readonly alertController = inject(AlertController);
 
   async deleteAccount(password: string): Promise<void> {
     this.submitError = null;

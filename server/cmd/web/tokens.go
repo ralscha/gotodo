@@ -7,8 +7,8 @@ import (
 	"database/sql"
 	"encoding/base32"
 	"errors"
-	"github.com/volatiletech/sqlboiler/v4/boil"
-	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+	"github.com/aarondl/sqlboiler/v4/boil"
+	"github.com/aarondl/sqlboiler/v4/queries/qm"
 	"gotodo.rasc.ch/internal/models"
 	"time"
 )

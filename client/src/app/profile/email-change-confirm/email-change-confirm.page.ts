@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
 import {ActivatedRoute, RouterLink} from '@angular/router';
 import {MessagesService} from '../../service/messages.service';
 import {ProfileService} from '../profile/profile.service';
@@ -19,13 +19,10 @@ import {
   imports: [RouterLink, IonRouterLink, IonContent, IonList, IonText, IonButton, IonHeader, IonToolbar, IonTitle]
 })
 export class EmailChangeConfirmPage implements OnInit {
-
   success: boolean | null = null;
-
-  constructor(private readonly profileService: ProfileService,
-              private readonly route: ActivatedRoute,
-              private readonly messagesService: MessagesService) {
-  }
+  private readonly profileService = inject(ProfileService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly messagesService = inject(MessagesService);
 
   async ngOnInit(): Promise<void> {
     const token = this.route.snapshot.paramMap.get('token');

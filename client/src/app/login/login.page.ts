@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
 import {
   IonButton,
   IonContent,
@@ -28,11 +28,10 @@ import {RouterLink} from "@angular/router";
   imports: [FormsModule, RouterLink, IonRouterLink, IonContent, IonList, IonText, IonButton, IonHeader, IonToolbar, IonTitle, IonItem, IonInput]
 })
 export class LoginPage implements OnInit {
+  private readonly navCtrl = inject(NavController);
+  private readonly authService = inject(AuthService);
+  private readonly messagesService = inject(MessagesService);
 
-  constructor(private readonly navCtrl: NavController,
-              private readonly authService: AuthService,
-              private readonly messagesService: MessagesService) {
-  }
 
   ngOnInit(): void {
     // is the user already authenticated

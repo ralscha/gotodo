@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
 import {Observable} from 'rxjs';
 import {TodoService} from '../todo.service';
 import {Todo} from '../../api/types';
@@ -30,10 +30,10 @@ import {RouterLink} from "@angular/router";
   imports: [RouterLink, IonRouterLink, AsyncPipe, IonContent, IonList, IonHeader, IonToolbar, IonTitle, IonItem, IonButtons, IonMenuButton, IonRefresher, IonRefresherContent, IonLabel, IonFab, IonFabButton, IonIcon]
 })
 export class ListPage implements OnInit {
-
   todos$!: Observable<Todo[]>;
+  private readonly todoService = inject(TodoService);
 
-  constructor(private readonly todoService: TodoService) {
+  constructor() {
     addIcons({add});
   }
 

@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, inject} from '@angular/core';
 import {
   IonBackButton,
   IonButton,
@@ -27,13 +27,10 @@ import {Errors} from '../api/types';
   imports: [FormsModule, IonContent, IonList, IonText, IonButton, IonHeader, IonToolbar, IonTitle, IonItem, IonInput, IonBackButton, IonButtons]
 })
 export class SignupPage {
-
   signUpSent = false;
-
-  constructor(private readonly navCtrl: NavController,
-              private readonly authService: AuthService,
-              private readonly messagesService: MessagesService) {
-  }
+  private readonly navCtrl = inject(NavController);
+  private readonly authService = inject(AuthService);
+  private readonly messagesService = inject(MessagesService);
 
   private static handleErrorResponse(form: NgForm, errorResponse: HttpErrorResponse) {
     const response: Errors = errorResponse.error;

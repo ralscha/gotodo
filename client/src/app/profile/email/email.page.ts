@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, inject} from '@angular/core';
 import {MessagesService} from '../../service/messages.service';
 import {ProfileService} from '../profile/profile.service';
 import {FormsModule, NgForm} from '@angular/forms';
@@ -27,13 +27,10 @@ import {Errors} from '../../api/types';
   imports: [FormsModule, IonContent, IonList, IonText, IonButton, IonHeader, IonToolbar, IonTitle, IonItem, IonInput, IonButtons, IonBackButton]
 })
 export class EmailPage {
-
   changeSent = false;
-
-  constructor(private readonly navCtrl: NavController,
-              private readonly profileService: ProfileService,
-              private readonly messagesService: MessagesService) {
-  }
+  private readonly navCtrl = inject(NavController);
+  private readonly profileService = inject(ProfileService);
+  private readonly messagesService = inject(MessagesService);
 
   private static handleErrorResponse(form: NgForm, errorResponse: HttpErrorResponse) {
     const response: Errors = errorResponse.error;

@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../../environments/environment';
 import {AppVersionOutput} from '../../api/types';
@@ -26,16 +26,13 @@ import {RouterLink} from "@angular/router";
   imports: [RouterLink, IonRouterLink, IonContent, IonButton, IonHeader, IonToolbar, IonTitle, IonButtons, IonMenuButton, IonGrid, IonRow, IonCol, IonFooter, IonNote]
 })
 export class ProfilePage implements OnInit {
-
   buildInfo: {
     serverVersion: string | null,
     serverBuildTime: string | null,
     clientVersion: string | null,
     clientBuildTime: string | null
   } = {serverVersion: null, serverBuildTime: null, clientVersion: null, clientBuildTime: null};
-
-  constructor(private readonly httpClient: HttpClient) {
-  }
+  private readonly httpClient = inject(HttpClient);
 
   ngOnInit(): void {
     this.buildInfo.clientVersion = environment.version;

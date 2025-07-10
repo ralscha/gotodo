@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {MessagesService} from '../../service/messages.service';
 import {
@@ -34,14 +34,14 @@ import {trash} from "ionicons/icons";
   imports: [FormsModule, IonContent, IonList, IonText, IonButton, IonHeader, IonToolbar, IonTitle, IonItem, IonInput, IonTextarea, IonFab, IonFabButton, IonIcon, IonBackButton, IonButtons]
 })
 export class EditPage implements OnInit {
-
   selectedTodo?: Todo;
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly messagesService = inject(MessagesService);
+  private readonly alertController = inject(AlertController);
+  private readonly todoService = inject(TodoService);
 
-  constructor(private readonly route: ActivatedRoute,
-              private readonly router: Router,
-              private readonly messagesService: MessagesService,
-              private readonly alertController: AlertController,
-              private readonly todoService: TodoService) {
+  constructor() {
     addIcons({trash});
   }
 

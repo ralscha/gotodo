@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import {inject, Injectable} from '@angular/core';
 import {BehaviorSubject, Observable, of} from 'rxjs';
 import {catchError, share, tap} from 'rxjs/operators';
 import {HttpClient} from '@angular/common/http';
@@ -16,11 +16,13 @@ import {
   providedIn: 'root'
 })
 export class AuthService {
+  private readonly httpClient = inject(HttpClient);
+
   private readonly authoritySubject = new BehaviorSubject<string | null>(null);
   readonly authority$ = this.authoritySubject.asObservable();
   private readonly authorityCall$: Observable<{ authority: string } | null>;
 
-  constructor(private readonly httpClient: HttpClient) {
+  constructor() {
     this.authorityCall$ = this.httpClient.post<{ authority: string }>('/v1/authenticate', null, {
       withCredentials: true
     })

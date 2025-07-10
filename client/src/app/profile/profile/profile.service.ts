@@ -1,13 +1,12 @@
-import {Injectable} from '@angular/core';
+import {inject, Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {EmailChangeInput, Errors, PasswordChangeInput, PasswordInput, TokenInput} from '../../api/types';
 
 @Injectable()
 export class ProfileService {
+  private readonly httpClient = inject(HttpClient);
 
-  constructor(private readonly httpClient: HttpClient) {
-  }
 
   deleteAccount(password: string): Observable<Errors | void> {
     const request: PasswordInput = {password};
