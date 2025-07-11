@@ -1,4 +1,4 @@
-import {Component, inject, ViewChild} from '@angular/core';
+import {Component, inject, viewChild} from '@angular/core';
 import {MessagesService} from '../../service/messages.service';
 import {FormsModule, NgForm} from '@angular/forms';
 import {
@@ -27,8 +27,7 @@ import {Errors} from '../../api/types';
   imports: [FormsModule, IonContent, IonList, IonText, IonButton, IonHeader, IonToolbar, IonTitle, IonItem, IonInput, IonButtons, IonBackButton]
 })
 export class PasswordPage {
-  @ViewChild('changeForm')
-  changeForm!: NgForm;
+  readonly changeForm = viewChild.required<NgForm>('changeForm');
   private readonly profileService = inject(ProfileService);
   private readonly navCtrl = inject(NavController);
   private readonly messagesService = inject(MessagesService);
@@ -41,7 +40,7 @@ export class PasswordPage {
       .subscribe({
         next: () => {
           loading.dismiss();
-          this.changeForm.resetForm();
+          this.changeForm().resetForm();
           this.messagesService.showSuccessToast('Password successfully changed');
           this.navCtrl.back();
         },
@@ -56,9 +55,9 @@ export class PasswordPage {
   private handleErrorResponse(errorResponse: HttpErrorResponse) {
     const response: Errors = errorResponse.error;
     if (response?.errors) {
-      displayFieldErrors(this.changeForm, response.errors)
+      displayFieldErrors(this.changeForm(), response.errors)
     } else {
-      this.changeForm.resetForm();
+      this.changeForm().resetForm();
       this.messagesService.showErrorToast('Changing password failed');
     }
   }

@@ -1,7 +1,7 @@
 <ion-header>
   <ion-toolbar color="danger">
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/profile"></ion-back-button>
+      <ion-back-button defaultHref="/profile" />
     </ion-buttons>
     <ion-title>
       Delete Account
@@ -25,7 +25,7 @@
         <ion-input #password="ngModel" [minlength]="8" [required]="true"
                    autocomplete="current-password" label="Password"
                    labelPlacement="stacked" name="password"
-                   ngModel type="password"></ion-input>
+                   ngModel type="password" />
       </ion-item>
 
 

@@ -10,7 +10,7 @@
             </ion-list-header>
             <ion-menu-toggle autoHide="false">
               <ion-item routerDirection="root" routerLink="todo" routerLinkActive="active">
-                <ion-icon name="person" slot="start"></ion-icon>
+                <ion-icon name="person" slot="start" />
                 <ion-label>
                   My Todos
                 </ion-label>
@@ -21,7 +21,7 @@
             </ion-list-header>
             <ion-menu-toggle autoHide="false">
               <ion-item routerDirection="root" routerLink="profile" routerLinkActive="active">
-                <ion-icon name="person" slot="start"></ion-icon>
+                <ion-icon name="person" slot="start" />
                 <ion-label>
                   Profile
                 </ion-label>
@@ -29,7 +29,7 @@
             </ion-menu-toggle>
             <ion-menu-toggle autoHide="false">
               <ion-item (click)="logout()" detail="false">
-                <ion-icon name="log-out-outline" slot="start"></ion-icon>
+                <ion-icon name="log-out-outline" slot="start" />
                 <ion-label>
                   Log out
                 </ion-label>
@@ -41,7 +41,7 @@
       </ion-content>
     </ion-menu>
 
-    <ion-router-outlet id="main-content"></ion-router-outlet>
+    <ion-router-outlet id="main-content" />
 
   </ion-split-pane>
 

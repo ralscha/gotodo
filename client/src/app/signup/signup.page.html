@@ -1,7 +1,7 @@
 <ion-header>
   <ion-toolbar color="primary">
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/login"></ion-back-button>
+      <ion-back-button defaultHref="/login" />
     </ion-buttons>
     <ion-title>Sign-Up</ion-title>
   </ion-toolbar>
@@ -17,7 +17,7 @@
                      autocomplete="username" email
                      label="Email" labelPlacement="stacked"
                      name="email"
-                     ngModel type="email"></ion-input>
+                     ngModel type="email" />
         </ion-item>
         <ion-text [hidden]="email.valid || !signupForm.submitted" class="ion-padding-start" color="danger">
           @if (email.errors?.['required']) {
@@ -40,7 +40,7 @@
           <ion-input #password="ngModel" [minlength]="8" [required]="true" autocomplete="new-password"
                      label="New Password"
                      labelPlacement="stacked" name="password"
-                     ngModel type="password"></ion-input>
+                     ngModel type="password" />
         </ion-item>
         <ion-text [hidden]="password.valid || !signupForm.submitted" class="ion-padding-start" color="danger">
           @if (password.errors?.['required']) {

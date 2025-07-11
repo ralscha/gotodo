@@ -1,4 +1,4 @@
-import {Component, inject, ViewChild} from '@angular/core';
+import {Component, inject, viewChild} from '@angular/core';
 import {MessagesService} from '../../service/messages.service';
 import {
   AlertController,
@@ -29,8 +29,7 @@ import {Errors} from '../../api/types';
 })
 export class AccountPage {
   submitError: string | null = null;
-  @ViewChild('deleteForm')
-  deleteForm!: NgForm;
+  readonly deleteForm = viewChild.required<NgForm>('deleteForm');
   private readonly navCtrl = inject(NavController);
   private readonly authService = inject(AuthService);
   private readonly profileService = inject(ProfileService);
@@ -48,7 +47,7 @@ export class AccountPage {
           text: 'Cancel',
           role: 'cancel',
           handler: () => {
-            this.deleteForm.resetForm();
+            this.deleteForm().resetForm();
           }
         }, {
           text: 'Delete Account',
@@ -82,9 +81,9 @@ export class AccountPage {
   private handleErrorResponse(errorResponse: HttpErrorResponse) {
     const response: Errors = errorResponse.error;
     if (response?.errors) {
-      displayFieldErrors(this.deleteForm, response.errors)
+      displayFieldErrors(this.deleteForm(), response.errors)
     } else {
-      this.deleteForm.resetForm();
+      this.deleteForm().resetForm();
       this.messagesService.showErrorToast('Deleting account failed');
     }
   }

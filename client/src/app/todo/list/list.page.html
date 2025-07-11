@@ -1,7 +1,7 @@
 <ion-header>
   <ion-toolbar color="primary">
     <ion-buttons slot="start">
-      <ion-menu-button></ion-menu-button>
+      <ion-menu-button />
     </ion-buttons>
     <ion-title>
       Todos
@@ -12,7 +12,7 @@
 <ion-content class="ion-padding">
 
   <ion-refresher (ionRefresh)="refresh($event)" [pullFactor]="0.6" slot="fixed">
-    <ion-refresher-content></ion-refresher-content>
+    <ion-refresher-content />
   </ion-refresher>
 
   @if (todos$ | async; as todos) {
@@ -27,7 +27,7 @@
 
   <ion-fab horizontal="end" slot="fixed" vertical="bottom">
     <ion-fab-button routerDirection="forward" routerLink="./edit">
-      <ion-icon name="add"></ion-icon>
+      <ion-icon name="add" />
     </ion-fab-button>
   </ion-fab>
 
