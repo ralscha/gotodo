@@ -1,6 +1,6 @@
 module gotodo.rasc.ch
 
-go 1.25.2
+go 1.25.3
 
 require (
 	codnect.io/chrono v1.1.3
