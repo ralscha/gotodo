@@ -2,11 +2,6 @@
 
 version: '3'
 
-vars:
-  CURRENT_DIR:
-    sh: pwd
-  SUFFIX: '{{if eq OS "windows"}}.exe{{end}}'
-
 tasks:
   default:
     cmds:
@@ -14,7 +9,7 @@ tasks:
 
   lint:
     cmds:
-      - docker run --rm -v {{toSlash .CURRENT_DIR}}:/app -w /app golangci/golangci-lint:v2.6.2 golangci-lint run -v --timeout 5m
+      - docker run --rm -v {{toSlash .ROOT_DIR}}:/app -w /app golangci/golangci-lint:v2.6.2 golangci-lint run -v --timeout 5m
 
   upgrade-libraries:
     cmds:
@@ -37,51 +32,51 @@ tasks:
 
   build:
     cmds:
-      - go build -ldflags='-s' -o=./bin/web{{.SUFFIX}} ./cmd/web
+      - go build -ldflags='-s' -o=./bin/web{{exeExt}} ./cmd/web
 
   run:
     deps: [build]
     cmds:
-      - ./bin/web{{.SUFFIX}}
+      - ./bin/web{{exeExt}}
 
   build-goose:
     cmds:
-      - go build -o ./migrate{{.SUFFIX}} gotodo.rasc.ch/cmd/migrate
+      - go build -o ./migrate{{exeExt}} gotodo.rasc.ch/cmd/migrate
     sources:
       - ./cmd/migrate/*.go
       - ./migrations/*.sql
     generates:
-      - ./migrate{{.SUFFIX}}
+      - ./migrate{{exeExt}}
 
   db-migration-new:
     deps: [build-goose]
     cmds:
-      - ./migrate{{.SUFFIX}} create {{.CLI_ARGS}} sql
+      - ./migrate{{exeExt}} create {{.CLI_ARGS}} sql
 
   db-migration-new-go:
     deps: [build-goose]
     cmds:
-      - ./migrate{{.SUFFIX}} create {{.CLI_ARGS}} go
+      - ./migrate{{exeExt}} create {{.CLI_ARGS}} go
 
   db-migration-up:
     deps: [build-goose]
     cmds:
-      - ./migrate{{.SUFFIX}} up
+      - ./migrate{{exeExt}} up
 
   db-migration-reset:
     deps: [build-goose]
     cmds:
-      - ./migrate{{.SUFFIX}} reset
+      - ./migrate{{exeExt}} reset
 
   db-migration-status:
     deps: [build-goose]
     cmds:
-      - ./migrate{{.SUFFIX}} status
+      - ./migrate{{exeExt}} status
 
   db-codegen:
     cmds:
       - docker build -t sqlboilercodegen -f sqlboiler/Dockerfile .
-      - docker run -v {{toSlash .CURRENT_DIR}}:/src sqlboilercodegen
+      - docker run -v {{toSlash .ROOT_DIR}}:/src sqlboilercodegen
       - go run gotodo.rasc.ch/cmd/tsgen
 
 
