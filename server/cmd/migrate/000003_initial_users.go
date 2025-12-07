@@ -1,17 +1,19 @@
 package main
 
 import (
+	"context"
 	"database/sql"
+
 	"github.com/alexedwards/argon2id"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/pressly/goose/v3"
 )
 
 func init() {
-	goose.AddMigration(upInitialUsers, downInitialUsers)
+	goose.AddMigrationContext(upInitialUsers, downInitialUsers)
 }
 
-func upInitialUsers(tx *sql.Tx) error {
+func upInitialUsers(ctx context.Context, tx *sql.Tx) error {
 	params := &argon2id.Params{
 		Memory:      1 << 17,
 		Iterations:  20,
@@ -36,7 +38,7 @@ func upInitialUsers(tx *sql.Tx) error {
 	return nil
 }
 
-func downInitialUsers(tx *sql.Tx) error {
+func downInitialUsers(ctx context.Context, tx *sql.Tx) error {
 	stmt := `DELETE FROM app_user where email = 'admin@test.ch'`
 	_, err := tx.Exec(stmt)
 	if err != nil {
