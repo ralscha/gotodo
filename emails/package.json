@@ -6,6 +6,6 @@
 		"poststart": "cd ../server && go run gotodo.rasc.ch/cmd/mailgen ../emails/output ./mails" 
   },
   "dependencies": {
-    "mjml": "4.17.2"
+    "mjml": "4.18.0"
   }
 }
