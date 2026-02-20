@@ -52,20 +52,18 @@ func (app *application) serve() error {
 }
 
 func (app *application) background(fn func()) {
-	app.wg.Add(1)
 
-	go func() {
-		defer app.wg.Done()
+	app.wg.Go(func() {
 		defer func() {
 			if err := recover(); err != nil {
 				if e, ok := err.(error); ok {
-					slog.Error("background job failed", e)
+					slog.Error("background job failed", "error", e)
 				} else {
-					slog.Error("background job failed", nil, err)
+					slog.Error("background job failed", "panic", err)
 				}
 			}
 		}()
 
 		fn()
-	}()
+	})
 }

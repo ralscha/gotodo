@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
@@ -11,7 +12,7 @@ import (
 	"time"
 )
 
-func (app *application) isPasswordCompromised(password string) (bool, error) {
+func (app *application) isPasswordCompromised(ctx context.Context, password string) (bool, error) {
 	alg := sha1.New()
 	alg.Write([]byte(password))
 	hash := strings.ToUpper(hex.EncodeToString(alg.Sum(nil)))
@@ -22,7 +23,7 @@ func (app *application) isPasswordCompromised(password string) (bool, error) {
 		Timeout: 10 * time.Second,
 	}
 
-	req, err := http.NewRequest("GET", "https://api.pwnedpasswords.com/range/"+prefix, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", "https://api.pwnedpasswords.com/range/"+prefix, nil)
 	if err != nil {
 		return false, err
 	}
@@ -46,11 +47,16 @@ func (app *application) isPasswordCompromised(password string) (bool, error) {
 		return false, err
 	}
 
-	hashList := strings.Split(string(body), "\r\n")
+	hashList := strings.SplitSeq(string(body), "\r\n")
 
-	for _, line := range hashList {
-		if line[:35] == suffix {
-			occurrence, err := strconv.ParseInt(line[36:], 10, 64)
+	for line := range hashList {
+		parts := strings.SplitN(line, ":", 2)
+		if len(parts) != 2 {
+			continue
+		}
+
+		if strings.TrimSpace(parts[0]) == suffix {
+			occurrence, err := strconv.ParseInt(strings.TrimSpace(parts[1]), 10, 64)
 			if err != nil {
 				return false, err
 			}

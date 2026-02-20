@@ -2,6 +2,7 @@ package response
 
 import (
 	"encoding/json"
+	"maps"
 	"net/http"
 )
 
@@ -16,9 +17,7 @@ func JSONWithHeaders(w http.ResponseWriter, status int, data any, headers http.H
 		return false
 	}
 
-	for key, value := range headers {
-		w.Header()[key] = value
-	}
+	maps.Copy(w.Header(), headers)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)

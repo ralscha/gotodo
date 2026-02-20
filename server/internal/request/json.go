@@ -28,7 +28,7 @@ func DecodeJSONValidate(w http.ResponseWriter, r *http.Request, dst input.Valida
 	return true
 }
 
-func DecodeJSON(w http.ResponseWriter, r *http.Request, dst interface{}) error {
+func DecodeJSON(w http.ResponseWriter, r *http.Request, dst any) error {
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
 
 	dec := json.NewDecoder(r.Body)

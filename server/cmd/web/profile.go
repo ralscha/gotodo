@@ -1,6 +1,9 @@
 package main
 
 import (
+	"log/slog"
+	"net/http"
+
 	"github.com/aarondl/null/v8"
 	"github.com/aarondl/sqlboiler/v4/queries/qm"
 	"github.com/alexedwards/argon2id"
@@ -9,8 +12,6 @@ import (
 	"gotodo.rasc.ch/internal/models"
 	"gotodo.rasc.ch/internal/request"
 	"gotodo.rasc.ch/internal/response"
-	"log/slog"
-	"net/http"
 )
 
 func (app *application) emailChangeHandler(w http.ResponseWriter, r *http.Request) {
@@ -78,7 +79,7 @@ func (app *application) emailChangeHandler(w http.ResponseWriter, r *http.Reques
 
 		err = app.mailer.Send(emailChangeInput.NewEmail, "email-change.tmpl", data)
 		if err != nil {
-			slog.Error("sending email confirm email failed", err)
+			slog.Error("sending email confirm email failed", "error", err)
 		}
 	})
 
@@ -161,7 +162,7 @@ func (app *application) passwordChangeHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	compromised, err := app.isPasswordCompromised(passwordChangeInput.NewPassword)
+	compromised, err := app.isPasswordCompromised(r.Context(), passwordChangeInput.NewPassword)
 	if err != nil {
 		response.InternalServerError(w, err)
 		return
@@ -230,6 +231,9 @@ func (app *application) accountDeleteHandler(w http.ResponseWriter, r *http.Requ
 		response.InternalServerError(w, err)
 		return
 	}
+	defer func() {
+		_ = tx.Rollback()
+	}()
 
 	err = models.Todos(models.TodoWhere.AppUserID.EQ(userID)).DeleteAll(r.Context(), tx)
 	if err != nil {

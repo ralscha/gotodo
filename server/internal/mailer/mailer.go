@@ -31,7 +31,7 @@ func New(host string, port int, username, password, sender string) (*Mailer, err
 	}, nil
 }
 
-func (m Mailer) Send(recipient, templateFile string, data interface{}) error {
+func (m Mailer) Send(recipient, templateFile string, data any) error {
 	tmpl, err := template.New("email").ParseFS(mails.EmbeddedFiles, templateFile)
 	if err != nil {
 		return err

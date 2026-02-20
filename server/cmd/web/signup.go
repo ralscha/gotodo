@@ -1,6 +1,10 @@
 package main
 
 import (
+	"log/slog"
+	"net/http"
+	"time"
+
 	"github.com/aarondl/null/v8"
 	"github.com/aarondl/sqlboiler/v4/boil"
 	"github.com/aarondl/sqlboiler/v4/queries/qm"
@@ -10,9 +14,6 @@ import (
 	"gotodo.rasc.ch/internal/models"
 	"gotodo.rasc.ch/internal/request"
 	"gotodo.rasc.ch/internal/response"
-	"log/slog"
-	"net/http"
-	"time"
 )
 
 func (app *application) signupHandler(w http.ResponseWriter, r *http.Request) {
@@ -38,7 +39,7 @@ func (app *application) signupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	compromised, err := app.isPasswordCompromised(signUpInput.Password)
+	compromised, err := app.isPasswordCompromised(r.Context(), signUpInput.Password)
 	if err != nil {
 		response.InternalServerError(w, err)
 		return
@@ -89,7 +90,7 @@ func (app *application) signupHandler(w http.ResponseWriter, r *http.Request) {
 
 		err = app.mailer.Send(newUser.Email, "signup-confirm.tmpl", data)
 		if err != nil {
-			slog.Error("sending signup confirmation email failed", err)
+			slog.Error("sending signup confirmation email failed", "error", err)
 		}
 	})
 

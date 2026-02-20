@@ -2,9 +2,10 @@ package response
 
 import (
 	"fmt"
-	"github.com/gobuffalo/validate"
 	"log/slog"
 	"net/http"
+
+	"github.com/gobuffalo/validate"
 )
 
 func errorMessage(w http.ResponseWriter, status int, message string, headers http.Header) {
@@ -12,7 +13,7 @@ func errorMessage(w http.ResponseWriter, status int, message string, headers htt
 }
 
 func InternalServerError(w http.ResponseWriter, err error) {
-	slog.Error(err.Error(), err)
+	slog.Error(err.Error(), "error", err)
 
 	message := "The server encountered a problem and could not process your request"
 	errorMessage(w, http.StatusInternalServerError, message, nil)

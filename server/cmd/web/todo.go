@@ -1,6 +1,9 @@
 package main
 
 import (
+	"net/http"
+	"strconv"
+
 	"github.com/aarondl/sqlboiler/v4/boil"
 	"github.com/go-chi/chi/v5"
 	"github.com/gobuffalo/validate"
@@ -8,8 +11,6 @@ import (
 	"gotodo.rasc.ch/internal/models"
 	"gotodo.rasc.ch/internal/request"
 	"gotodo.rasc.ch/internal/response"
-	"net/http"
-	"strconv"
 )
 
 type ValidatedTodo models.Todo
@@ -88,7 +89,12 @@ func (app *application) todoDeleteHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	err = models.Todos(models.TodoWhere.ID.EQ(int64(todoID))).DeleteAll(r.Context(), app.db)
+	userID := app.sessionManager.GetInt64(r.Context(), "userID")
+
+	err = models.Todos(
+		models.TodoWhere.ID.EQ(int64(todoID)),
+		models.TodoWhere.AppUserID.EQ(userID),
+	).DeleteAll(r.Context(), app.db)
 	if err != nil {
 		response.InternalServerError(w, err)
 		return

@@ -3,6 +3,10 @@ package main
 import (
 	"database/sql"
 	"errors"
+	"log/slog"
+	"net/http"
+	"time"
+
 	"github.com/aarondl/sqlboiler/v4/queries/qm"
 	"github.com/alexedwards/argon2id"
 	"github.com/gobuffalo/validate"
@@ -12,9 +16,6 @@ import (
 	"gotodo.rasc.ch/internal/models"
 	"gotodo.rasc.ch/internal/request"
 	"gotodo.rasc.ch/internal/response"
-	"log/slog"
-	"net/http"
-	"time"
 )
 
 var userNotFoundPasswordHash string
@@ -55,6 +56,7 @@ func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
 	err := app.sessionManager.RenewToken(r.Context())
 	if err != nil {
 		response.InternalServerError(w, err)
+		return
 	}
 
 	var loginInput input.LoginInput
@@ -139,7 +141,7 @@ func (app *application) passwordResetRequestHandler(w http.ResponseWriter, r *ht
 
 			err = app.mailer.Send(passwordResetRequestInput.Email, "password-reset.tmpl", data)
 			if err != nil {
-				slog.Error("sending password reset email failed", err)
+				slog.Error("sending password reset email failed", "error", err)
 			}
 		})
 	}
@@ -164,7 +166,7 @@ func (app *application) passwordResetHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	compromised, err := app.isPasswordCompromised(passwordResetInput.Password)
+	compromised, err := app.isPasswordCompromised(r.Context(), passwordResetInput.Password)
 	if err != nil {
 		response.InternalServerError(w, err)
 		return

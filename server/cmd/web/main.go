@@ -1,9 +1,16 @@
 package main
 
 import (
-	"codnect.io/chrono"
 	"context"
 	"database/sql"
+	"log"
+	"log/slog"
+	"net/http"
+	"os"
+	"sync"
+	"time"
+
+	"codnect.io/chrono"
 	"github.com/aarondl/sqlboiler/v4/boil"
 	"github.com/alexedwards/scs/mysqlstore"
 	"github.com/alexedwards/scs/v2"
@@ -12,12 +19,6 @@ import (
 	"gotodo.rasc.ch/internal/database"
 	"gotodo.rasc.ch/internal/mailer"
 	"gotodo.rasc.ch/internal/version"
-	"log"
-	"log/slog"
-	"net/http"
-	"os"
-	"sync"
-	"time"
 )
 
 type application struct {
@@ -43,13 +44,15 @@ func main() {
 		logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 	case config.Production:
 		logger = slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	default:
+		logger = slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	}
 
 	slog.SetDefault(logger)
 
 	db, err := database.New(cfg)
 	if err != nil {
-		logger.Error("opening database connection failed", err)
+		logger.Error("opening database connection failed", "error", err)
 		os.Exit(1)
 	}
 	defer func(db *sql.DB) {
@@ -70,13 +73,13 @@ func main() {
 
 	err = initAuth(cfg)
 	if err != nil {
-		logger.Error("init auth failed", err)
+		logger.Error("init auth failed", "error", err)
 		os.Exit(1)
 	}
 
 	m, err := mailer.New(cfg.SMTP.Host, cfg.SMTP.Port, cfg.SMTP.Username, cfg.SMTP.Password, cfg.SMTP.Sender)
 	if err != nil {
-		logger.Error("init mailer failed", err)
+		logger.Error("init mailer failed", "error", err)
 		os.Exit(1)
 	}
 
@@ -93,7 +96,7 @@ func main() {
 	}, 20*time.Minute)
 
 	if err != nil {
-		logger.Error("scheduling cleanup task failed", err)
+		logger.Error("scheduling cleanup task failed", "error", err)
 		os.Exit(1)
 	}
 
@@ -101,7 +104,7 @@ func main() {
 
 	err = app.serve()
 	if err != nil {
-		logger.Error("http serve failed", err)
+		logger.Error("http serve failed", "error", err)
 		os.Exit(1)
 	}
 
