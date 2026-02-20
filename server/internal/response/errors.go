@@ -36,3 +36,8 @@ func BadRequest(w http.ResponseWriter, err error) {
 func FailedValidation(w http.ResponseWriter, v *validate.Errors) {
 	JSON(w, http.StatusUnprocessableEntity, v)
 }
+
+func Unauthorized(w http.ResponseWriter) {
+	message := "You must be authenticated to access this resource"
+	errorMessage(w, http.StatusUnauthorized, message, nil)
+}

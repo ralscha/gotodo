@@ -1,13 +1,14 @@
 package main
 
 import (
+	"net/http"
+	"time"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/httprate"
 	"gotodo.rasc.ch/internal/config"
 	"gotodo.rasc.ch/internal/response"
-	"net/http"
-	"time"
 )
 
 func (app *application) routes() http.Handler {
@@ -63,7 +64,7 @@ func (app *application) authenticatedOnly(next http.Handler) http.Handler {
 		if userID > 0 {
 			next.ServeHTTP(w, r)
 		} else {
-			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+			response.Unauthorized(w)
 		}
 	})
 }

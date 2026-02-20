@@ -49,7 +49,7 @@ func (app *application) authenticateHandler(w http.ResponseWriter, r *http.Reque
 			return
 		}
 	}
-	w.WriteHeader(http.StatusUnauthorized)
+	response.Unauthorized(w)
 }
 
 func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
@@ -102,7 +102,7 @@ func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	w.WriteHeader(http.StatusUnauthorized)
+	response.Unauthorized(w)
 }
 
 func (app *application) logoutHandler(w http.ResponseWriter, r *http.Request) {
