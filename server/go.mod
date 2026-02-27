@@ -15,7 +15,7 @@ require (
 	github.com/go-chi/httprate v0.15.0
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/gobuffalo/validate v2.0.4+incompatible
-	github.com/pressly/goose/v3 v3.26.0
+	github.com/pressly/goose/v3 v3.27.0
 	github.com/spf13/viper v1.21.0
 	github.com/tkrajina/typescriptify-golang-structs v0.2.0
 	github.com/wneessen/go-mail v0.7.2
