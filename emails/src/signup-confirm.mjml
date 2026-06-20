@@ -1,5 +1,7 @@
 <mjml>
    <mj-head>
+     <mj-title>GoTodo Registration</mj-title>
+     <mj-preview>Confirm your GoTodo registration.</mj-preview>
      <mj-attributes>
        <mj-all font-family="Arial" font-size="20px" />
      </mj-attributes>
@@ -22,7 +24,7 @@
 
         <mj-text>
           Thanks for your registration. <br>
-          Before you can use the application we need to confirm your email address        
+          Before you can use the application we need to confirm your email address
         </mj-text>
 
         <mj-text>
@@ -31,11 +33,11 @@
 
       </mj-column>
     </mj-section>
-    
+
     <mj-section>
       <mj-column>
         <mj-button href="{{.confirmationLink}}">
-          Confirm my registration
+          Confirm my Registration
         </mj-button>
       </mj-column>
     </mj-section>

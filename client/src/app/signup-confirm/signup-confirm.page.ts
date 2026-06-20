@@ -1,7 +1,7 @@
-import {Component, inject, OnInit} from '@angular/core';
-import {AuthService} from '../service/auth.service';
-import {MessagesService} from '../service/messages.service';
-import {ActivatedRoute, RouterLink} from '@angular/router';
+import { Component, inject, OnInit, signal } from '@angular/core';
+import { AuthService } from '../service/auth.service';
+import { MessagesService } from '../service/messages.service';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
   IonButton,
   IonContent,
@@ -10,16 +10,26 @@ import {
   IonRouterLink,
   IonText,
   IonTitle,
-  IonToolbar
-} from "@ionic/angular/standalone";
+  IonToolbar,
+} from '@ionic/angular/standalone';
 
 @Component({
   selector: 'app-signup-confirm',
   templateUrl: './signup-confirm.page.html',
-  imports: [RouterLink, IonRouterLink, IonContent, IonList, IonText, IonButton, IonHeader, IonToolbar, IonTitle]
+  imports: [
+    RouterLink,
+    IonRouterLink,
+    IonContent,
+    IonList,
+    IonText,
+    IonButton,
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+  ],
 })
 export class SignupConfirmPage implements OnInit {
-  success: boolean | null = null;
+  readonly success = signal<boolean | null>(null);
   private readonly authService = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
   private readonly messagesService = inject(MessagesService);
@@ -28,23 +38,21 @@ export class SignupConfirmPage implements OnInit {
     const token = this.route.snapshot.paramMap.get('token');
 
     if (!token) {
-      this.success = false;
+      this.success.set(false);
       return;
     }
 
     const loading = await this.messagesService.showLoading('Processing confirmation...');
 
-    this.authService.confirmSignup(token)
-      .subscribe({
-        next: () => {
-          loading.dismiss();
-          this.success = true;
-        },
-        error: () => {
-          loading.dismiss();
-          this.success = false;
-        }
-      });
+    this.authService.confirmSignup(token).subscribe({
+      next: async () => {
+        await loading.dismiss();
+        this.success.set(true);
+      },
+      error: async () => {
+        await loading.dismiss();
+        this.success.set(false);
+      },
+    });
   }
-
 }

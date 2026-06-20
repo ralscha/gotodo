@@ -5,7 +5,7 @@
 export const environment = {
   production: false,
   version: 'DEV',
-  buildTimestamp: 0
+  buildTimestamp: 0,
 };
 
 /*

@@ -5,7 +5,6 @@ import (
 	"database/sql"
 
 	"github.com/alexedwards/argon2id"
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/pressly/goose/v3"
 )
 
@@ -28,10 +27,10 @@ func upInitialUsers(ctx context.Context, tx *sql.Tx) error {
 	}
 
 	stmt := `
-	INSERT INTO app_user (email, password_hash, authority, activated, expired, last_access) 
-	VALUES ('admin@test.ch', ?, 'admin', 1, null, null)
+	INSERT INTO app_user (email, password_hash, authority, activated, expired, last_access)
+	VALUES ('admin@test.ch', $1, 'admin', true, null, null)
     `
-	_, err = tx.Exec(stmt, hash)
+	_, err = tx.ExecContext(ctx, stmt, hash)
 	if err != nil {
 		return err
 	}
@@ -40,7 +39,7 @@ func upInitialUsers(ctx context.Context, tx *sql.Tx) error {
 
 func downInitialUsers(ctx context.Context, tx *sql.Tx) error {
 	stmt := `DELETE FROM app_user where email = 'admin@test.ch'`
-	_, err := tx.Exec(stmt)
+	_, err := tx.ExecContext(ctx, stmt)
 	if err != nil {
 		return err
 	}

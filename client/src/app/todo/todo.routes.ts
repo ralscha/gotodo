@@ -1,7 +1,7 @@
-import {Routes} from '@angular/router';
-import {ListPage} from './list/list.page';
-import {EditPage} from './edit/edit.page';
-import {authGuard} from "../app-routing";
+import { Routes } from '@angular/router';
+import { ListPage } from './list/list.page';
+import { EditPage } from './edit/edit.page';
+import { authGuard } from '../app-routing';
 
 export const routes: Routes = [
   {
@@ -15,12 +15,12 @@ export const routes: Routes = [
     children: [
       {
         path: ':id',
-        component: EditPage
+        component: EditPage,
       },
       {
         path: '',
-        component: EditPage
-      }
-    ]
-  }
+        component: EditPage,
+      },
+    ],
+  },
 ];

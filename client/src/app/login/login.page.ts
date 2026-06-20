@@ -1,65 +1,90 @@
-import {Component, inject, OnInit} from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import {
   IonButton,
+  IonCol,
   IonContent,
+  IonGrid,
   IonHeader,
   IonInput,
   IonItem,
-  IonList,
   IonRouterLink,
+  IonRow,
   IonText,
   IonTitle,
   IonToolbar,
-  NavController
+  NavController,
 } from '@ionic/angular/standalone';
-import {AuthService} from '../service/auth.service';
-import {MessagesService} from '../service/messages.service';
-import {take} from 'rxjs';
-import {HttpErrorResponse} from '@angular/common/http';
-import {FormsModule, NgForm} from '@angular/forms';
-import {displayFieldErrors} from '../util';
-import {Errors} from '../api/types';
-import {RouterLink} from "@angular/router";
+import { AuthService } from '../service/auth.service';
+import { MessagesService } from '../service/messages.service';
+import { take } from 'rxjs';
+import { email, FormField, form, minLength, required, schema } from '@angular/forms/signals';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
-  imports: [FormsModule, RouterLink, IonRouterLink, IonContent, IonList, IonText, IonButton, IonHeader, IonToolbar, IonTitle, IonItem, IonInput]
+  imports: [
+    FormField,
+    RouterLink,
+    IonRouterLink,
+    IonContent,
+    IonGrid,
+    IonRow,
+    IonCol,
+    IonText,
+    IonButton,
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonItem,
+    IonInput,
+  ],
 })
 export class LoginPage implements OnInit {
+  readonly submitted = signal(false);
+  readonly loginModel = signal({ email: '', password: '' });
+  readonly loginForm = form(
+    this.loginModel,
+    schema((path) => {
+      required(path.email);
+      email(path.email);
+      required(path.password);
+      minLength(path.password, 8);
+    }),
+  );
   private readonly navCtrl = inject(NavController);
   private readonly authService = inject(AuthService);
   private readonly messagesService = inject(MessagesService);
 
-
   ngOnInit(): void {
-    // is the user already authenticated
-    this.authService.authority$.pipe(take(1)).subscribe(authority => {
+    this.authService.authority$.pipe(take(1)).subscribe((authority) => {
       if (authority !== null) {
-        this.navCtrl.navigateRoot('home');
+        this.navCtrl.navigateRoot('/todo');
       }
     });
   }
 
-  async login(form: NgForm, email: string, password: string): Promise<void> {
-    this.authService
-      .login(email, password)
-      .subscribe({
-        next: () => this.navCtrl.navigateRoot('home'),
-        error: this.handleErrorResponse(form)
-      });
-  }
+  async login(): Promise<void> {
+    this.submitted.set(true);
+    this.loginForm().markAsTouched();
 
-  private handleErrorResponse(form: NgForm) {
-    return (errorResponse: HttpErrorResponse) => {
-      const response: Errors = errorResponse.error;
-      if (response?.errors) {
-        displayFieldErrors(form, response.errors)
-      } else {
-        this.messagesService.showErrorToast('Login failed');
-      }
-    };
-  }
+    if (this.loginForm().invalid()) {
+      return;
+    }
 
+    const loading = await this.messagesService.showLoading('Logging in');
+    const credentials = this.loginModel();
+
+    this.authService.login(credentials.email, credentials.password).subscribe({
+      next: async () => {
+        await loading.dismiss();
+        await this.navCtrl.navigateRoot('/todo');
+      },
+      error: async () => {
+        await loading.dismiss();
+        await this.messagesService.showErrorToast('Login failed');
+      },
+    });
+  }
 }

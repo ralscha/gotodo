@@ -1,22 +1,21 @@
 services:
   db:
-    image: mariadb:latest
+    image: postgres:18-alpine
     ports:
-      - "3366:3306"
+      - "5432:5432"
     volumes:
-      - db:/var/lib/mysql
+      - pgdata:/var/lib/postgresql
     restart: "no"
     environment:
-      MARIADB_ROOT_PASSWORD: root
-      MARIADB_DATABASE: gotodo
-      MARIADB_USER: gotodo
-      MARIADB_PASSWORD: gotodo
+      POSTGRES_DB: gotodo
+      POSTGRES_USER: gotodo
+      POSTGRES_PASSWORD: gotodo
 
   inbucket:
     image: inbucket/inbucket:latest
     ports:
-      - '2500:2500'
-      - '9000:9000'
+      - "2500:2500"
+      - "9000:9000"
 
 volumes:
-  db:
+  pgdata:

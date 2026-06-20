@@ -1,4 +1,4 @@
-# https://taskfile.dev
+﻿# https://taskfile.dev
 
 version: '3'
 
@@ -19,6 +19,11 @@ tasks:
       - go mod tidy
       - go mod verify
 
+  test-integration:
+    desc: Run Playwright integration tests with Testcontainers
+    cmds:
+      - npm --prefix ../client run build
+      - go test -tags integration ./cmd/web -run TestPlaywrightSmoke -count=1 -v
   tidy:
     cmds:
       - go fmt ./...
@@ -78,5 +83,6 @@ tasks:
       - docker build -t sqlboilercodegen -f sqlboiler/Dockerfile .
       - docker run -v {{toSlash .ROOT_DIR}}:/src sqlboilercodegen
       - go run gotodo.rasc.ch/cmd/tsgen
+
 
 

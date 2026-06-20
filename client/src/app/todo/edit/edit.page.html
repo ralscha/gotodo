@@ -3,49 +3,63 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/todo" />
     </ion-buttons>
-    <ion-title>
-      Edit Todo
-    </ion-title>
+    <ion-title> Edit Todo </ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
-
-  <form #todoForm="ngForm" (ngSubmit)="todoForm.valid && save(todoForm)"
-        [ngFormOptions]="{updateOn: 'submit'}" novalidate>
-
-    @if (selectedTodo) {
-      <ion-list>
-        <ion-item>
-          <ion-input #subject="ngModel" [ngModel]="selectedTodo.subject" [required]="true"
-                     label="Subject" labelPlacement="stacked"
-                     name="subject" />
-        </ion-item>
-        <ion-text [hidden]="subject.valid || !todoForm.submitted" class="ion-padding-start" color="danger">
-          <div class="ion-padding-start">
-            Subject is required
-          </div>
-        </ion-text>
-        <ion-item>
-          <ion-textarea [ngModel]="selectedTodo.description" [rows]="3"
-                        label="Description" labelPlacement="stacked"
-                        name="description" />
-        </ion-item>
-      </ion-list>
+  <form (submit)="save(); $event.preventDefault()" novalidate>
+    @if (selectedTodo()) {
+      <ion-grid>
+        <ion-row>
+          <ion-col offsetLg="4" offsetSm="3" sizeLg="4" sizeSm="6">
+            <ion-item>
+              <ion-input [formField]="todoForm.subject" label="Subject" labelPlacement="stacked" />
+            </ion-item>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col offsetLg="4" offsetSm="3" sizeLg="4" sizeSm="6">
+            @if (submitted() && todoForm.subject().invalid()) {
+              <ion-text color="danger">
+                @if (todoForm.subject().getError('required')) {
+                  <p class="ion-padding-start">Subject is required</p>
+                }
+              </ion-text>
+            }
+            @if (submitError() === 'subjectInvalid') {
+              <ion-text color="danger">
+                <p class="ion-padding-start">Subject is invalid</p>
+              </ion-text>
+            }
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col offsetLg="4" offsetSm="3" sizeLg="4" sizeSm="6">
+            <ion-item>
+              <ion-textarea
+                [formField]="todoForm.description"
+                [rows]="3"
+                label="Description"
+                labelPlacement="stacked"
+              />
+            </ion-item>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col class="ion-margin-top" offsetLg="4" offsetSm="3" sizeLg="4" sizeSm="6">
+            <ion-button expand="block" type="submit">Save</ion-button>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
     }
-
-    <div class="ion-padding">
-      <ion-button expand="block" type="submit">Save</ion-button>
-    </div>
-
   </form>
 
-  @if (selectedTodo?.id) {
+  @if (selectedTodo()?.id) {
     <ion-fab horizontal="start" slot="fixed" vertical="bottom">
       <ion-fab-button (click)="deleteTodo()" color="danger">
         <ion-icon name="trash" />
       </ion-fab-button>
     </ion-fab>
   }
-
 </ion-content>

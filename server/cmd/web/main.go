@@ -12,9 +12,8 @@ import (
 
 	"codnect.io/chrono"
 	"github.com/aarondl/sqlboiler/v4/boil"
-	"github.com/alexedwards/scs/mysqlstore"
+	"github.com/alexedwards/scs/postgresstore"
 	"github.com/alexedwards/scs/v2"
-	_ "github.com/go-sql-driver/mysql"
 	"gotodo.rasc.ch/internal/config"
 	"gotodo.rasc.ch/internal/database"
 	"gotodo.rasc.ch/internal/mailer"
@@ -62,7 +61,7 @@ func main() {
 	logger.Info("database connection pool established")
 
 	sm := scs.New()
-	sm.Store = mysqlstore.NewWithCleanupInterval(db, 30*time.Minute)
+	sm.Store = postgresstore.NewWithCleanupInterval(db, 30*time.Minute)
 	sm.Lifetime = cfg.Cleanup.SessionLifetime
 	sm.Cookie.SameSite = http.SameSiteStrictMode
 	if cfg.CookieDomain != "" {

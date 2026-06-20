@@ -1,8 +1,8 @@
-import {Component, inject, OnInit} from '@angular/core';
-import {Observable} from 'rxjs';
-import {TodoService} from '../todo.service';
-import {Todo} from '../../api/types';
-import {AsyncPipe} from '@angular/common';
+import { Component, inject, OnInit } from '@angular/core';
+import { Observable } from 'rxjs';
+import { TodoService } from '../todo.service';
+import { Todo } from '../../api/types';
+import { AsyncPipe } from '@angular/common';
 import {
   IonButtons,
   IonContent,
@@ -18,23 +18,41 @@ import {
   IonRefresherContent,
   IonRouterLink,
   IonTitle,
-  IonToolbar
-} from "@ionic/angular/standalone";
-import {addIcons} from "ionicons";
-import {add} from "ionicons/icons";
-import {RouterLink} from "@angular/router";
+  IonToolbar,
+} from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { add } from 'ionicons/icons';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-list',
   templateUrl: './list.page.html',
-  imports: [RouterLink, IonRouterLink, AsyncPipe, IonContent, IonList, IonHeader, IonToolbar, IonTitle, IonItem, IonButtons, IonMenuButton, IonRefresher, IonRefresherContent, IonLabel, IonFab, IonFabButton, IonIcon]
+  imports: [
+    RouterLink,
+    IonRouterLink,
+    AsyncPipe,
+    IonContent,
+    IonList,
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonItem,
+    IonButtons,
+    IonMenuButton,
+    IonRefresher,
+    IonRefresherContent,
+    IonLabel,
+    IonFab,
+    IonFabButton,
+    IonIcon,
+  ],
 })
 export class ListPage implements OnInit {
   todos$!: Observable<Todo[]>;
   private readonly todoService = inject(TodoService);
 
   constructor() {
-    addIcons({add});
+    addIcons({ add });
   }
 
   ngOnInit(): void {
@@ -46,5 +64,4 @@ export class ListPage implements OnInit {
     this.todoService.loadTodos();
     (event as CustomEvent).detail.complete();
   }
-
 }

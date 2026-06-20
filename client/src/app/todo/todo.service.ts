@@ -1,10 +1,10 @@
-import {inject, Injectable} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
-import {BehaviorSubject, Observable} from 'rxjs';
-import {tap} from 'rxjs/operators';
-import {Errors, Todo} from '../api/types';
+import { inject, Service } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
+import { Errors, Todo } from '../api/types';
 
-@Injectable()
+@Service({ autoProvided: false })
 export class TodoService {
   private readonly httpClient = inject(HttpClient);
 
@@ -14,7 +14,7 @@ export class TodoService {
   private readonly todos$ = this.todosSubject.asObservable();
 
   loadTodos(): void {
-    this.httpClient.get<Todo[]>('/v1/todo').subscribe(todos => {
+    this.httpClient.get<Todo[]>('/v1/todo').subscribe((todos) => {
       this.todosMap.clear();
       for (const todo of todos) {
         this.todosMap.set(todo.id, todo);
@@ -32,29 +32,27 @@ export class TodoService {
   }
 
   delete(todo: Todo): Observable<void> {
-    return this.httpClient.delete<void>(`/v1/todo/${todo.id}`)
-      .pipe(
-        tap(() => {
-          this.todosMap.delete(todo.id);
-          this.publish();
-        }));
+    return this.httpClient.delete<void>(`/v1/todo/${todo.id}`).pipe(
+      tap(() => {
+        this.todosMap.delete(todo.id);
+        this.publish();
+      }),
+    );
   }
 
-  save(todo: Todo): Observable<Errors | Pick<Todo, "id"> | void> {
-    return this.httpClient.post<Errors | Pick<Todo, "id"> | void>('/v1/todo', todo)
-      .pipe(
-        tap(pickTodo => {
-          if (pickTodo && 'id' in pickTodo) {
-            todo.id = pickTodo.id;
-          }
-          this.todosMap.set(todo.id, todo)
-          this.publish();
-        })
-      )
+  save(todo: Todo): Observable<Errors | Pick<Todo, 'id'> | void> {
+    return this.httpClient.post<Errors | Pick<Todo, 'id'> | void>('/v1/todo', todo).pipe(
+      tap((pickTodo) => {
+        if (pickTodo && 'id' in pickTodo) {
+          todo.id = pickTodo.id;
+        }
+        this.todosMap.set(todo.id, todo);
+        this.publish();
+      }),
+    );
   }
 
   private publish(): void {
-    this.todosSubject.next([...this.todosMap.values()])
+    this.todosSubject.next([...this.todosMap.values()]);
   }
-
 }

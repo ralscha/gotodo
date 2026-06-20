@@ -8,73 +8,97 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-  @if (!signUpSent) {
-    <form #signupForm="ngForm" (ngSubmit)="signupForm.valid && signup(signupForm, email.value, password.value)"
-          [ngFormOptions]="{updateOn: 'submit'}" novalidate>
-      <ion-list>
-        <ion-item>
-          <ion-input #email="ngModel" [required]="true" [spellcheck]="false" autocapitalize="off"
-                     autocomplete="username" email
-                     label="Email" labelPlacement="stacked"
-                     name="email"
-                     ngModel type="email" />
-        </ion-item>
-        <ion-text [hidden]="email.valid || !signupForm.submitted" class="ion-padding-start" color="danger">
-          @if (email.errors?.['required']) {
-            <div class="ion-padding-start">
-              Email is required
-            </div>
-          }
-          @if (email.errors?.['email']) {
-            <div class="ion-padding-start">
-              Not a valid email address
-            </div>
-          }
-          @if (email.errors?.['exists']) {
-            <div class="ion-padding-start">
-              User with this email address already exists
-            </div>
-          }
-        </ion-text>
-        <ion-item>
-          <ion-input #password="ngModel" [minlength]="8" [required]="true" autocomplete="new-password"
-                     label="New Password"
-                     labelPlacement="stacked" name="password"
-                     ngModel type="password" />
-        </ion-item>
-        <ion-text [hidden]="password.valid || !signupForm.submitted" class="ion-padding-start" color="danger">
-          @if (password.errors?.['required']) {
-            <div class="ion-padding-start">
-              Password is required
-            </div>
-          }
-          @if (password.errors?.['minlength'] || password.errors?.['gte']) {
-            <div class="ion-padding-start">
-              Minimum length is 8 characters
-            </div>
-          }
-          @if (password.errors?.['weak']) {
-            <div class="ion-padding-start">
-              Weak password
-            </div>
-          }
-        </ion-text>
-        <div class="ion-padding">
-          <ion-button expand="block" type="submit">Sign up</ion-button>
-        </div>
-      </ion-list>
+  @if (!signUpSent()) {
+    <form (submit)="signup(); $event.preventDefault()" novalidate>
+      <ion-grid>
+        <ion-row>
+          <ion-col offsetLg="4" offsetSm="3" sizeLg="4" sizeSm="6">
+            <ion-item>
+              <ion-input
+                [formField]="signupForm.email"
+                [spellcheck]="false"
+                autocapitalize="off"
+                autocomplete="username"
+                label="Email"
+                labelPlacement="stacked"
+                type="email"
+              />
+            </ion-item>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col offsetLg="4" offsetSm="3" sizeLg="4" sizeSm="6">
+            @if (submitted() && signupForm.email().invalid()) {
+              <ion-text color="danger">
+                @if (signupForm.email().getError('required')) {
+                  <p class="ion-padding-start">Email is required</p>
+                }
+                @if (signupForm.email().getError('email')) {
+                  <p class="ion-padding-start">Not a valid email address</p>
+                }
+              </ion-text>
+            }
+            @if (submitError() === 'emailExists') {
+              <ion-text color="danger">
+                <p class="ion-padding-start">User with this email address already exists</p>
+              </ion-text>
+            }
+          </ion-col>
+        </ion-row>
+
+        <ion-row>
+          <ion-col offsetLg="4" offsetSm="3" sizeLg="4" sizeSm="6">
+            <ion-item>
+              <ion-input
+                [formField]="signupForm.password"
+                autocomplete="new-password"
+                label="New Password"
+                labelPlacement="stacked"
+                type="password"
+              />
+            </ion-item>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col offsetLg="4" offsetSm="3" sizeLg="4" sizeSm="6">
+            @if (submitted() && signupForm.password().invalid()) {
+              <ion-text color="danger">
+                @if (signupForm.password().getError('required')) {
+                  <p class="ion-padding-start">Password is required</p>
+                }
+                @if (signupForm.password().getError('minLength')) {
+                  <p class="ion-padding-start">Minimum length is 8 characters</p>
+                }
+              </ion-text>
+            }
+            @if (submitError() === 'weakPassword') {
+              <ion-text color="danger">
+                <p class="ion-padding-start">Weak password</p>
+              </ion-text>
+            }
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col class="ion-margin-top" offsetLg="4" offsetSm="3" sizeLg="4" sizeSm="6">
+            <ion-button expand="block" type="submit">Sign up</ion-button>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
     </form>
   }
 
-  @if (signUpSent) {
-    <ion-list class="ion-margin-top">
-      <ion-text>
-        <p>We successfully received your sign up request.</p>
-        <p>Before we activate your account we need to verify your email address.</p>
-        <p>We sent you an email with a confirmation link.</p>
-        <p><strong>Please check your inbox and click on the link.</strong></p>
-      </ion-text>
-    </ion-list>
+  @if (signUpSent()) {
+    <ion-grid class="ion-margin-top">
+      <ion-row>
+        <ion-col offsetLg="4" offsetSm="3" sizeLg="4" sizeSm="6">
+          <ion-text>
+            <p>We successfully received your sign up request.</p>
+            <p>Before we activate your account we need to verify your email address.</p>
+            <p>We sent you an email with a confirmation link.</p>
+            <p><strong>Please check your inbox and click on the link.</strong></p>
+          </ion-text>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
   }
-
 </ion-content>

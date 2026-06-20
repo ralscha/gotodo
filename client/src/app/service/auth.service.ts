@@ -1,7 +1,8 @@
-import {inject, Injectable} from '@angular/core';
-import {BehaviorSubject, Observable, of} from 'rxjs';
-import {catchError, share, tap} from 'rxjs/operators';
-import {HttpClient} from '@angular/common/http';
+﻿import { computed, inject, Service, signal } from '@angular/core';
+import { Observable, of } from 'rxjs';
+import { catchError, share, tap } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+import { toObservable } from '@angular/core/rxjs-interop';
 import {
   Errors,
   LoginInput,
@@ -9,27 +10,27 @@ import {
   PasswordResetInput,
   PasswordResetRequestInput,
   SignUpInput,
-  TokenInput
+  TokenInput,
 } from '../api/types';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Service()
 export class AuthService {
   private readonly httpClient = inject(HttpClient);
 
-  private readonly authoritySubject = new BehaviorSubject<string | null>(null);
-  readonly authority$ = this.authoritySubject.asObservable();
+  private readonly authority = signal<string | null>(null);
+  readonly authenticated = computed(() => this.authority() != null);
+  readonly authority$ = toObservable(this.authority);
   private readonly authorityCall$: Observable<{ authority: string } | null>;
 
   constructor() {
-    this.authorityCall$ = this.httpClient.post<{ authority: string }>('/v1/authenticate', null, {
-      withCredentials: true
-    })
+    this.authorityCall$ = this.httpClient
+      .post<{ authority: string }>('/v1/authenticate', null, {
+        withCredentials: true,
+      })
       .pipe(
-        tap(response => this.authoritySubject.next(response.authority)),
+        tap((response) => this.authority.set(response.authority)),
         catchError(() => of(null)),
-        share()
+        share(),
       );
   }
 
@@ -38,46 +39,43 @@ export class AuthService {
   }
 
   isAuthenticated(): boolean {
-    return this.authoritySubject.getValue() != null;
+    return this.authenticated();
   }
 
   login(email: string, password: string): Observable<LoginOutput | null> {
-    const request: LoginInput = {email, password}
-    return this.httpClient.post<LoginOutput>('/v1/login', request, {withCredentials: true})
-      .pipe(
-        tap(response => this.authoritySubject.next(response?.authority)),
-      );
+    const request: LoginInput = { email, password };
+    return this.httpClient
+      .post<LoginOutput>('/v1/login', request, { withCredentials: true })
+      .pipe(tap((response) => this.authority.set(response?.authority)));
   }
 
   logout(): Observable<void> {
-    return this.httpClient.post<void>('/v1/logout', null, {withCredentials: true})
-      .pipe(
-        tap(() => this.authoritySubject.next(null))
-      );
+    return this.httpClient
+      .post<void>('/v1/logout', null, { withCredentials: true })
+      .pipe(tap(() => this.authority.set(null)));
   }
 
   logoutClient(): void {
-    this.authoritySubject.next(null);
+    this.authority.set(null);
   }
 
   signup(email: string, password: string): Observable<Errors | void> {
-    const request: SignUpInput = {email, password}
+    const request: SignUpInput = { email, password };
     return this.httpClient.post<Errors | void>('/v1/signup', request);
   }
 
   confirmSignup(token: string): Observable<void> {
-    const request: TokenInput = {token}
-    return this.httpClient.post<void>('/v1/signup-confirm', request)
+    const request: TokenInput = { token };
+    return this.httpClient.post<void>('/v1/signup-confirm', request);
   }
 
   resetPasswordRequest(email: string): Observable<void> {
-    const request: PasswordResetRequestInput = {email}
+    const request: PasswordResetRequestInput = { email };
     return this.httpClient.post<void>('/v1/password-reset-request', request);
   }
 
   resetPassword(resetToken: string, password: string): Observable<Errors | void> {
-    const request: PasswordResetInput = {password, resetToken}
+    const request: PasswordResetInput = { password, resetToken };
     return this.httpClient.post<Errors | void>('/v1/password-reset', request);
   }
-
 }

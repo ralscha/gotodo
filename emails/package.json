@@ -1,11 +1,15 @@
 {
-  "name": "otodo-emails",
+  "name": "gotodo-emails",
   "version": "1.0.0",
   "scripts": {
-    "start": "mjml src/* -o ./output --config.minify true",
-		"poststart": "cd ../server && go run gotodo.rasc.ch/cmd/mailgen ../emails/output ./mails" 
+    "build": "mjml src/* -o ./output --config.minify true",
+    "postbuild": "cd ../server && go run gotodo.rasc.ch/cmd/mailgen ../emails/output ./mails",
+    "start": "npm run build"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "dependencies": {
-    "mjml": "4.18.0"
+    "mjml": "5.3.0"
   }
 }

@@ -3,12 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
+	"log"
+	"net/url"
+	"os"
+
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
 	"gotodo.rasc.ch/internal/config"
 	"gotodo.rasc.ch/migrations"
-	"log"
-	"os"
 )
 
 var (
@@ -30,10 +32,10 @@ func main() {
 		log.Fatalln("reading config failed", err)
 	}
 
-	dbstring := fmt.Sprintf("%s:%s@%s/%s?%s",
-		cfg.DB.User, cfg.DB.Password, cfg.DB.Connection, cfg.DB.Database, cfg.DB.Parameter)
+	dbstring := fmt.Sprintf("postgres://%s:%s@%s/%s?%s",
+		url.QueryEscape(cfg.DB.User), url.QueryEscape(cfg.DB.Password), cfg.DB.Connection, cfg.DB.Database, cfg.DB.Parameter)
 
-	db, err := goose.OpenDBWithDriver("mysql", dbstring)
+	db, err := goose.OpenDBWithDriver("pgx", dbstring)
 	if err != nil {
 		log.Fatalf("goose: failed to open DB: %v\n", err)
 	}

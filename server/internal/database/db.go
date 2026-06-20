@@ -4,16 +4,18 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
-	"gotodo.rasc.ch/internal/config"
+	"net/url"
 	"time"
+
+	_ "github.com/jackc/pgx/v5/stdlib"
+	"gotodo.rasc.ch/internal/config"
 )
 
 func New(cfg config.Config) (*sql.DB, error) {
-	dbstring := fmt.Sprintf("%s:%s@%s/%s?%s",
-		cfg.DB.User, cfg.DB.Password, cfg.DB.Connection, cfg.DB.Database, cfg.DB.Parameter)
+	dbstring := fmt.Sprintf("postgres://%s:%s@%s/%s?%s",
+		url.QueryEscape(cfg.DB.User), url.QueryEscape(cfg.DB.Password), cfg.DB.Connection, cfg.DB.Database, cfg.DB.Parameter)
 
-	db, err := sql.Open("mysql", dbstring)
+	db, err := sql.Open("pgx", dbstring)
 	if err != nil {
 		return nil, err
 	}

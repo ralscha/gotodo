@@ -1,0 +1,386 @@
+//go:build integration
+
+package main
+
+import (
+	"context"
+	"database/sql"
+	"fmt"
+	"io"
+	"net"
+	"net/http/httptest"
+	"net/url"
+	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
+	"testing"
+	"time"
+
+	"codnect.io/chrono"
+	"github.com/alexedwards/argon2id"
+	"github.com/alexedwards/scs/postgresstore"
+	"github.com/alexedwards/scs/v2"
+	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/pressly/goose/v3"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/network"
+	"github.com/testcontainers/testcontainers-go/wait"
+	"gotodo.rasc.ch/internal/config"
+	"gotodo.rasc.ch/internal/database"
+	"gotodo.rasc.ch/internal/mailer"
+	"gotodo.rasc.ch/migrations"
+)
+
+const (
+	postgresImage   = "postgres:18-alpine"
+	nginxImage      = "nginx:1.30.3-alpine"
+	playwrightImage = "mcr.microsoft.com/playwright:v1.61.0-noble"
+)
+
+func TestPlaywrightSmoke(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	clientDist := filepath.Clean(filepath.Join("..", "..", "..", "client", "dist", "app", "browser"))
+	if _, err := os.Stat(filepath.Join(clientDist, "index.html")); err != nil {
+		t.Fatalf("built client not found at %s; run npm run build in client first: %v", clientDist, err)
+	}
+
+	postgres, err := testcontainers.Run(ctx, postgresImage,
+		testcontainers.WithEnv(map[string]string{
+			"POSTGRES_DB":       "gotodo",
+			"POSTGRES_USER":     "gotodo",
+			"POSTGRES_PASSWORD": "gotodo",
+		}),
+		testcontainers.WithExposedPorts("5432/tcp"),
+		testcontainers.WithWaitStrategy(wait.ForListeningPort("5432/tcp").WithStartupTimeout(90*time.Second)),
+	)
+	if err != nil {
+		t.Fatalf("start postgres container: %v", err)
+	}
+	t.Cleanup(func() { _ = postgres.Terminate(context.Background()) })
+
+	cfg := testConfig(t, ctx, postgres)
+	db, err := database.New(cfg)
+	if err != nil {
+		t.Fatalf("open test database: %v", err)
+	}
+	t.Cleanup(func() { _ = db.Close() })
+
+	migrateAndSeed(t, ctx, db, cfg)
+	app := testApplication(t, cfg, db)
+
+	apiServer := httptest.NewServer(app.routes())
+	t.Cleanup(apiServer.Close)
+	apiPort := mustPort(t, apiServer.URL)
+
+	nw, err := network.New(ctx)
+	if err != nil {
+		t.Fatalf("create docker network: %v", err)
+	}
+	t.Cleanup(func() { _ = nw.Remove(context.Background()) })
+
+	nginxConfig := fmt.Sprintf(nginxConfigTemplate, apiPort)
+	web, err := testcontainers.Run(ctx, nginxImage,
+		network.WithNetwork([]string{"gotodo-web"}, nw),
+		testcontainers.WithHostPortAccess(apiPort),
+		testcontainers.WithMounts(testcontainers.ContainerMount{
+			Source:   testcontainers.GenericBindMountSource{HostPath: absPath(t, clientDist)},
+			Target:   "/usr/share/nginx/html",
+			ReadOnly: true,
+		}),
+		testcontainers.WithFiles(testcontainers.ContainerFile{
+			Reader:            strings.NewReader(nginxConfig),
+			ContainerFilePath: "/etc/nginx/conf.d/default.conf",
+			FileMode:          0o644,
+		}),
+		testcontainers.WithExposedPorts("8080/tcp"),
+		testcontainers.WithWaitStrategy(wait.ForHTTP("/").WithPort("8080/tcp").WithStartupTimeout(30*time.Second)),
+	)
+	if err != nil {
+		t.Fatalf("start nginx container: %v", err)
+	}
+	t.Cleanup(func() { _ = web.Terminate(context.Background()) })
+
+	playwright, err := testcontainers.Run(ctx, playwrightImage,
+		network.WithNetwork([]string{"gotodo-playwright"}, nw),
+		testcontainers.WithFiles(testcontainers.ContainerFile{
+			Reader:            strings.NewReader(playwrightScript),
+			ContainerFilePath: "/tmp/gotodo-playwright-smoke.js",
+			FileMode:          0o644,
+		}),
+		testcontainers.WithCmd("sh", "-lc", "cd /tmp && npm install --no-audit --no-fund playwright@1.61.0 && node /tmp/gotodo-playwright-smoke.js"),
+		testcontainers.WithWaitStrategy(wait.ForExit().WithExitTimeout(2*time.Minute)),
+	)
+	if playwright != nil {
+		t.Cleanup(func() { _ = playwright.Terminate(context.Background()) })
+	}
+	if err != nil {
+		t.Fatalf("run Playwright container: %v", err)
+	}
+
+	state, err := playwright.State(ctx)
+	if err != nil {
+		t.Fatalf("inspect Playwright container: %v", err)
+	}
+	if state.ExitCode != 0 {
+		logs := containerLogs(ctx, playwright)
+		t.Fatalf("Playwright smoke test failed with exit code %d\n%s", state.ExitCode, logs)
+	}
+}
+
+func testConfig(t *testing.T, ctx context.Context, postgres testcontainers.Container) config.Config {
+	t.Helper()
+
+	host, err := postgres.Host(ctx)
+	if err != nil {
+		t.Fatalf("postgres host: %v", err)
+	}
+	port, err := postgres.MappedPort(ctx, "5432/tcp")
+	if err != nil {
+		t.Fatalf("postgres mapped port: %v", err)
+	}
+
+	cfg := config.Config{
+		Environment:  config.Development,
+		SecureCookie: false,
+		BaseURL:      "http://gotodo-web:8080/",
+	}
+	cfg.Cleanup.InactiveUsersMaxAge = time.Hour
+	cfg.Cleanup.ExpiredUsersMaxAge = time.Hour
+	cfg.Cleanup.EmailChangeTokenMaxAge = time.Hour
+	cfg.Cleanup.SignupTokenMaxAge = time.Hour
+	cfg.Cleanup.PasswordResetTokenMaxAge = time.Hour
+	cfg.Cleanup.SessionLifetime = time.Hour
+	cfg.DB.User = "gotodo"
+	cfg.DB.Password = "gotodo"
+	cfg.DB.Connection = net.JoinHostPort(host, port.Port())
+	cfg.DB.Database = "gotodo"
+	cfg.DB.Parameter = "sslmode=disable"
+	cfg.DB.MaxOpenConns = 4
+	cfg.DB.MaxIdleConns = 2
+	cfg.DB.MaxIdleTime = "15m"
+	cfg.DB.MaxLifetime = "2h"
+	cfg.HTTP.ReadTimeoutInSeconds = 30
+	cfg.HTTP.WriteTimeoutInSeconds = 30
+	cfg.HTTP.IdleTimeoutInSeconds = 120
+	cfg.SMTP.Host = "localhost"
+	cfg.SMTP.Port = 2525
+	cfg.SMTP.Sender = "noreply@test.invalid"
+	cfg.Argon2.Memory = 64 * 1024
+	cfg.Argon2.Iterations = 1
+	cfg.Argon2.Parallelism = 2
+	cfg.Argon2.SaltLength = 16
+	cfg.Argon2.KeyLength = 32
+
+	return cfg
+}
+
+func migrateAndSeed(t *testing.T, ctx context.Context, db *sql.DB, cfg config.Config) {
+	t.Helper()
+
+	goose.SetBaseFS(migrations.EmbeddedFiles)
+	if err := goose.SetDialect("postgres"); err != nil {
+		t.Fatalf("set goose dialect: %v", err)
+	}
+	if err := goose.UpContext(ctx, db, "."); err != nil {
+		t.Fatalf("run migrations: %v", err)
+	}
+
+	hash, err := argon2id.CreateHash("password", &argon2id.Params{
+		Memory:      cfg.Argon2.Memory,
+		Iterations:  cfg.Argon2.Iterations,
+		Parallelism: cfg.Argon2.Parallelism,
+		SaltLength:  cfg.Argon2.SaltLength,
+		KeyLength:   cfg.Argon2.KeyLength,
+	})
+	if err != nil {
+		t.Fatalf("create password hash: %v", err)
+	}
+
+	_, err = db.ExecContext(ctx, `
+		INSERT INTO app_user (email, password_hash, authority, activated, expired, last_access)
+		VALUES ($1, $2, 'admin', true, null, null)
+	`, "admin@test.ch", hash)
+	if err != nil {
+		t.Fatalf("seed test user: %v", err)
+	}
+}
+
+func testApplication(t *testing.T, cfg config.Config, db *sql.DB) *application {
+	t.Helper()
+
+	if err := initAuth(cfg); err != nil {
+		t.Fatalf("init auth: %v", err)
+	}
+	m, err := mailer.New(cfg.SMTP.Host, cfg.SMTP.Port, cfg.SMTP.Username, cfg.SMTP.Password, cfg.SMTP.Sender)
+	if err != nil {
+		t.Fatalf("init mailer: %v", err)
+	}
+
+	sm := scs.New()
+	sm.Store = postgresstore.NewWithCleanupInterval(db, 30*time.Minute)
+	sm.Lifetime = cfg.Cleanup.SessionLifetime
+	sm.Cookie.SameSite = 1
+	sm.Cookie.Secure = false
+
+	return &application{
+		config:         &cfg,
+		db:             db,
+		sessionManager: sm,
+		mailer:         m,
+		taskScheduler:  chrono.NewDefaultTaskScheduler(),
+	}
+}
+
+func mustPort(t *testing.T, rawURL string) int {
+	t.Helper()
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		t.Fatalf("parse URL %q: %v", rawURL, err)
+	}
+	_, port, err := net.SplitHostPort(u.Host)
+	if err != nil {
+		t.Fatalf("split host port %q: %v", u.Host, err)
+	}
+	portNumber, err := strconv.Atoi(port)
+	if err != nil {
+		t.Fatalf("parse port %q: %v", port, err)
+	}
+	return portNumber
+}
+
+func absPath(t *testing.T, path string) string {
+	t.Helper()
+	abs, err := filepath.Abs(path)
+	if err != nil {
+		t.Fatalf("resolve absolute path %s: %v", path, err)
+	}
+	return abs
+}
+
+func containerLogs(ctx context.Context, container testcontainers.Container) string {
+	reader, err := container.Logs(ctx)
+	if err != nil {
+		return "reading container logs failed: " + err.Error()
+	}
+	defer func() { _ = reader.Close() }()
+	b, err := io.ReadAll(reader)
+	if err != nil {
+		return "reading container logs failed: " + err.Error()
+	}
+	return string(b)
+}
+
+const nginxConfigTemplate = `server {
+    listen 8080;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    location /v1/ {
+        proxy_pass http://host.testcontainers.internal:%d;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
+`
+
+const playwrightScript = `
+const { chromium } = require('playwright');
+const assert = require('node:assert/strict');
+
+const baseUrl = 'http://gotodo-web:8080';
+
+async function visible(locator) {
+  await locator.waitFor({ state: 'visible', timeout: 15000 });
+}
+
+async function goto(page, path) {
+  await page.goto(baseUrl + path, { waitUntil: 'networkidle' });
+}
+
+async function login(page) {
+  await goto(page, '/#/login');
+  const loginButton = page.getByRole('button', { name: 'Login' });
+  await visible(loginButton);
+  await page.getByLabel('Email').fill('admin@test.ch');
+  await page.getByLabel('Password').fill('password');
+  await loginButton.click();
+  await page.waitForURL('**/#/todo', { timeout: 15000 });
+  await visible(page.locator('ion-title', { hasText: 'Todos' }));
+}
+
+(async () => {
+  const browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] });
+  const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+
+  try {
+    await goto(page, '/#/login');
+    await page.getByRole('button', { name: 'Login' }).click();
+    await visible(page.getByText('Email is required'));
+    await visible(page.getByText('Password is required'));
+
+    await goto(page, '/#/signup');
+    await visible(page.locator('ion-title', { hasText: 'Sign-Up' }));
+    await page.getByRole('button', { name: 'Sign up' }).click();
+    await visible(page.getByText('Email is required'));
+    await visible(page.getByText('Password is required'));
+
+    await goto(page, '/#/password-reset-request');
+    await visible(page.locator('ion-title', { hasText: 'Request Password Reset' }));
+    await page.getByRole('button', { name: 'Request Password Reset' }).click();
+    await visible(page.getByText('Email is required'));
+
+    await goto(page, '/#/signup-confirm/bad-token');
+    await visible(page.getByText('Something went wrong'));
+
+    await login(page);
+
+    await page.locator('ion-fab-button').click();
+    await page.waitForURL('**/#/todo/edit', { timeout: 15000 });
+    await page.getByRole('button', { name: 'Save' }).click();
+    await visible(page.getByText('Subject is required'));
+    await page.getByLabel('Subject').fill('Playwright smoke todo');
+    await page.getByLabel('Description').fill('Created through Testcontainers');
+    await page.getByRole('button', { name: 'Save' }).click();
+    await page.waitForURL('**/#/todo', { timeout: 15000 });
+    await visible(page.getByText('Playwright smoke todo'));
+
+    await goto(page, '/#/profile');
+    await visible(page.locator('ion-title', { hasText: 'Profile' }));
+    await visible(page.getByText('Server:'));
+    await visible(page.getByText('Client:'));
+
+    await page.locator('ion-button', { hasText: 'Change my Password' }).click();
+    await page.waitForURL('**/#/profile/password', { timeout: 15000 });
+    await page.getByRole('button', { name: 'Change Password' }).click();
+    await visible(page.locator('app-password').getByText('Old Password is required'));
+    await visible(page.locator('app-password').getByText('New Password is required'));
+
+    await goto(page, '/#/profile/email');
+    await page.locator('ion-button', { hasText: 'Change Email' }).click();
+    await visible(page.locator('app-email').getByText('Password is required'));
+    await visible(page.locator('app-email').getByText('Email is required'));
+
+    await goto(page, '/#/profile/account');
+    await page.locator('app-account').locator('ion-button', { hasText: 'Delete my Account' }).click();
+    await visible(page.locator('app-account').getByText('Password is required'));
+
+    await goto(page, '/#/logout');
+    await visible(page.getByText('You have been successfully logged out.'));
+
+    assert.ok(page.url().includes('/#/logout'));
+  } finally {
+    await browser.close();
+  }
+})().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
+`

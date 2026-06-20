@@ -1,6 +1,9 @@
 package main
 
 import (
+	"os"
+	"strings"
+
 	"github.com/aarondl/null/v8"
 	"github.com/gobuffalo/validate"
 	"github.com/tkrajina/typescriptify-golang-structs/typescriptify"
@@ -8,6 +11,8 @@ import (
 	"gotodo.rasc.ch/cmd/web/output"
 	"gotodo.rasc.ch/internal/models"
 )
+
+const outputFile = "../client/src/app/api/types.ts"
 
 func main() {
 	converter := typescriptify.New()
@@ -27,9 +32,19 @@ func main() {
 	converter.BackupDir = ""
 	converter.ManageType(null.String{}, typescriptify.TypeOptions{TSType: "string"})
 
-	err := converter.ConvertToFile("../client/src/app/api/types.ts")
+	err := converter.ConvertToFile(outputFile)
 	if err != nil {
 		panic(err)
 	}
 
+	contents, err := os.ReadFile(outputFile)
+	if err != nil {
+		panic(err)
+	}
+
+	updated := strings.ReplaceAll(string(contents), "{[key: string]: string[]}", "Record<string, string[]>")
+	err = os.WriteFile(outputFile, []byte(updated), 0o644)
+	if err != nil {
+		panic(err)
+	}
 }

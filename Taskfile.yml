@@ -1,0 +1,251 @@
+﻿version: '3'
+
+tasks:
+  default:
+    desc: List available tasks
+    cmds:
+      - task --list
+    silent: true
+
+  install:
+    desc: Install npm dependencies for the client and email templates
+    deps:
+      - client:install
+      - emails:install
+
+  verify:
+    desc: Run all project health checks
+    deps:
+      - client:lint
+      - client:build
+      - emails:build
+      - server:test
+
+  test:
+    desc: Run backend tests
+    deps:
+      - server:test
+  test-integration:
+    desc: Run Playwright integration tests with Testcontainers
+    deps:
+      - client:build
+    dir: server
+    cmds:
+      - go test -tags integration ./cmd/web -run TestPlaywrightSmoke -count=1 -v
+
+  build:
+    desc: Build the client and Go backend
+    deps:
+      - client:build
+      - server:build
+
+  run:
+    desc: Run the Go backend with local services started
+    deps:
+      - db:up
+    dir: server
+    cmds:
+      - go run gotodo.rasc.ch/cmd/web
+
+  clean:
+    desc: Clean generated build output
+    cmds:
+      - task: client:clean
+      - task: server:clean
+
+  db:up:
+    desc: Start local PostgreSQL and Inbucket services
+    dir: server
+    cmds:
+      - docker compose up -d
+
+  db:down:
+    desc: Stop local PostgreSQL and Inbucket services
+    dir: server
+    cmds:
+      - docker compose down
+
+  db:logs:
+    desc: Follow local service logs
+    dir: server
+    cmds:
+      - docker compose logs -f
+
+  db:reset:
+    desc: Recreate the local database and remove its volumes
+    dir: server
+    cmds:
+      - docker compose down -v
+      - docker compose up -d
+
+  server:test:
+    desc: Run Go tests
+    dir: server
+    cmds:
+      - go test ./...
+
+  server:lint:
+    desc: Run golangci-lint in Docker
+    dir: server
+    cmds:
+      - docker run --rm -v {{toSlash .TASKFILE_DIR}}/server:/app -w /app golangci/golangci-lint:v2.12.2 golangci-lint run -v --timeout 5m
+
+  server:audit:
+    desc: Run Go vet, staticcheck, and module verification
+    dir: server
+    cmds:
+      - go vet ./...
+      - go run honnef.co/go/tools/cmd/staticcheck@latest -checks=all,-ST1000,-U1000 ./...
+      - go mod verify
+
+  server:tidy:
+    desc: Format Go files and tidy modules
+    dir: server
+    cmds:
+      - go fmt ./...
+      - go mod tidy -v
+
+  server:upgrade-libraries:
+    desc: Upgrade Go dependencies and tidy modules
+    dir: server
+    cmds:
+      - go get go@latest
+      - go get -u ./...
+      - go fmt ./...
+      - go mod tidy
+      - go mod verify
+
+  server:build:
+    desc: Build the Go backend
+    dir: server
+    cmds:
+      - '{{if eq OS "windows"}}powershell -NoProfile -Command "New-Item -ItemType Directory -Force bin | Out-Null"{{else}}mkdir -p bin{{end}}'
+      - go build -ldflags='-s' -o=./bin/web{{exeExt}} ./cmd/web
+
+  server:run:
+    desc: Run the Go backend with local services started
+    deps:
+      - db:up
+    dir: server
+    cmds:
+      - go run gotodo.rasc.ch/cmd/web
+
+  server:clean:
+    desc: Clean backend build output
+    dir: server
+    cmds:
+      - '{{if eq OS "windows"}}powershell -NoProfile -Command "if (Test-Path bin) { Remove-Item -Recurse -Force bin }; if (Test-Path migrate.exe) { Remove-Item -Force migrate.exe }; if (Test-Path migrate) { Remove-Item -Force migrate }"{{else}}rm -rf bin migrate migrate.exe{{end}}'
+
+  server:build-goose:
+    desc: Build the database migration helper
+    dir: server
+    cmds:
+      - go build -o ./migrate{{exeExt}} gotodo.rasc.ch/cmd/migrate
+    sources:
+      - ./cmd/migrate/*.go
+      - ./migrations/*.sql
+    generates:
+      - ./migrate{{exeExt}}
+
+  db:migration:new:
+    desc: Create a new SQL migration, for example task db:migration:new -- add_users
+    deps:
+      - server:build-goose
+    dir: server
+    cmds:
+      - ./migrate{{exeExt}} create {{.CLI_ARGS}} sql
+
+  db:migration:new-go:
+    desc: Create a new Go migration, for example task db:migration:new-go -- seed_data
+    deps:
+      - server:build-goose
+    dir: server
+    cmds:
+      - ./migrate{{exeExt}} create {{.CLI_ARGS}} go
+
+  db:migration:up:
+    desc: Run database migrations
+    deps:
+      - server:build-goose
+    dir: server
+    cmds:
+      - ./migrate{{exeExt}} up
+
+  db:migration:reset:
+    desc: Reset database migrations
+    deps:
+      - server:build-goose
+    dir: server
+    cmds:
+      - ./migrate{{exeExt}} reset
+
+  db:migration:status:
+    desc: Show database migration status
+    deps:
+      - server:build-goose
+    dir: server
+    cmds:
+      - ./migrate{{exeExt}} status
+
+  db:codegen:
+    desc: Generate SQLBoiler models and TypeScript API types
+    dir: server
+    cmds:
+      - docker build -t sqlboilercodegen -f sqlboiler/Dockerfile .
+      - docker run -v {{toSlash .TASKFILE_DIR}}/server:/src sqlboilercodegen
+      - go run gotodo.rasc.ch/cmd/tsgen
+
+  client:install:
+    desc: Install client npm dependencies
+    dir: client
+    cmds:
+      - npm install
+
+  client:start:
+    desc: Start the Angular/Ionic development server
+    dir: client
+    cmds:
+      - npm start
+
+  client:build:
+    desc: Build the Angular/Ionic client
+    dir: client
+    cmds:
+      - npm run build
+
+  client:lint:
+    desc: Lint the Angular/Ionic client
+    dir: client
+    cmds:
+      - npm run lint
+
+  client:format:
+    desc: Format the Angular/Ionic client
+    dir: client
+    cmds:
+      - npm run format
+
+  client:serve-dist:
+    desc: Serve the built client
+    dir: client
+    cmds:
+      - npm run serve-dist
+
+  client:clean:
+    desc: Clean client build output
+    dir: client
+    cmds:
+      - '{{if eq OS "windows"}}powershell -NoProfile -Command "if (Test-Path dist) { Remove-Item -Recurse -Force dist }"{{else}}rm -rf dist{{end}}'
+
+  emails:install:
+    desc: Install email template npm dependencies
+    dir: emails
+    cmds:
+      - npm install
+
+  emails:build:
+    desc: Compile MJML email templates into Go templates
+    dir: emails
+    cmds:
+      - npm start
+

@@ -5,19 +5,20 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-
-  @if (success === true) {
+  @if (success() === true) {
     <ion-list>
       <ion-text>
         <p>Email Change successfully confirmed.</p>
       </ion-text>
       <div class="ion-padding">
-        <ion-button expand="block" routerDirection="root" routerLink="/login">Go to Login</ion-button>
+        <ion-button expand="block" routerDirection="root" routerLink="/login"
+          >Go to Login</ion-button
+        >
       </div>
     </ion-list>
   }
 
-  @if (success === false) {
+  @if (success() === false) {
     <ion-list>
       <ion-text color="danger">
         <p>Something went wrong</p>
@@ -25,5 +26,4 @@
       </ion-text>
     </ion-list>
   }
-
 </ion-content>

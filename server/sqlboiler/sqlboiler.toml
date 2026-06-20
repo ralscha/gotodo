@@ -7,11 +7,11 @@ no-tests = "true"
 tag-ignore = ["todo.app_user_id"]
 add-enum-types = true
 
-[mysql]
+[psql]
   dbname = "gotodo"
   host = "host.docker.internal"
-  port = 3366
+  port = 5432
   user = "gotodo"
   pass = "gotodo"
-  sslmode = "false"
+  sslmode = "disable"
   blacklist = ["goose_db_version", "sessions"]
