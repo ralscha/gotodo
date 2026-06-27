@@ -1,7 +1,15 @@
 import { Component, inject, signal } from '@angular/core';
 import { MessagesService } from '../../service/messages.service';
 import { ProfileService } from '../profile/profile.service';
-import { email, FormField, form, minLength, required, schema } from '@angular/forms/signals';
+import {
+  email,
+  FormField,
+  FormRoot,
+  form,
+  minLength,
+  required,
+  schema,
+} from '@angular/forms/signals';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   IonBackButton,
@@ -26,6 +34,7 @@ import { Errors } from '../../api/types';
   styleUrls: ['./email.page.scss'],
   imports: [
     FormField,
+    FormRoot,
     IonContent,
     IonGrid,
     IonRow,

@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { MessagesService } from '../../service/messages.service';
-import { FormField, form, minLength, required, schema } from '@angular/forms/signals';
+import { FormField, FormRoot, form, minLength, required, schema } from '@angular/forms/signals';
 import {
   IonBackButton,
   IonButton,
@@ -27,6 +27,7 @@ import { Errors } from '../../api/types';
   styleUrls: ['./password.page.scss'],
   imports: [
     FormField,
+    FormRoot,
     IonContent,
     IonGrid,
     IonRow,

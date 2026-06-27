@@ -2,7 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { AuthService } from '../service/auth.service';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MessagesService } from '../service/messages.service';
-import { FormField, form, minLength, required, schema } from '@angular/forms/signals';
+import { FormField, FormRoot, form, minLength, required, schema } from '@angular/forms/signals';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Errors } from '../api/types';
 import {
@@ -25,6 +25,7 @@ import {
   templateUrl: './password-reset.page.html',
   imports: [
     FormField,
+    FormRoot,
     RouterLink,
     IonRouterLink,
     IonContent,

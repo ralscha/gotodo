@@ -9,7 +9,7 @@
 
 <ion-content class="ion-padding">
   @if (!signUpSent()) {
-    <form (submit)="signup(); $event.preventDefault()" novalidate>
+    <form [formRoot]="signupForm" (submit)="signup(); $event.preventDefault()" novalidate>
       <ion-grid>
         <ion-row>
           <ion-col offsetLg="4" offsetSm="3" sizeLg="4" sizeSm="6">

@@ -13,14 +13,16 @@ export class TodoService {
   private readonly todosSubject = new BehaviorSubject<Todo[]>([]);
   private readonly todos$ = this.todosSubject.asObservable();
 
-  loadTodos(): void {
-    this.httpClient.get<Todo[]>('/v1/todo').subscribe((todos) => {
-      this.todosMap.clear();
-      for (const todo of todos) {
-        this.todosMap.set(todo.id, todo);
-      }
-      this.publish();
-    });
+  loadTodos(): Observable<Todo[]> {
+    return this.httpClient.get<Todo[]>('/v1/todo').pipe(
+      tap((todos) => {
+        this.todosMap.clear();
+        for (const todo of todos) {
+          this.todosMap.set(todo.id, todo);
+        }
+        this.publish();
+      }),
+    );
   }
 
   getTodos(): Observable<Todo[]> {

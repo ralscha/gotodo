@@ -8,7 +8,7 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-  <form (submit)="save(); $event.preventDefault()" novalidate>
+  <form [formRoot]="todoForm" (submit)="save(); $event.preventDefault()" novalidate>
     @if (selectedTodo()) {
       <ion-grid>
         <ion-row>

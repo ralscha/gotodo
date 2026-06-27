@@ -17,6 +17,7 @@ import {
   IonRefresher,
   IonRefresherContent,
   IonRouterLink,
+  RefresherCustomEvent,
   IonTitle,
   IonToolbar,
 } from '@ionic/angular/standalone';
@@ -56,12 +57,14 @@ export class ListPage implements OnInit {
   }
 
   ngOnInit(): void {
-    this.todoService.loadTodos();
     this.todos$ = this.todoService.getTodos();
+    this.todoService.loadTodos().subscribe();
   }
 
-  refresh(event: Event): void {
-    this.todoService.loadTodos();
-    (event as CustomEvent).detail.complete();
+  refresh(event: RefresherCustomEvent): void {
+    this.todoService.loadTodos().subscribe({
+      complete: () => event.target.complete(),
+      error: () => event.target.complete(),
+    });
   }
 }

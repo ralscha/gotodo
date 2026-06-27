@@ -17,7 +17,7 @@ import {
   IonToolbar,
   NavController,
 } from '@ionic/angular/standalone';
-import { FormField, form, minLength, required, schema } from '@angular/forms/signals';
+import { FormField, FormRoot, form, minLength, required, schema } from '@angular/forms/signals';
 import { ProfileService } from '../profile/profile.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../service/auth.service';
@@ -28,6 +28,7 @@ import { Errors } from '../../api/types';
   templateUrl: './account.page.html',
   imports: [
     FormField,
+    FormRoot,
     IonContent,
     IonGrid,
     IonRow,

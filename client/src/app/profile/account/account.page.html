@@ -8,7 +8,7 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-  <form (submit)="deleteAccount(); $event.preventDefault()" novalidate>
+  <form [formRoot]="deleteForm" (submit)="deleteAccount(); $event.preventDefault()" novalidate>
     <ion-grid>
       <ion-row>
         <ion-col offsetLg="4" offsetSm="3" sizeLg="4" sizeSm="6">

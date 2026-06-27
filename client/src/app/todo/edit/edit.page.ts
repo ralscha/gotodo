@@ -26,7 +26,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Errors, Todo } from '../../api/types';
 import { addIcons } from 'ionicons';
 import { trash } from 'ionicons/icons';
-import { FormField, form, required, schema } from '@angular/forms/signals';
+import { FormField, FormRoot, form, required, schema } from '@angular/forms/signals';
 
 @Component({
   selector: 'app-edit',
@@ -34,6 +34,7 @@ import { FormField, form, required, schema } from '@angular/forms/signals';
   styleUrls: ['./edit.page.scss'],
   imports: [
     FormField,
+    FormRoot,
     IonContent,
     IonGrid,
     IonRow,

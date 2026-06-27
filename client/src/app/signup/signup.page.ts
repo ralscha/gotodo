@@ -16,7 +16,15 @@ import {
 } from '@ionic/angular/standalone';
 import { AuthService } from '../service/auth.service';
 import { MessagesService } from '../service/messages.service';
-import { email, FormField, form, minLength, required, schema } from '@angular/forms/signals';
+import {
+  email,
+  FormField,
+  FormRoot,
+  form,
+  minLength,
+  required,
+  schema,
+} from '@angular/forms/signals';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Errors } from '../api/types';
 
@@ -26,6 +34,7 @@ import { Errors } from '../api/types';
   styleUrls: ['./signup.page.scss'],
   imports: [
     FormField,
+    FormRoot,
     IonContent,
     IonGrid,
     IonRow,

@@ -17,7 +17,15 @@ import {
 import { AuthService } from '../service/auth.service';
 import { MessagesService } from '../service/messages.service';
 import { take } from 'rxjs';
-import { email, FormField, form, minLength, required, schema } from '@angular/forms/signals';
+import {
+  email,
+  FormField,
+  FormRoot,
+  form,
+  minLength,
+  required,
+  schema,
+} from '@angular/forms/signals';
 import { RouterLink } from '@angular/router';
 
 @Component({
@@ -26,6 +34,7 @@ import { RouterLink } from '@angular/router';
   styleUrls: ['./login.page.scss'],
   imports: [
     FormField,
+    FormRoot,
     RouterLink,
     IonRouterLink,
     IonContent,
