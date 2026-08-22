@@ -88,7 +88,7 @@ tasks:
     desc: Run golangci-lint in Docker
     dir: server
     cmds:
-      - docker run --rm -v {{toSlash .TASKFILE_DIR}}/server:/app -w /app golangci/golangci-lint:v2.12.2 golangci-lint run -v --timeout 5m
+      - docker run --rm -v {{toSlash .TASKFILE_DIR}}/server:/app -w /app golangci/golangci-lint:v2.13.1 golangci-lint run -v --timeout 5m
 
   server:audit:
     desc: Run Go vet, staticcheck, and module verification
