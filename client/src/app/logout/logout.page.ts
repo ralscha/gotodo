@@ -10,7 +10,7 @@ import {
   IonText,
   IonTitle,
   IonToolbar,
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../service/auth.service';
 

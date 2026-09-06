@@ -15,7 +15,7 @@ import {
   IonSplitPane,
   IonTitle,
   IonToolbar,
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { checkmarkCircleOutline, logOutOutline, person } from 'ionicons/icons';
 import { RouterLink, RouterLinkActive } from '@angular/router';

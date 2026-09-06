@@ -17,7 +17,6 @@
               "base": "dist/app"
             },
             "index": "src/index.html",
-            "polyfills": ["src/polyfills.ts"],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": ["src/assets"],

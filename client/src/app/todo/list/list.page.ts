@@ -20,7 +20,7 @@ import {
   RefresherCustomEvent,
   IonTitle,
   IonToolbar,
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { add } from 'ionicons/icons';
 import { RouterLink } from '@angular/router';

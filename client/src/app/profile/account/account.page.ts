@@ -16,7 +16,7 @@ import {
   IonTitle,
   IonToolbar,
   NavController,
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { FormField, FormRoot, form, minLength, required, schema } from '@angular/forms/signals';
 import { ProfileService } from '../profile/profile.service';
 import { HttpErrorResponse } from '@angular/common/http';

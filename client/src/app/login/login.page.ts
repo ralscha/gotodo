@@ -13,7 +13,7 @@ import {
   IonTitle,
   IonToolbar,
   NavController,
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { AuthService } from '../service/auth.service';
 import { MessagesService } from '../service/messages.service';
 import { take } from 'rxjs';

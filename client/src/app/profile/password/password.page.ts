@@ -16,7 +16,7 @@ import {
   IonTitle,
   IonToolbar,
   NavController,
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { ProfileService } from '../profile/profile.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Errors } from '../../api/types';

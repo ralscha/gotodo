@@ -20,7 +20,7 @@ import {
   IonTextarea,
   IonTitle,
   IonToolbar,
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { TodoService } from '../todo.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Errors, Todo } from '../../api/types';
