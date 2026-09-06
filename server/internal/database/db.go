@@ -3,7 +3,6 @@ package database
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"net/url"
 	"time"
 
@@ -12,27 +11,31 @@ import (
 )
 
 func New(cfg config.Config) (*sql.DB, error) {
-	dbstring := fmt.Sprintf("postgres://%s:%s@%s/%s?%s",
-		url.QueryEscape(cfg.DB.User), url.QueryEscape(cfg.DB.Password), cfg.DB.Connection, cfg.DB.Database, cfg.DB.Parameter)
+	connMaxIdleTime, err := time.ParseDuration(cfg.DB.MaxIdleTime)
+	if err != nil {
+		return nil, err
+	}
 
-	db, err := sql.Open("pgx", dbstring)
+	connMaxLifetime, err := time.ParseDuration(cfg.DB.MaxLifetime)
+	if err != nil {
+		return nil, err
+	}
+
+	dbURL := &url.URL{
+		Scheme:   "postgres",
+		User:     url.UserPassword(cfg.DB.User, cfg.DB.Password),
+		Host:     cfg.DB.Connection,
+		Path:     "/" + cfg.DB.Database,
+		RawQuery: cfg.DB.Parameter,
+	}
+	db, err := sql.Open("pgx", dbURL.String())
 	if err != nil {
 		return nil, err
 	}
 
 	db.SetMaxOpenConns(cfg.DB.MaxOpenConns)
 	db.SetMaxIdleConns(cfg.DB.MaxIdleConns)
-
-	connMaxIdleTime, err := time.ParseDuration(cfg.DB.MaxIdleTime)
-	if err != nil {
-		return nil, err
-	}
 	db.SetConnMaxIdleTime(connMaxIdleTime)
-
-	connMaxLifetime, err := time.ParseDuration(cfg.DB.MaxLifetime)
-	if err != nil {
-		return nil, err
-	}
 	db.SetConnMaxLifetime(connMaxLifetime)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -40,6 +43,7 @@ func New(cfg config.Config) (*sql.DB, error) {
 
 	err = db.PingContext(ctx)
 	if err != nil {
+		_ = db.Close()
 		return nil, err
 	}
 

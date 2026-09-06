@@ -1,7 +1,15 @@
 import { Component, inject, signal } from '@angular/core';
 import { AuthService } from '../service/auth.service';
 import { MessagesService } from '../service/messages.service';
-import { email, FormField, FormRoot, form, required, schema } from '@angular/forms/signals';
+import {
+  email,
+  FormField,
+  FormRoot,
+  form,
+  maxLength,
+  required,
+  schema,
+} from '@angular/forms/signals';
 import {
   IonBackButton,
   IonButton,
@@ -48,6 +56,7 @@ export class PasswordResetRequestPage {
     schema((path) => {
       required(path.email);
       email(path.email);
+      maxLength(path.email, 254);
     }),
   );
   private readonly authService = inject(AuthService);

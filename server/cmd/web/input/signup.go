@@ -18,10 +18,12 @@ func (s *SignUpInput) Validate() *validate.Errors {
 			Message: "gte",
 			Min:     8,
 		},
+		maximumLength("password", s.Password, MaxPasswordLength),
 		&validators.EmailIsPresent{
 			Name:    "email",
 			Field:   s.Email,
 			Message: "email",
 		},
+		maximumLength("email", s.Email, MaxEmailLength),
 	)
 }

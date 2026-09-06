@@ -50,7 +50,10 @@ func (app *application) cleanup() {
 
 	// Inactivate all users where the last access was older than the configured max age
 	inactive := time.Now().Add(-app.config.Cleanup.InactiveUsersMaxAge)
-	err = models.AppUsers(models.AppUserWhere.LastAccess.LT(null.NewTime(inactive, true))).UpdateAll(ctx, app.db,
+	err = models.AppUsers(
+		models.AppUserWhere.LastAccess.LT(null.NewTime(inactive, true)),
+		models.AppUserWhere.Expired.IsNull(),
+	).UpdateAll(ctx, app.db,
 		models.M{models.AppUserColumns.Expired: null.NewTime(time.Now(), true)})
 	if err != nil {
 		slog.Error("inactivate users failed", "error", err)

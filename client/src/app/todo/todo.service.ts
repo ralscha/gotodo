@@ -1,8 +1,8 @@
 import { inject, Service } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, map, Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { Errors, Todo } from '../api/types';
+import { Todo } from '../api/types';
 
 @Service({ autoProvided: false })
 export class TodoService {
@@ -29,8 +29,13 @@ export class TodoService {
     return this.todos$;
   }
 
-  getTodo(id: number): Todo | undefined {
-    return this.todosMap.get(id);
+  getTodo(id: number): Observable<Todo | undefined> {
+    const cached = this.todosMap.get(id);
+    if (cached) {
+      return of(cached);
+    }
+
+    return this.loadTodos().pipe(map(() => this.todosMap.get(id)));
   }
 
   delete(todo: Todo): Observable<void> {
@@ -42,13 +47,14 @@ export class TodoService {
     );
   }
 
-  save(todo: Todo): Observable<Errors | Pick<Todo, 'id'> | void> {
-    return this.httpClient.post<Errors | Pick<Todo, 'id'> | void>('/v1/todo', todo).pipe(
+  save(todo: Todo): Observable<Pick<Todo, 'id'> | void> {
+    const savedTodo = { ...todo };
+    return this.httpClient.post<Pick<Todo, 'id'> | void>('/v1/todo', savedTodo).pipe(
       tap((pickTodo) => {
         if (pickTodo && 'id' in pickTodo) {
-          todo.id = pickTodo.id;
+          savedTodo.id = pickTodo.id;
         }
-        this.todosMap.set(todo.id, todo);
+        this.todosMap.set(savedTodo.id, savedTodo);
         this.publish();
       }),
     );

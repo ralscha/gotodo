@@ -6,6 +6,7 @@ import {
   FormField,
   FormRoot,
   form,
+  maxLength,
   minLength,
   required,
   schema,
@@ -60,8 +61,10 @@ export class EmailPage {
     schema((path) => {
       required(path.password);
       minLength(path.password, 8);
+      maxLength(path.password, 128);
       required(path.newEmail);
       email(path.newEmail);
+      maxLength(path.newEmail, 254);
     }),
   );
   private readonly profileService = inject(ProfileService);

@@ -12,18 +12,31 @@
     <ion-refresher-content />
   </ion-refresher>
 
-  @if (todos$ | async; as todos) {
+  @if (loading()) {
+    <div class="ion-padding ion-text-center">
+      <ion-spinner />
+    </div>
+  } @else if (loadFailed()) {
+    <div class="ion-padding ion-text-center">
+      <ion-text color="danger"><p>Todos could not be loaded.</p></ion-text>
+      <ion-button (click)="retry()" fill="outline">Try again</ion-button>
+    </div>
+  } @else if (todos$ | async; as todos) {
     <ion-list lines="full">
       @for (todo of todos; track todo.id) {
-        <ion-item [detail]="true" routerLink="./edit/{{ todo.id }}">
+        <ion-item [detail]="true" [routerLink]="['./edit', todo.id]">
           <ion-label>{{ todo.subject }}</ion-label>
+        </ion-item>
+      } @empty {
+        <ion-item lines="none">
+          <ion-label class="ion-text-center">No todos yet.</ion-label>
         </ion-item>
       }
     </ion-list>
   }
 
   <ion-fab horizontal="end" slot="fixed" vertical="bottom">
-    <ion-fab-button routerDirection="forward" routerLink="./edit">
+    <ion-fab-button aria-label="Add todo" routerDirection="forward" routerLink="./edit">
       <ion-icon name="add" />
     </ion-fab-button>
   </ion-fab>

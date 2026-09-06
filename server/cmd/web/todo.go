@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/aarondl/sqlboiler/v4/boil"
+	"github.com/aarondl/sqlboiler/v4/queries/qm"
 	"github.com/go-chi/chi/v5"
 	"github.com/gobuffalo/validate"
 	"github.com/gobuffalo/validate/validators"
@@ -22,13 +23,30 @@ func (v *ValidatedTodo) Validate() *validate.Errors {
 			Field:   v.Subject,
 			Message: "required",
 		},
+		&validators.StringLengthInRange{
+			Name:    "subject",
+			Field:   v.Subject,
+			Message: "lte",
+			Min:     0,
+			Max:     255,
+		},
+		&validators.StringLengthInRange{
+			Name:    "description",
+			Field:   v.Description.String,
+			Message: "lte",
+			Min:     0,
+			Max:     255,
+		},
 	)
 }
 
 func (app *application) todoGetHandler(w http.ResponseWriter, r *http.Request) {
 	userID := app.sessionManager.GetInt64(r.Context(), "userID")
 
-	todos, err := models.Todos(models.TodoWhere.AppUserID.EQ(userID)).All(r.Context(), app.db)
+	todos, err := models.Todos(
+		models.TodoWhere.AppUserID.EQ(userID),
+		qm.OrderBy(models.TodoColumns.ID+" ASC"),
+	).All(r.Context(), app.db)
 	if err != nil {
 		response.InternalServerError(w, err)
 		return
@@ -48,56 +66,66 @@ func (app *application) todoSaveHandler(w http.ResponseWriter, r *http.Request) 
 
 	userID := app.sessionManager.GetInt64(r.Context(), "userID")
 
-	var newID int64
-	var httpStatus int
-	var err error
-
 	if todoInput.ID > 0 {
-		err = models.Todos(models.TodoWhere.ID.EQ(todoInput.ID), models.TodoWhere.AppUserID.EQ(userID)).
-			UpdateAll(r.Context(), app.db, models.M{models.TodoColumns.Subject: todoInput.Subject,
-				models.TodoColumns.Description: todoInput.Description})
-		httpStatus = http.StatusOK
-	} else {
-		newTodo := models.Todo{
-			Subject:     todoInput.Subject,
-			Description: todoInput.Description,
-			AppUserID:   userID,
+		result, err := app.db.ExecContext(r.Context(), `
+			UPDATE todo
+			SET subject = $1, description = $2
+			WHERE id = $3 AND app_user_id = $4`,
+			todoInput.Subject, todoInput.Description, todoInput.ID, userID)
+		if err != nil {
+			response.InternalServerError(w, err)
+			return
 		}
-		err = newTodo.Insert(r.Context(), app.db, boil.Infer())
-		newID = newTodo.ID
-		httpStatus = http.StatusCreated
+		rowsAffected, err := result.RowsAffected()
+		if err != nil {
+			response.InternalServerError(w, err)
+			return
+		}
+		if rowsAffected == 0 {
+			response.NotFound(w, r)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+		return
 	}
-	if err != nil {
+
+	newTodo := models.Todo{
+		Subject:     todoInput.Subject,
+		Description: todoInput.Description,
+		AppUserID:   userID,
+	}
+	if err := newTodo.Insert(r.Context(), app.db, boil.Infer()); err != nil {
 		response.InternalServerError(w, err)
 		return
 	}
 
-	if newID > 0 {
-		response.JSON(w, httpStatus, models.Todo{
-			ID: newID,
-		})
-	} else {
-		w.WriteHeader(httpStatus)
-	}
+	response.JSON(w, http.StatusCreated, models.Todo{ID: newTodo.ID})
 }
 
 func (app *application) todoDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	todoIDStr := chi.URLParam(r, "todoID")
-	todoID, err := strconv.Atoi(todoIDStr)
+	todoID, err := strconv.ParseInt(todoIDStr, 10, 64)
 	if err != nil {
-		response.InternalServerError(w, err)
+		response.NotFound(w, r)
 		return
 	}
 
 	userID := app.sessionManager.GetInt64(r.Context(), "userID")
 
-	err = models.Todos(
-		models.TodoWhere.ID.EQ(int64(todoID)),
-		models.TodoWhere.AppUserID.EQ(userID),
-	).DeleteAll(r.Context(), app.db)
+	result, err := app.db.ExecContext(r.Context(),
+		"DELETE FROM todo WHERE id = $1 AND app_user_id = $2", todoID, userID)
 	if err != nil {
 		response.InternalServerError(w, err)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		response.InternalServerError(w, err)
+		return
+	}
+	if rowsAffected == 0 {
+		response.NotFound(w, r)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }

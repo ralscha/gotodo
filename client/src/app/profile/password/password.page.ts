@@ -1,6 +1,14 @@
 import { Component, inject, signal } from '@angular/core';
 import { MessagesService } from '../../service/messages.service';
-import { FormField, FormRoot, form, minLength, required, schema } from '@angular/forms/signals';
+import {
+  FormField,
+  FormRoot,
+  form,
+  maxLength,
+  minLength,
+  required,
+  schema,
+} from '@angular/forms/signals';
 import {
   IonBackButton,
   IonButton,
@@ -52,8 +60,10 @@ export class PasswordPage {
     schema((path) => {
       required(path.oldPassword);
       minLength(path.oldPassword, 8);
+      maxLength(path.oldPassword, 128);
       required(path.newPassword);
       minLength(path.newPassword, 8);
+      maxLength(path.newPassword, 128);
     }),
   );
   private readonly profileService = inject(ProfileService);

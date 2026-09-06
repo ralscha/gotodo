@@ -34,8 +34,12 @@ import { AuthService } from '../service/auth.service';
 export class LogoutPage implements OnInit {
   private readonly authService = inject(AuthService);
   readonly showMsg = signal(false);
+  readonly logoutFailed = signal(false);
 
   ngOnInit(): void {
-    this.authService.logout().subscribe(() => this.showMsg.set(true));
+    this.authService.logout().subscribe({
+      next: () => this.showMsg.set(true),
+      error: () => this.logoutFailed.set(true),
+    });
   }
 }

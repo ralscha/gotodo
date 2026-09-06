@@ -22,6 +22,7 @@ import {
   FormField,
   FormRoot,
   form,
+  maxLength,
   minLength,
   required,
   schema,
@@ -58,8 +59,10 @@ export class LoginPage implements OnInit {
     schema((path) => {
       required(path.email);
       email(path.email);
+      maxLength(path.email, 254);
       required(path.password);
       minLength(path.password, 8);
+      maxLength(path.password, 128);
     }),
   );
   private readonly navCtrl = inject(NavController);
@@ -67,7 +70,7 @@ export class LoginPage implements OnInit {
   private readonly messagesService = inject(MessagesService);
 
   ngOnInit(): void {
-    this.authService.authority$.pipe(take(1)).subscribe((authority) => {
+    this.authService.authenticate().pipe(take(1)).subscribe((authority) => {
       if (authority !== null) {
         this.navCtrl.navigateRoot('/todo');
       }

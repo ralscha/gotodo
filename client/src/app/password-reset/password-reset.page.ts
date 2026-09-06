@@ -2,7 +2,15 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { AuthService } from '../service/auth.service';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MessagesService } from '../service/messages.service';
-import { FormField, FormRoot, form, minLength, required, schema } from '@angular/forms/signals';
+import {
+  FormField,
+  FormRoot,
+  form,
+  maxLength,
+  minLength,
+  required,
+  schema,
+} from '@angular/forms/signals';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Errors } from '../api/types';
 import {
@@ -51,6 +59,7 @@ export class PasswordResetPage implements OnInit {
     schema((path) => {
       required(path.password);
       minLength(path.password, 8);
+      maxLength(path.password, 128);
     }),
   );
   private resetToken: string | null = null;

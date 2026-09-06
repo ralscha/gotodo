@@ -1,15 +1,14 @@
 package main
 
 import (
+	"context"
 	"flag"
-	"fmt"
 	"log"
-	"net/url"
 	"os"
 
-	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
 	"gotodo.rasc.ch/internal/config"
+	"gotodo.rasc.ch/internal/database"
 	"gotodo.rasc.ch/migrations"
 )
 
@@ -32,10 +31,7 @@ func main() {
 		log.Fatalln("reading config failed", err)
 	}
 
-	dbstring := fmt.Sprintf("postgres://%s:%s@%s/%s?%s",
-		url.QueryEscape(cfg.DB.User), url.QueryEscape(cfg.DB.Password), cfg.DB.Connection, cfg.DB.Database, cfg.DB.Parameter)
-
-	db, err := goose.OpenDBWithDriver("pgx", dbstring)
+	db, err := database.New(cfg)
 	if err != nil {
 		log.Fatalf("goose: failed to open DB: %v\n", err)
 	}
@@ -53,7 +49,7 @@ func main() {
 
 	goose.SetBaseFS(migrations.EmbeddedFiles)
 
-	if err := goose.Run(command, db, ".", arguments...); err != nil {
+	if err := goose.RunContext(context.Background(), command, db, ".", arguments...); err != nil {
 		log.Fatalf("goose %v: %v", command, err)
 	}
 }

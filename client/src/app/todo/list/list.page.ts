@@ -1,10 +1,11 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { Observable } from 'rxjs';
 import { TodoService } from '../todo.service';
 import { Todo } from '../../api/types';
 import { AsyncPipe } from '@angular/common';
 import {
   IonButtons,
+  IonButton,
   IonContent,
   IonFab,
   IonFabButton,
@@ -17,6 +18,8 @@ import {
   IonRefresher,
   IonRefresherContent,
   IonRouterLink,
+  IonSpinner,
+  IonText,
   RefresherCustomEvent,
   IonTitle,
   IonToolbar,
@@ -38,6 +41,7 @@ import { RouterLink } from '@angular/router';
     IonToolbar,
     IonTitle,
     IonItem,
+    IonButton,
     IonButtons,
     IonMenuButton,
     IonRefresher,
@@ -46,10 +50,14 @@ import { RouterLink } from '@angular/router';
     IonFab,
     IonFabButton,
     IonIcon,
+    IonSpinner,
+    IonText,
   ],
 })
 export class ListPage implements OnInit {
   todos$!: Observable<Todo[]>;
+  readonly loading = signal(true);
+  readonly loadFailed = signal(false);
   private readonly todoService = inject(TodoService);
 
   constructor() {
@@ -58,13 +66,33 @@ export class ListPage implements OnInit {
 
   ngOnInit(): void {
     this.todos$ = this.todoService.getTodos();
-    this.todoService.loadTodos().subscribe();
+    this.loadTodos();
   }
 
   refresh(event: RefresherCustomEvent): void {
+    this.loadFailed.set(false);
     this.todoService.loadTodos().subscribe({
       complete: () => event.target.complete(),
-      error: () => event.target.complete(),
+      error: () => {
+        this.loadFailed.set(true);
+        event.target.complete();
+      },
+    });
+  }
+
+  retry(): void {
+    this.loading.set(true);
+    this.loadTodos();
+  }
+
+  private loadTodos(): void {
+    this.loadFailed.set(false);
+    this.todoService.loadTodos().subscribe({
+      error: () => {
+        this.loading.set(false);
+        this.loadFailed.set(true);
+      },
+      complete: () => this.loading.set(false),
     });
   }
 }

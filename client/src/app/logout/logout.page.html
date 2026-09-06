@@ -11,6 +11,9 @@
         @if (showMsg()) {
           <ion-text color="success"> You have been successfully logged out. </ion-text>
         }
+        @if (logoutFailed()) {
+          <ion-text color="danger"> Logging out failed. Please try again. </ion-text>
+        }
       </ion-col>
     </ion-row>
     <ion-row>

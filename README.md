@@ -4,14 +4,14 @@ GoTodo is a full-stack todo application with an Ionic/Angular client and a Go ba
 
 ## Stack
 
-- Client: Angular 22, Ionic 8, Angular signal forms, `httpResource`, RxJS
-- Server: Go 1.26, chi, SQLBoiler, scs sessions, PostgreSQL
+- Client: Angular 22, Ionic 9, zoneless change detection, Angular signal forms, `httpResource`, RxJS
+- Server: Go 1.27, chi, SQLBoiler, scs sessions, PostgreSQL
 - Emails: MJML 5 templates compiled into Go template files
 
 ## Requirements
 
-- Node.js 20 or newer and npm
-- Go 1.26 or newer
+- Node.js ^22.22.3, ^24.15.0, or 26+ and npm
+- Go 1.27.1 or newer
 - Docker for the local PostgreSQL and Inbucket services
 
 ## Client
@@ -32,7 +32,7 @@ npm run build
 npm run serve-dist
 ```
 
-`npm run build` updates `src/environments/environment.prod.ts`, builds the production app into `client/dist/app`, and runs `bread-compressor` on the browser output.
+`npm run build` generates ignored production build metadata, builds the app into `client/dist/app`, and runs `bread-compressor` on the browser output.
 
 ## Server
 
@@ -41,6 +41,13 @@ Start PostgreSQL and Inbucket:
 ```bash
 cd server
 docker compose up -d
+```
+
+Apply the database migrations before the first server start and after pulling
+changes that add migrations:
+
+```bash
+go run gotodo.rasc.ch/cmd/migrate up
 ```
 
 The default backend configuration in `server/app.env` uses:
@@ -66,6 +73,13 @@ cd server
 go test ./...
 ```
 
+The Docker-backed browser test builds and exercises the complete client/server
+flow:
+
+```bash
+task test-integration
+```
+
 ## Emails
 
 ```bash
@@ -79,6 +93,9 @@ npm start
 ## Development Notes
 
 - API routes are served under `/v1`.
+- The server reads the rightmost `X-Forwarded-For` address for request logging
+  and per-client rate limiting. This assumes exactly one trusted reverse proxy
+  is the only network path to the backend.
 - Generated TypeScript API types live in `client/src/app/api/types.ts`.
 - SQLBoiler models are checked into `server/internal/models`.
 - Database migrations live in `server/migrations`.

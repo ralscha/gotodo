@@ -1,10 +1,11 @@
 package main
 
 import (
+	"net/http"
+
 	"gotodo.rasc.ch/cmd/web/output"
 	"gotodo.rasc.ch/internal/response"
 	"gotodo.rasc.ch/internal/version"
-	"net/http"
 )
 
 func (app *application) healthcheckHandler(w http.ResponseWriter, _ *http.Request) {

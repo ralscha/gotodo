@@ -3,7 +3,6 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {
   EmailChangeInput,
-  Errors,
   PasswordChangeInput,
   PasswordInput,
   TokenInput,
@@ -13,19 +12,19 @@ import {
 export class ProfileService {
   private readonly httpClient = inject(HttpClient);
 
-  deleteAccount(password: string): Observable<Errors | void> {
+  deleteAccount(password: string): Observable<void> {
     const request: PasswordInput = { password };
-    return this.httpClient.post<Errors | void>('/v1/profile/account-delete', request);
+    return this.httpClient.post<void>('/v1/profile/account-delete', request);
   }
 
-  changePassword(oldPassword: string, newPassword: string): Observable<Errors | void> {
+  changePassword(oldPassword: string, newPassword: string): Observable<void> {
     const request: PasswordChangeInput = { oldPassword, newPassword };
-    return this.httpClient.post<Errors | void>('/v1/profile/password-change', request);
+    return this.httpClient.post<void>('/v1/profile/password-change', request);
   }
 
-  changeEmail(newEmail: string, password: string): Observable<Errors> {
+  changeEmail(newEmail: string, password: string): Observable<void> {
     const request: EmailChangeInput = { newEmail, password };
-    return this.httpClient.post<Errors>('/v1/profile/email-change', request);
+    return this.httpClient.post<void>('/v1/profile/email-change', request);
   }
 
   confirmEmailChange(token: string): Observable<void> {

@@ -2,9 +2,7 @@
 import { Observable, of } from 'rxjs';
 import { catchError, share, tap } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
-import { toObservable } from '@angular/core/rxjs-interop';
 import {
-  Errors,
   LoginInput,
   LoginOutput,
   PasswordResetInput,
@@ -19,22 +17,24 @@ export class AuthService {
 
   private readonly authority = signal<string | null>(null);
   readonly authenticated = computed(() => this.authority() != null);
-  readonly authority$ = toObservable(this.authority);
-  private readonly authorityCall$: Observable<{ authority: string } | null>;
+  private readonly authorityCall$: Observable<LoginOutput | null>;
 
   constructor() {
     this.authorityCall$ = this.httpClient
-      .post<{ authority: string }>('/v1/authenticate', null, {
+      .post<LoginOutput>('/v1/authenticate', null, {
         withCredentials: true,
       })
       .pipe(
         tap((response) => this.authority.set(response.authority)),
-        catchError(() => of(null)),
+        catchError(() => {
+          this.authority.set(null);
+          return of(null);
+        }),
         share(),
       );
   }
 
-  authenticate(): Observable<{ authority: string } | null> {
+  authenticate(): Observable<LoginOutput | null> {
     return this.authorityCall$;
   }
 
@@ -46,7 +46,7 @@ export class AuthService {
     const request: LoginInput = { email, password };
     return this.httpClient
       .post<LoginOutput>('/v1/login', request, { withCredentials: true })
-      .pipe(tap((response) => this.authority.set(response?.authority)));
+      .pipe(tap((response) => this.authority.set(response.authority)));
   }
 
   logout(): Observable<void> {
@@ -59,9 +59,9 @@ export class AuthService {
     this.authority.set(null);
   }
 
-  signup(email: string, password: string): Observable<Errors | void> {
+  signup(email: string, password: string): Observable<void> {
     const request: SignUpInput = { email, password };
-    return this.httpClient.post<Errors | void>('/v1/signup', request);
+    return this.httpClient.post<void>('/v1/signup', request);
   }
 
   confirmSignup(token: string): Observable<void> {
@@ -74,8 +74,8 @@ export class AuthService {
     return this.httpClient.post<void>('/v1/password-reset-request', request);
   }
 
-  resetPassword(resetToken: string, password: string): Observable<Errors | void> {
+  resetPassword(resetToken: string, password: string): Observable<void> {
     const request: PasswordResetInput = { password, resetToken };
-    return this.httpClient.post<Errors | void>('/v1/password-reset', request);
+    return this.httpClient.post<void>('/v1/password-reset', request);
   }
 }

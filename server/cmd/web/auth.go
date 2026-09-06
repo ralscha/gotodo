@@ -37,6 +37,7 @@ func (app *application) authenticateHandler(w http.ResponseWriter, r *http.Reque
 	if userID > 0 {
 		user, err := models.AppUsers(qm.Select(
 			models.AppUserColumns.Authority,
+			models.AppUserColumns.PasswordHash,
 			models.AppUserColumns.Expired,
 			models.AppUserColumns.Activated),
 			models.AppUserWhere.ID.EQ(userID)).One(r.Context(), app.db)
@@ -44,7 +45,15 @@ func (app *application) authenticateHandler(w http.ResponseWriter, r *http.Reque
 			response.InternalServerError(w, err)
 			return
 		}
-		if user != nil && user.Activated && user.Expired.IsZero() {
+		sessionPasswordHash := app.sessionManager.GetString(r.Context(), "passwordHash")
+		if user != nil && user.Activated && user.Expired.IsZero() &&
+			sessionPasswordHash != "" && sessionPasswordHash == user.PasswordHash {
+			err := models.AppUsers(models.AppUserWhere.ID.EQ(userID)).UpdateAll(r.Context(), app.db,
+				models.M{models.AppUserColumns.LastAccess: time.Now()})
+			if err != nil {
+				response.InternalServerError(w, err)
+				return
+			}
 			response.JSON(w, http.StatusOK, output.LoginOutput{Authority: user.Authority})
 			return
 		}
@@ -53,12 +62,6 @@ func (app *application) authenticateHandler(w http.ResponseWriter, r *http.Reque
 }
 
 func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
-	err := app.sessionManager.RenewToken(r.Context())
-	if err != nil {
-		response.InternalServerError(w, err)
-		return
-	}
-
 	var loginInput input.LoginInput
 	if ok := request.DecodeJSONValidate(w, r, &loginInput); !ok {
 		return
@@ -83,6 +86,11 @@ func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if match {
+			if err := app.sessionManager.RenewToken(r.Context()); err != nil {
+				response.InternalServerError(w, err)
+				return
+			}
+
 			err := models.AppUsers(models.AppUserWhere.ID.EQ(user.ID)).UpdateAll(r.Context(), app.db,
 				models.M{models.AppUserColumns.LastAccess: time.Now()})
 			if err != nil {
@@ -91,6 +99,7 @@ func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
 			}
 
 			app.sessionManager.Put(r.Context(), "userID", user.ID)
+			app.sessionManager.Put(r.Context(), "passwordHash", user.PasswordHash)
 
 			response.JSON(w, http.StatusOK, output.LoginOutput{Authority: user.Authority})
 			return
@@ -128,7 +137,7 @@ func (app *application) passwordResetRequestHandler(w http.ResponseWriter, r *ht
 	}
 
 	if user != nil {
-		token, err := app.insertToken(r.Context(), user.ID, app.config.Cleanup.PasswordResetTokenMaxAge, models.TokensScopePasswordReset)
+		token, err := app.insertToken(r.Context(), app.db, user.ID, app.config.Cleanup.PasswordResetTokenMaxAge, models.TokensScopePasswordReset)
 		if err != nil {
 			response.InternalServerError(w, err)
 			return
@@ -139,8 +148,7 @@ func (app *application) passwordResetRequestHandler(w http.ResponseWriter, r *ht
 				"resetLink": app.config.BaseURL + "#/password-reset/" + token.plain,
 			}
 
-			err = app.mailer.Send(passwordResetRequestInput.Email, "password-reset.tmpl", data)
-			if err != nil {
+			if err := app.mailer.Send(passwordResetRequestInput.Email, "password-reset.tmpl", data); err != nil {
 				slog.Error("sending password reset email failed", "error", err)
 			}
 		})
@@ -155,7 +163,7 @@ func (app *application) passwordResetHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	userID, err := app.getAppUserIDFromToken(r.Context(), models.TokensScopePasswordReset, passwordResetInput.ResetToken)
+	userID, err := app.getAppUserIDFromToken(r.Context(), app.db, models.TokensScopePasswordReset, passwordResetInput.ResetToken)
 	if err != nil {
 		response.InternalServerError(w, err)
 		return
@@ -166,7 +174,7 @@ func (app *application) passwordResetHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	compromised, err := app.isPasswordCompromised(r.Context(), passwordResetInput.Password)
+	compromised, err := app.passwordCheck(r.Context(), passwordResetInput.Password)
 	if err != nil {
 		response.InternalServerError(w, err)
 		return
@@ -191,19 +199,40 @@ func (app *application) passwordResetHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	err = models.AppUsers(models.AppUserWhere.ID.EQ(userID)).UpdateAll(r.Context(), app.db,
+	tx, err := app.db.BeginTx(r.Context(), nil)
+	if err != nil {
+		response.InternalServerError(w, err)
+		return
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	userID, err = app.getAppUserIDFromToken(r.Context(), tx, models.TokensScopePasswordReset, passwordResetInput.ResetToken)
+	if err != nil {
+		response.InternalServerError(w, err)
+		return
+	}
+	if userID == 0 {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		return
+	}
+
+	err = models.AppUsers(models.AppUserWhere.ID.EQ(userID)).UpdateAll(r.Context(), tx,
 		models.M{models.AppUserColumns.PasswordHash: newPasswordHash})
 	if err != nil {
 		response.InternalServerError(w, err)
 		return
 	}
 
-	err = app.deleteAllTokensForUser(r.Context(), userID, models.TokensScopePasswordReset)
+	err = app.deleteAllTokensForUser(r.Context(), tx, userID, models.TokensScopePasswordReset)
 	if err != nil {
 		response.InternalServerError(w, err)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	if err := tx.Commit(); err != nil {
+		response.InternalServerError(w, err)
+		return
+	}
 
+	w.WriteHeader(http.StatusNoContent)
 }

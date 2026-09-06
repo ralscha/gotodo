@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func (app *application) isPasswordCompromised(ctx context.Context, password string) (bool, error) {
+func isPasswordCompromised(ctx context.Context, password string) (bool, error) {
 	alg := sha1.New()
 	alg.Write([]byte(password))
 	hash := strings.ToUpper(hex.EncodeToString(alg.Sum(nil)))

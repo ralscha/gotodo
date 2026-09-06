@@ -16,6 +16,7 @@ import {
   IonInput,
   IonItem,
   IonRow,
+  IonSpinner,
   IonText,
   IonTextarea,
   IonTitle,
@@ -26,7 +27,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Errors, Todo } from '../../api/types';
 import { addIcons } from 'ionicons';
 import { trash } from 'ionicons/icons';
-import { FormField, FormRoot, form, required, schema } from '@angular/forms/signals';
+import { FormField, FormRoot, form, maxLength, required, schema } from '@angular/forms/signals';
 
 @Component({
   selector: 'app-edit',
@@ -38,6 +39,7 @@ import { FormField, FormRoot, form, required, schema } from '@angular/forms/sign
     IonContent,
     IonGrid,
     IonRow,
+    IonSpinner,
     IonCol,
     IonText,
     IonButton,
@@ -55,6 +57,7 @@ import { FormField, FormRoot, form, required, schema } from '@angular/forms/sign
   ],
 })
 export class EditPage implements OnInit {
+  readonly loading = signal(false);
   readonly selectedTodo = signal<Todo | undefined>(undefined);
   readonly submitted = signal(false);
   readonly submitError = signal<string | null>(null);
@@ -63,6 +66,8 @@ export class EditPage implements OnInit {
     this.todoModel,
     schema((path) => {
       required(path.subject);
+      maxLength(path.subject, 255);
+      maxLength(path.description, 255);
     }),
   );
   private readonly route = inject(ActivatedRoute);
@@ -78,11 +83,27 @@ export class EditPage implements OnInit {
   ngOnInit(): void {
     const todoIdString = this.route.snapshot.paramMap.get('id');
     if (todoIdString) {
-      const todo = this.todoService.getTodo(parseInt(todoIdString, 10));
-      this.selectedTodo.set(todo);
-      this.todoForm().reset({
-        subject: todo?.subject ?? '',
-        description: todo?.description ?? '',
+      const todoID = Number(todoIdString);
+      if (!Number.isSafeInteger(todoID) || todoID <= 0) {
+        void this.todoLoadFailed('Todo not found');
+        return;
+      }
+
+      this.loading.set(true);
+      this.todoService.getTodo(todoID).subscribe({
+        next: (todo) => {
+          if (!todo) {
+            void this.todoLoadFailed('Todo not found');
+            return;
+          }
+          this.selectedTodo.set({ ...todo });
+          this.todoForm().reset({
+            subject: todo.subject,
+            description: todo.description ?? '',
+          });
+        },
+        error: () => void this.todoLoadFailed('Loading todo failed'),
+        complete: () => this.loading.set(false),
       });
     } else {
       this.selectedTodo.set({
@@ -92,6 +113,12 @@ export class EditPage implements OnInit {
       });
       this.todoForm().reset({ subject: '', description: '' });
     }
+  }
+
+  private async todoLoadFailed(message: string): Promise<void> {
+    this.loading.set(false);
+    await this.messagesService.showErrorToast(message);
+    await this.router.navigate(['/todo']);
   }
 
   async deleteTodo(): Promise<void> {

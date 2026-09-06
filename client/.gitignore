@@ -3,3 +3,4 @@
 dist/
 /.angular/cache
 .DS_Store
+/src/environments/environment.prod.generated.ts

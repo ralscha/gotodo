@@ -45,6 +45,7 @@ tasks:
       - db:up
     dir: server
     cmds:
+      - task: db:migration:up
       - go run gotodo.rasc.ch/cmd/web
 
   clean:
@@ -128,6 +129,7 @@ tasks:
       - db:up
     dir: server
     cmds:
+      - task: db:migration:up
       - go run gotodo.rasc.ch/cmd/web
 
   server:clean:

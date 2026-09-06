@@ -9,6 +9,22 @@ type Validatable interface {
 	Validate() *validate.Errors
 }
 
+const (
+	MaxEmailLength    = 254
+	MaxPasswordLength = 128
+	MaxTokenLength    = 64
+)
+
+func maximumLength(name, field string, max int) validate.Validator {
+	return &validators.StringLengthInRange{
+		Name:    name,
+		Field:   field,
+		Message: "lte",
+		Min:     0,
+		Max:     max,
+	}
+}
+
 type LoginInput struct {
 	Password string `json:"password"`
 	Email    string `json:"email"`
@@ -22,11 +38,13 @@ func (l *LoginInput) Validate() *validate.Errors {
 			Message: "gte",
 			Min:     8,
 		},
+		maximumLength("password", l.Password, MaxPasswordLength),
 		&validators.EmailIsPresent{
 			Name:    "email",
 			Field:   l.Email,
 			Message: "email",
 		},
+		maximumLength("email", l.Email, MaxEmailLength),
 	)
 }
 
@@ -43,11 +61,13 @@ func (p *PasswordResetInput) Validate() *validate.Errors {
 			Message: "gte",
 			Min:     8,
 		},
+		maximumLength("password", p.Password, MaxPasswordLength),
 		&validators.StringIsPresent{
 			Name:    "resetToken",
 			Field:   p.ResetToken,
 			Message: "required",
 		},
+		maximumLength("resetToken", p.ResetToken, MaxTokenLength),
 	)
 }
 
@@ -62,5 +82,6 @@ func (p *PasswordResetRequestInput) Validate() *validate.Errors {
 			Field:   p.Email,
 			Message: "email",
 		},
+		maximumLength("email", p.Email, MaxEmailLength),
 	)
 }

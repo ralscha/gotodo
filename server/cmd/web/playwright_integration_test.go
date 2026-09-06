@@ -39,7 +39,8 @@ const (
 )
 
 func TestPlaywrightSmoke(t *testing.T) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	// The first run may need to pull the large Playwright browser image.
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Minute)
 	defer cancel()
 
 	clientDist := filepath.Clean(filepath.Join("..", "..", "..", "client", "dist", "app", "browser"))
@@ -111,7 +112,7 @@ func TestPlaywrightSmoke(t *testing.T) {
 			FileMode:          0o644,
 		}),
 		testcontainers.WithCmd("sh", "-lc", "cd /tmp && npm install --no-audit --no-fund playwright@1.61.0 && node /tmp/gotodo-playwright-smoke.js"),
-		testcontainers.WithWaitStrategy(wait.ForExit().WithExitTimeout(2*time.Minute)),
+		testcontainers.WithWaitStrategy(wait.ForExit().WithExitTimeout(3*time.Minute)),
 	)
 	if playwright != nil {
 		t.Cleanup(func() { _ = playwright.Terminate(context.Background()) })
@@ -231,6 +232,9 @@ func testApplication(t *testing.T, cfg config.Config, db *sql.DB) *application {
 		sessionManager: sm,
 		mailer:         m,
 		taskScheduler:  chrono.NewDefaultTaskScheduler(),
+		passwordCheck: func(context.Context, string) (bool, error) {
+			return false, nil
+		},
 	}
 }
 
@@ -282,7 +286,7 @@ const nginxConfigTemplate = `server {
         proxy_pass http://host.testcontainers.internal:%d;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     }
 
     location / {
@@ -305,12 +309,14 @@ async function goto(page, path) {
   await page.goto(baseUrl + path, { waitUntil: 'networkidle' });
 }
 
-async function login(page) {
+async function login(page, password = 'password') {
   await goto(page, '/#/login');
-  const loginButton = page.getByRole('button', { name: 'Login' });
+  const loginPage = page.locator('app-login.ion-page:not(.ion-page-hidden)');
+  await visible(loginPage);
+  const loginButton = loginPage.getByRole('button', { name: 'Login' });
   await visible(loginButton);
-  await page.getByLabel('Email').fill('admin@test.ch');
-  await page.getByLabel('Password').fill('password');
+  await loginPage.getByLabel('Email').fill('admin@test.ch');
+  await loginPage.getByLabel('Password').fill(password);
   await loginButton.click();
   await page.waitForURL('**/#/todo', { timeout: 15000 });
   await visible(page.locator('ion-title', { hasText: 'Todos' }));
@@ -319,6 +325,7 @@ async function login(page) {
 (async () => {
   const browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] });
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+  const staleSessionPage = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 
   try {
     await goto(page, '/#/login');
@@ -331,6 +338,10 @@ async function login(page) {
     await page.getByRole('button', { name: 'Sign up' }).click();
     await visible(page.getByText('Email is required'));
     await visible(page.getByText('Password is required'));
+    await page.getByLabel('Email').fill('new-user@test.ch');
+    await page.getByLabel('New Password').fill('integration-password');
+    await page.getByRole('button', { name: 'Sign up' }).click();
+    await visible(page.getByText('Please check your inbox and click on the link.'));
 
     await goto(page, '/#/password-reset-request');
     await visible(page.locator('ion-title', { hasText: 'Request Password Reset' }));
@@ -341,8 +352,9 @@ async function login(page) {
     await visible(page.getByText('Something went wrong'));
 
     await login(page);
+    await login(staleSessionPage);
 
-    await page.locator('ion-fab-button').click();
+    await page.getByLabel('Add todo').click();
     await page.waitForURL('**/#/todo/edit', { timeout: 15000 });
     await page.getByRole('button', { name: 'Save' }).click();
     await visible(page.getByText('Subject is required'));
@@ -351,6 +363,24 @@ async function login(page) {
     await page.getByRole('button', { name: 'Save' }).click();
     await page.waitForURL('**/#/todo', { timeout: 15000 });
     await visible(page.getByText('Playwright smoke todo'));
+
+    const todoID = await page.evaluate(async () => {
+      const response = await fetch('/v1/todo');
+      if (!response.ok) throw new Error('loading todos failed: ' + response.status);
+      const todos = await response.json();
+      return todos.find((todo) => todo.subject === 'Playwright smoke todo')?.id;
+    });
+    assert.ok(todoID);
+    await goto(page, '/#/todo/edit/' + todoID);
+    const editPage = page.locator('app-edit.ion-page:not(.ion-page-hidden)');
+    await visible(editPage);
+    await visible(editPage.getByRole('button', { name: 'Save' }));
+    assert.equal(await editPage.getByLabel('Subject').inputValue(), 'Playwright smoke todo');
+    await editPage.getByLabel('Subject').fill('Unsaved change');
+    await editPage.locator('ion-back-button').click();
+    await page.waitForURL('**/#/todo', { timeout: 15000 });
+    await visible(page.getByText('Playwright smoke todo'));
+    assert.equal(await page.getByText('Unsaved change').count(), 0);
 
     await goto(page, '/#/profile');
     await visible(page.locator('ion-title', { hasText: 'Profile' }));
@@ -362,6 +392,14 @@ async function login(page) {
     await page.getByRole('button', { name: 'Change Password' }).click();
     await visible(page.locator('app-password').getByText('Old Password is required'));
     await visible(page.locator('app-password').getByText('New Password is required'));
+    await page.getByLabel('Old Password').fill('password');
+    await page.getByLabel('New Password').fill('updated-password');
+    await page.getByRole('button', { name: 'Change Password' }).click();
+    await page.waitForURL('**/#/profile', { timeout: 15000 });
+    const staleSessionStatus = await staleSessionPage.evaluate(async () =>
+      (await fetch('/v1/todo')).status
+    );
+    assert.equal(staleSessionStatus, 401);
 
     await goto(page, '/#/profile/email');
     await page.locator('ion-button', { hasText: 'Change Email' }).click();
@@ -376,6 +414,10 @@ async function login(page) {
     await visible(page.getByText('You have been successfully logged out.'));
 
     assert.ok(page.url().includes('/#/logout'));
+
+    await login(page, 'updated-password');
+    await goto(page, '/#/logout');
+    await visible(page.getByText('You have been successfully logged out.'));
   } finally {
     await browser.close();
   }

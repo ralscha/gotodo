@@ -39,7 +39,7 @@ func (app *application) signupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	compromised, err := app.isPasswordCompromised(r.Context(), signUpInput.Password)
+	compromised, err := app.passwordCheck(r.Context(), signUpInput.Password)
 	if err != nil {
 		response.InternalServerError(w, err)
 		return
@@ -67,18 +67,30 @@ func (app *application) signupHandler(w http.ResponseWriter, r *http.Request) {
 	newUser := models.AppUser{
 		Email:        signUpInput.Email,
 		PasswordHash: hash,
-		Authority:    "USER",
+		Authority:    models.AppUserAuthorityUser,
 		Activated:    false,
 	}
 
-	err = newUser.Insert(r.Context(), app.db, boil.Infer())
+	tx, err := app.db.BeginTx(r.Context(), nil)
+	if err != nil {
+		response.InternalServerError(w, err)
+		return
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	err = newUser.Insert(r.Context(), tx, boil.Infer())
 	if err != nil {
 		response.InternalServerError(w, err)
 		return
 	}
 
-	token, err := app.insertToken(r.Context(), newUser.ID, app.config.Cleanup.SignupTokenMaxAge, models.TokensScopeSignup)
+	token, err := app.insertToken(r.Context(), tx, newUser.ID, app.config.Cleanup.SignupTokenMaxAge, models.TokensScopeSignup)
 	if err != nil {
+		response.InternalServerError(w, err)
+		return
+	}
+
+	if err := tx.Commit(); err != nil {
 		response.InternalServerError(w, err)
 		return
 	}
@@ -88,8 +100,7 @@ func (app *application) signupHandler(w http.ResponseWriter, r *http.Request) {
 			"confirmationLink": app.config.BaseURL + "#/signup-confirm/" + token.plain,
 		}
 
-		err = app.mailer.Send(newUser.Email, "signup-confirm.tmpl", data)
-		if err != nil {
+		if err := app.mailer.Send(newUser.Email, "signup-confirm.tmpl", data); err != nil {
 			slog.Error("sending signup confirmation email failed", "error", err)
 		}
 	})
@@ -103,7 +114,14 @@ func (app *application) signupConfirmHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	userID, err := app.getAppUserIDFromToken(r.Context(), models.TokensScopeSignup, tokenInput.Token)
+	tx, err := app.db.BeginTx(r.Context(), nil)
+	if err != nil {
+		response.InternalServerError(w, err)
+		return
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	userID, err := app.getAppUserIDFromToken(r.Context(), tx, models.TokensScopeSignup, tokenInput.Token)
 	if err != nil {
 		response.InternalServerError(w, err)
 		return
@@ -114,18 +132,23 @@ func (app *application) signupConfirmHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	err = models.AppUsers(models.AppUserWhere.ID.EQ(userID)).UpdateAll(r.Context(), app.db,
+	err = models.AppUsers(models.AppUserWhere.ID.EQ(userID)).UpdateAll(r.Context(), tx,
 		models.M{models.AppUserColumns.Activated: true, models.AppUserColumns.LastAccess: time.Now()})
 	if err != nil {
 		response.InternalServerError(w, err)
 		return
 	}
 
-	err = app.deleteAllTokensForUser(r.Context(), userID, models.TokensScopeSignup)
+	err = app.deleteAllTokensForUser(r.Context(), tx, userID, models.TokensScopeSignup)
 	if err != nil {
 		response.InternalServerError(w, err)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	if err := tx.Commit(); err != nil {
+		response.InternalServerError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }

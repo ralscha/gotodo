@@ -27,6 +27,7 @@ type application struct {
 	wg             sync.WaitGroup
 	mailer         *mailer.Mailer
 	taskScheduler  chrono.TaskScheduler
+	passwordCheck  func(context.Context, string) (bool, error)
 }
 
 func main() {
@@ -88,6 +89,7 @@ func main() {
 		sessionManager: sm,
 		mailer:         m,
 		taskScheduler:  chrono.NewDefaultTaskScheduler(),
+		passwordCheck:  isPasswordCompromised,
 	}
 
 	_, err = app.taskScheduler.ScheduleWithFixedDelay(func(ctx context.Context) {

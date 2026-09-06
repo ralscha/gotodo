@@ -13,11 +13,12 @@ import (
 
 func (app *application) serve() error {
 	srv := &http.Server{
-		Addr:         app.config.HTTP.Port,
-		Handler:      app.routes(),
-		ReadTimeout:  time.Duration(app.config.HTTP.ReadTimeoutInSeconds) * time.Second,
-		WriteTimeout: time.Duration(app.config.HTTP.WriteTimeoutInSeconds) * time.Second,
-		IdleTimeout:  time.Duration(app.config.HTTP.IdleTimeoutInSeconds) * time.Second,
+		Addr:              app.config.HTTP.Port,
+		Handler:           app.routes(),
+		ReadHeaderTimeout: time.Duration(app.config.HTTP.ReadTimeoutInSeconds) * time.Second,
+		ReadTimeout:       time.Duration(app.config.HTTP.ReadTimeoutInSeconds) * time.Second,
+		WriteTimeout:      time.Duration(app.config.HTTP.WriteTimeoutInSeconds) * time.Second,
+		IdleTimeout:       time.Duration(app.config.HTTP.IdleTimeoutInSeconds) * time.Second,
 	}
 
 	shutdownError := make(chan error)
@@ -33,14 +34,11 @@ func (app *application) serve() error {
 		shutdownChannel := app.taskScheduler.Shutdown()
 
 		err := srv.Shutdown(ctx)
-		if err != nil {
-			shutdownError <- err
-		}
 
 		<-shutdownChannel
 		app.wg.Wait()
 
-		shutdownError <- nil
+		shutdownError <- err
 	}()
 
 	err := srv.ListenAndServe()

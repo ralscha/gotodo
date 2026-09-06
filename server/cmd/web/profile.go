@@ -59,15 +59,33 @@ func (app *application) emailChangeHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err = models.AppUsers(models.AppUserWhere.ID.EQ(userID)).UpdateAll(r.Context(), app.db,
+	tx, err := app.db.BeginTx(r.Context(), nil)
+	if err != nil {
+		response.InternalServerError(w, err)
+		return
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	err = models.AppUsers(models.AppUserWhere.ID.EQ(userID)).UpdateAll(r.Context(), tx,
 		models.M{models.AppUserColumns.EmailNew: emailChangeInput.NewEmail})
 	if err != nil {
 		response.InternalServerError(w, err)
 		return
 	}
 
-	token, err := app.insertToken(r.Context(), userID, app.config.Cleanup.EmailChangeTokenMaxAge, models.TokensScopeEmailChange)
+	err = app.deleteAllTokensForUser(r.Context(), tx, userID, models.TokensScopeEmailChange)
 	if err != nil {
+		response.InternalServerError(w, err)
+		return
+	}
+
+	token, err := app.insertToken(r.Context(), tx, userID, app.config.Cleanup.EmailChangeTokenMaxAge, models.TokensScopeEmailChange)
+	if err != nil {
+		response.InternalServerError(w, err)
+		return
+	}
+
+	if err := tx.Commit(); err != nil {
 		response.InternalServerError(w, err)
 		return
 	}
@@ -77,8 +95,7 @@ func (app *application) emailChangeHandler(w http.ResponseWriter, r *http.Reques
 			"confirmationLink": app.config.BaseURL + "#/profile/email-confirm/" + token.plain,
 		}
 
-		err = app.mailer.Send(emailChangeInput.NewEmail, "email-change.tmpl", data)
-		if err != nil {
+		if err := app.mailer.Send(emailChangeInput.NewEmail, "email-change.tmpl", data); err != nil {
 			slog.Error("sending email confirm email failed", "error", err)
 		}
 	})
@@ -94,7 +111,14 @@ func (app *application) emailChangeConfirmHandler(w http.ResponseWriter, r *http
 
 	userID := app.sessionManager.GetInt64(r.Context(), "userID")
 
-	userIDFromToken, err := app.getAppUserIDFromToken(r.Context(), models.TokensScopeEmailChange, tokenInput.Token)
+	tx, err := app.db.BeginTx(r.Context(), nil)
+	if err != nil {
+		response.InternalServerError(w, err)
+		return
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	userIDFromToken, err := app.getAppUserIDFromToken(r.Context(), tx, models.TokensScopeEmailChange, tokenInput.Token)
 	if err != nil {
 		response.InternalServerError(w, err)
 		return
@@ -106,7 +130,7 @@ func (app *application) emailChangeConfirmHandler(w http.ResponseWriter, r *http
 	}
 
 	user, err := models.AppUsers(qm.Select(models.AppUserColumns.EmailNew),
-		models.AppUserWhere.ID.EQ(userID)).One(r.Context(), app.db)
+		models.AppUserWhere.ID.EQ(userID)).One(r.Context(), tx)
 	if err != nil {
 		response.InternalServerError(w, err)
 		return
@@ -117,7 +141,7 @@ func (app *application) emailChangeConfirmHandler(w http.ResponseWriter, r *http
 		return
 	}
 
-	err = models.AppUsers(models.AppUserWhere.ID.EQ(userID)).UpdateAll(r.Context(), app.db,
+	err = models.AppUsers(models.AppUserWhere.ID.EQ(userID)).UpdateAll(r.Context(), tx,
 		models.M{models.AppUserColumns.Email: user.EmailNew,
 			models.AppUserColumns.EmailNew: null.NewString("", false)})
 	if err != nil {
@@ -125,13 +149,17 @@ func (app *application) emailChangeConfirmHandler(w http.ResponseWriter, r *http
 		return
 	}
 
-	err = app.deleteAllTokensForUser(r.Context(), userID, models.TokensScopeEmailChange)
+	err = app.deleteAllTokensForUser(r.Context(), tx, userID, models.TokensScopeEmailChange)
 	if err != nil {
 		response.InternalServerError(w, err)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	if err := tx.Commit(); err != nil {
+		response.InternalServerError(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (app *application) passwordChangeHandler(w http.ResponseWriter, r *http.Request) {
@@ -162,7 +190,7 @@ func (app *application) passwordChangeHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	compromised, err := app.isPasswordCompromised(r.Context(), passwordChangeInput.NewPassword)
+	compromised, err := app.passwordCheck(r.Context(), passwordChangeInput.NewPassword)
 	if err != nil {
 		response.InternalServerError(w, err)
 		return
@@ -187,12 +215,31 @@ func (app *application) passwordChangeHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	err = models.AppUsers(models.AppUserWhere.ID.EQ(userID)).UpdateAll(r.Context(), app.db,
+	tx, err := app.db.BeginTx(r.Context(), nil)
+	if err != nil {
+		response.InternalServerError(w, err)
+		return
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	err = models.AppUsers(models.AppUserWhere.ID.EQ(userID)).UpdateAll(r.Context(), tx,
 		models.M{models.AppUserColumns.PasswordHash: newPasswordHash})
 	if err != nil {
 		response.InternalServerError(w, err)
 		return
 	}
+
+	err = app.deleteAllTokensForUser(r.Context(), tx, userID, models.TokensScopePasswordReset)
+	if err != nil {
+		response.InternalServerError(w, err)
+		return
+	}
+
+	if err := tx.Commit(); err != nil {
+		response.InternalServerError(w, err)
+		return
+	}
+	app.sessionManager.Put(r.Context(), "passwordHash", newPasswordHash)
 
 	w.WriteHeader(http.StatusNoContent)
 }
@@ -226,34 +273,8 @@ func (app *application) accountDeleteHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	tx, err := app.db.BeginTx(r.Context(), nil)
-	if err != nil {
-		response.InternalServerError(w, err)
-		return
-	}
-	defer func() {
-		_ = tx.Rollback()
-	}()
-
-	err = models.Todos(models.TodoWhere.AppUserID.EQ(userID)).DeleteAll(r.Context(), tx)
-	if err != nil {
-		response.InternalServerError(w, err)
-		return
-	}
-
-	err = models.Tokens(models.TokenWhere.AppUserID.EQ(userID)).DeleteAll(r.Context(), tx)
-	if err != nil {
-		response.InternalServerError(w, err)
-		return
-	}
-
-	err = models.AppUsers(models.AppUserWhere.ID.EQ(userID)).DeleteAll(r.Context(), tx)
-	if err != nil {
-		response.InternalServerError(w, err)
-		return
-	}
-
-	err = tx.Commit()
+	// Related todos and tokens are removed by their ON DELETE CASCADE constraints.
+	err = models.AppUsers(models.AppUserWhere.ID.EQ(userID)).DeleteAll(r.Context(), app.db)
 	if err != nil {
 		response.InternalServerError(w, err)
 		return

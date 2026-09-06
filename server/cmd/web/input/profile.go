@@ -18,11 +18,13 @@ func (e *EmailChangeInput) Validate() *validate.Errors {
 			Message: "gte",
 			Min:     8,
 		},
+		maximumLength("password", e.Password, MaxPasswordLength),
 		&validators.EmailIsPresent{
 			Name:    "newEmail",
 			Field:   e.NewEmail,
 			Message: "email",
 		},
+		maximumLength("newEmail", e.NewEmail, MaxEmailLength),
 	)
 }
 
@@ -37,6 +39,7 @@ func (p *PasswordInput) Validate() *validate.Errors {
 			Field:   p.Password,
 			Message: "required",
 		},
+		maximumLength("password", p.Password, MaxPasswordLength),
 	)
 }
 
@@ -51,6 +54,7 @@ func (t *TokenInput) Validate() *validate.Errors {
 			Field:   t.Token,
 			Message: "required",
 		},
+		maximumLength("token", t.Token, MaxTokenLength),
 	)
 }
 
@@ -66,11 +70,13 @@ func (p *PasswordChangeInput) Validate() *validate.Errors {
 			Field:   p.OldPassword,
 			Message: "required",
 		},
+		maximumLength("oldPassword", p.OldPassword, MaxPasswordLength),
 		&validators.StringLengthInRange{
 			Name:    "newPassword",
 			Field:   p.NewPassword,
 			Message: "gte",
 			Min:     8,
 		},
+		maximumLength("newPassword", p.NewPassword, MaxPasswordLength),
 	)
 }

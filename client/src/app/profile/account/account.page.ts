@@ -17,7 +17,15 @@ import {
   IonToolbar,
   NavController,
 } from '@ionic/angular';
-import { FormField, FormRoot, form, minLength, required, schema } from '@angular/forms/signals';
+import {
+  FormField,
+  FormRoot,
+  form,
+  maxLength,
+  minLength,
+  required,
+  schema,
+} from '@angular/forms/signals';
 import { ProfileService } from '../profile/profile.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../service/auth.service';
@@ -53,6 +61,7 @@ export class AccountPage {
     schema((path) => {
       required(path.password);
       minLength(path.password, 8);
+      maxLength(path.password, 128);
     }),
   );
   private readonly navCtrl = inject(NavController);

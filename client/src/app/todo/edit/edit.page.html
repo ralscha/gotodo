@@ -8,13 +8,24 @@
 </ion-header>
 
 <ion-content class="ion-padding">
+  @if (loading()) {
+    <div class="ion-padding ion-text-center">
+      <ion-spinner />
+    </div>
+  }
+
   <form [formRoot]="todoForm" (submit)="save(); $event.preventDefault()" novalidate>
     @if (selectedTodo()) {
       <ion-grid>
         <ion-row>
           <ion-col offsetLg="4" offsetSm="3" sizeLg="4" sizeSm="6">
             <ion-item>
-              <ion-input [formField]="todoForm.subject" label="Subject" labelPlacement="stacked" />
+              <ion-input
+                [formField]="todoForm.subject"
+                label="Subject"
+                labelPlacement="stacked"
+                maxlength="255"
+              />
             </ion-item>
           </ion-col>
         </ion-row>
@@ -24,6 +35,9 @@
               <ion-text color="danger">
                 @if (todoForm.subject().getError('required')) {
                   <p class="ion-padding-start">Subject is required</p>
+                }
+                @if (todoForm.subject().getError('maxLength')) {
+                  <p class="ion-padding-start">Maximum length is 255 characters</p>
                 }
               </ion-text>
             }
@@ -42,8 +56,18 @@
                 [rows]="3"
                 label="Description"
                 labelPlacement="stacked"
+                maxlength="255"
               />
             </ion-item>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col offsetLg="4" offsetSm="3" sizeLg="4" sizeSm="6">
+            @if (submitted() && todoForm.description().getError('maxLength')) {
+              <ion-text color="danger">
+                <p class="ion-padding-start">Maximum length is 255 characters</p>
+              </ion-text>
+            }
           </ion-col>
         </ion-row>
         <ion-row>
@@ -57,7 +81,7 @@
 
   @if (selectedTodo()?.id) {
     <ion-fab horizontal="start" slot="fixed" vertical="bottom">
-      <ion-fab-button (click)="deleteTodo()" color="danger">
+      <ion-fab-button (click)="deleteTodo()" aria-label="Delete todo" color="danger">
         <ion-icon name="trash" />
       </ion-fab-button>
     </ion-fab>

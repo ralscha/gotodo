@@ -7,10 +7,11 @@ import (
 	"database/sql"
 	"encoding/base32"
 	"errors"
+	"time"
+
 	"github.com/aarondl/sqlboiler/v4/boil"
 	"github.com/aarondl/sqlboiler/v4/queries/qm"
 	"gotodo.rasc.ch/internal/models"
-	"time"
 )
 
 type token struct {
@@ -32,7 +33,7 @@ func generateToken() (*token, error) {
 	return &token, nil
 }
 
-func (app *application) insertToken(ctx context.Context, appUserID int64, ttl time.Duration, scope models.TokensScope) (*token, error) {
+func (app *application) insertToken(ctx context.Context, exec boil.ContextExecutor, appUserID int64, ttl time.Duration, scope models.TokensScope) (*token, error) {
 	token, err := generateToken()
 	if err != nil {
 		return nil, err
@@ -44,7 +45,7 @@ func (app *application) insertToken(ctx context.Context, appUserID int64, ttl ti
 		Expiry:    time.Now().Add(ttl),
 		Scope:     scope,
 	}
-	err = newToken.Insert(ctx, app.db, boil.Infer())
+	err = newToken.Insert(ctx, exec, boil.Infer())
 
 	if err != nil {
 		return nil, err
@@ -52,20 +53,21 @@ func (app *application) insertToken(ctx context.Context, appUserID int64, ttl ti
 	return token, nil
 }
 
-func (app *application) deleteAllTokensForUser(ctx context.Context, appUserID int64, scope models.TokensScope) error {
+func (app *application) deleteAllTokensForUser(ctx context.Context, exec boil.ContextExecutor, appUserID int64, scope models.TokensScope) error {
 	err := models.Tokens(models.TokenWhere.AppUserID.EQ(appUserID),
-		models.TokenWhere.Scope.EQ(scope)).DeleteAll(ctx, app.db)
+		models.TokenWhere.Scope.EQ(scope)).DeleteAll(ctx, exec)
 	return err
 }
 
-func (app *application) getAppUserIDFromToken(ctx context.Context, scope models.TokensScope, tokenPlain string) (int64, error) {
+func (app *application) getAppUserIDFromToken(ctx context.Context, exec boil.ContextExecutor, scope models.TokensScope, tokenPlain string) (int64, error) {
 	tokenHash := sha256.Sum256([]byte(tokenPlain))
 
 	token, err := models.Tokens(
 		qm.Select(models.TokenColumns.AppUserID),
+		qm.For("UPDATE"),
 		models.TokenWhere.Hash.EQ(tokenHash[:]),
 		models.TokenWhere.Scope.EQ(scope),
-		models.TokenWhere.Expiry.GT(time.Now())).One(ctx, app.db)
+		models.TokenWhere.Expiry.GT(time.Now())).One(ctx, exec)
 
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return 0, err

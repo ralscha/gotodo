@@ -21,6 +21,7 @@ import {
   FormField,
   FormRoot,
   form,
+  maxLength,
   minLength,
   required,
   schema,
@@ -60,8 +61,10 @@ export class SignupPage {
     schema((path) => {
       required(path.email);
       email(path.email);
+      maxLength(path.email, 254);
       required(path.password);
       minLength(path.password, 8);
+      maxLength(path.password, 128);
     }),
   );
   private readonly authService = inject(AuthService);
@@ -96,9 +99,10 @@ export class SignupPage {
     const errors = response?.errors;
     if (errors?.['email']?.includes('exists')) {
       this.submitError.set('emailExists');
-    }
-    if (errors?.['password']?.includes('weak')) {
+    } else if (errors?.['password']?.includes('weak')) {
       this.submitError.set('weakPassword');
+    } else {
+      void this.messagesService.showErrorToast('Sign-up failed');
     }
   }
 }

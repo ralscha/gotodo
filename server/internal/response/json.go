@@ -2,6 +2,7 @@ package response
 
 import (
 	"encoding/json"
+	"log/slog"
 	"maps"
 	"net/http"
 )
@@ -23,7 +24,7 @@ func JSONWithHeaders(w http.ResponseWriter, status int, data any, headers http.H
 	w.WriteHeader(status)
 	_, err = w.Write(js)
 	if err != nil {
-		InternalServerError(w, err)
+		slog.Error("writing JSON response failed", "error", err)
 		return false
 	}
 

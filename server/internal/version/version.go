@@ -11,23 +11,22 @@ type Version struct {
 
 func Get() Version {
 	if buildInfo, ok := debug.ReadBuildInfo(); ok {
-		revison := ""
-		time := ""
+		revision := ""
+		buildTime := ""
 		for _, setting := range buildInfo.Settings {
 			if setting.Key == "vcs.revision" {
-				revison = setting.Value
-				revison = revison[:8]
+				revision = shortRevision(setting.Value)
 			} else if setting.Key == "vcs.time" {
-				time = setting.Value
+				buildTime = setting.Value
 			}
-			if revison != "" && time != "" {
+			if revision != "" && buildTime != "" {
 				break
 			}
 		}
 
 		return Version{
-			BuildTime: time,
-			Version:   revison,
+			BuildTime: buildTime,
+			Version:   revision,
 		}
 	} else {
 		return Version{
@@ -35,4 +34,11 @@ func Get() Version {
 			Version:   "",
 		}
 	}
+}
+
+func shortRevision(revision string) string {
+	if len(revision) <= 8 {
+		return revision
+	}
+	return revision[:8]
 }
