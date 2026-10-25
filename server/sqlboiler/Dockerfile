@@ -1,4 +1,4 @@
-FROM golang:1.25.5
+FROM golang:1.27.3
 RUN go install github.com/aarondl/sqlboiler/v4@latest
 RUN go install github.com/aarondl/sqlboiler/v4/drivers/sqlboiler-psql@latest
 WORKDIR /src/sqlboiler

@@ -12,8 +12,10 @@ func TestClientIPRateLimitKey(t *testing.T) {
 	tests := []struct {
 		name   string
 		header string
+		remote string
 		want   string
 	}{
+		{name: "untrusted peer cannot spoof XFF", remote: "198.51.100.23:1234", header: "203.0.113.42", want: "198.51.100.23"},
 		{name: "IPv4", header: "203.0.113.42", want: "203.0.113.42"},
 		{name: "IPv6", header: "2001:db8:1234:5678::1", want: "2001:db8:1234:5678::"},
 		{name: "rightmost proxy value", header: "198.51.100.10, 203.0.113.42", want: "203.0.113.42"},
@@ -24,7 +26,7 @@ func TestClientIPRateLimitKey(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var got string
-			handler := middleware.ClientIPFromXFF()(http.HandlerFunc(
+			handler := middleware.ClientIPFromXFF("127.0.0.1/32", "::1/128")(http.HandlerFunc(
 				func(_ http.ResponseWriter, r *http.Request) {
 					var err error
 					got, err = clientIPRateLimitKey(r)
@@ -35,6 +37,10 @@ func TestClientIPRateLimitKey(t *testing.T) {
 			))
 
 			request := httptest.NewRequest(http.MethodGet, "/", nil)
+			request.RemoteAddr = "127.0.0.1:1234"
+			if tt.remote != "" {
+				request.RemoteAddr = tt.remote
+			}
 			if tt.header != "" {
 				request.Header.Set("X-Forwarded-For", tt.header)
 			}

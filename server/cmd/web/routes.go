@@ -22,7 +22,11 @@ func (app *application) routes() http.Handler {
 	mux.MethodNotAllowed(response.MethodNotAllowed)
 
 	// Middleware
-	mux.Use(middleware.ClientIPFromXFF())
+	if len(app.config.HTTP.TrustedProxyCIDRs) == 0 {
+		mux.Use(middleware.ClientIPFromRemoteAddr)
+	} else {
+		mux.Use(middleware.ClientIPFromXFF(app.config.HTTP.TrustedProxyCIDRs...))
+	}
 	if app.config.Environment == config.Development {
 		mux.Use(middleware.Logger)
 	}

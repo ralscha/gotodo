@@ -14,6 +14,7 @@ func TestLoadConfigFromEnvironment(t *testing.T) {
 	t.Setenv("GOTODO_DB_DATABASE", "gotodo")
 	t.Setenv("GOTODO_DB_PARAMETER", "sslmode=require")
 	t.Setenv("GOTODO_HTTP_PORT", ":8080")
+	t.Setenv("GOTODO_HTTP_TRUSTEDPROXYCIDRS", "10.1.0.4/32,::1/128")
 	t.Setenv("GOTODO_SMTP_HOST", "smtp.example.test")
 	t.Setenv("GOTODO_SMTP_PORT", "2525")
 	t.Setenv("GOTODO_SMTP_SENDER", "no-reply@example.test")
@@ -27,6 +28,9 @@ func TestLoadConfigFromEnvironment(t *testing.T) {
 	}
 	if cfg.DB.Connection != "db.example.test:5432" {
 		t.Fatalf("DB.Connection = %q", cfg.DB.Connection)
+	}
+	if len(cfg.HTTP.TrustedProxyCIDRs) != 2 || cfg.HTTP.TrustedProxyCIDRs[0] != "10.1.0.4/32" || cfg.HTTP.TrustedProxyCIDRs[1] != "::1/128" {
+		t.Fatalf("TrustedProxyCIDRs = %v", cfg.HTTP.TrustedProxyCIDRs)
 	}
 	if cfg.Cleanup.SessionLifetime == 0 {
 		t.Fatal("default session lifetime was not applied")
@@ -50,5 +54,14 @@ func TestLoadConfigRejectsInvalidEnvironment(t *testing.T) {
 	_, err := loadConfig(t.TempDir())
 	if err == nil || !strings.Contains(err.Error(), "environment") {
 		t.Fatalf("loadConfig() error = %v, want environment error", err)
+	}
+}
+
+func TestConfigRejectsInvalidTrustedProxy(t *testing.T) {
+	var cfg Config
+	cfg.HTTP.TrustedProxyCIDRs = []string{"not-a-cidr"}
+	err := cfg.validate()
+	if err == nil || !strings.Contains(err.Error(), "trustedProxyCIDRs") {
+		t.Fatalf("validate() error = %v, want invalid proxy CIDR", err)
 	}
 }

@@ -110,3 +110,13 @@ cd client && npm run build
 cd emails && npm start
 cd server && go test ./...
 ```
+
+
+## Trusted reverse proxies
+
+The HTTP middleware trusts forwarded client IPs only from configured proxy CIDRs.
+The default trusts loopback (`127.0.0.1/32`, `::1/128`). If the proxy connects
+from another address, set `GOTODO_HTTP_TRUSTEDPROXYCIDRS` to a comma-separated
+list of its exact CIDRs. Direct connections from other peers use their socket IP
+and cannot spoof the rate-limit key with `X-Forwarded-For`. An empty list uses
+socket addresses for all requests. Invalid CIDRs are rejected at startup.

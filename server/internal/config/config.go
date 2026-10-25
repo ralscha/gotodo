@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"net/netip"
 	"net/url"
 	"strings"
 	"time"
@@ -42,6 +43,7 @@ type Config struct {
 		MaxLifetime  string
 	}
 	HTTP struct {
+		TrustedProxyCIDRs     []string
 		Port                  string
 		ReadTimeoutInSeconds  int64
 		WriteTimeoutInSeconds int64
@@ -65,6 +67,7 @@ type Config struct {
 
 func applyDefaults(v *viper.Viper) {
 	v.SetDefault("environment", Production)
+	v.SetDefault("http.trustedProxyCIDRs", []string{"127.0.0.1/32", "::1/128"})
 	v.SetDefault("http.readTimeoutInSeconds", 30)
 	v.SetDefault("http.writeTimeoutInSeconds", 30)
 	v.SetDefault("http.idleTimeoutInSeconds", 120)
@@ -144,6 +147,7 @@ var configKeys = []string{
 	"db.maxIdleTime",
 	"db.maxLifetime",
 	"http.port",
+	"http.trustedProxyCIDRs",
 	"http.readTimeoutInSeconds",
 	"http.writeTimeoutInSeconds",
 	"http.idleTimeoutInSeconds",
@@ -166,6 +170,11 @@ var configKeys = []string{
 }
 
 func (cfg Config) validate() error {
+	for _, prefix := range cfg.HTTP.TrustedProxyCIDRs {
+		if _, err := netip.ParsePrefix(prefix); err != nil {
+			return fmt.Errorf("invalid http.trustedProxyCIDRs entry %q: %w", prefix, err)
+		}
+	}
 	if cfg.Environment != Development && cfg.Environment != Production {
 		return fmt.Errorf("environment must be %q or %q", Development, Production)
 	}
