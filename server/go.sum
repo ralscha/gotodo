@@ -22,8 +22,8 @@ github.com/aarondl/strmangle v0.0.9 h1:VCT+O1FqRSE9DTK3qR0zRHtB384fdRzuyKfx2ux2x
 github.com/aarondl/strmangle v0.0.9/go.mod h1:ezNIwvvnuVGuKedP5qt2T+wvzPD8yuOoMzamifXNMlk=
 github.com/alexedwards/argon2id v1.0.0 h1:wJzDx66hqWX7siL/SRUmgz3F8YMrd/nfX/xHHcQQP0w=
 github.com/alexedwards/argon2id v1.0.0/go.mod h1:tYKkqIjzXvZdzPvADMWOEZ+l6+BD6CtBXMj5fnJppiw=
-github.com/alexedwards/scs/postgresstore v0.0.0-20251002162104-209de6e426de h1:LDrMkjj4OCCQsq9SvIPQV1l3leMxqXZTCTxDFwMrqTE=
-github.com/alexedwards/scs/postgresstore v0.0.0-20251002162104-209de6e426de/go.mod h1:TDDdV/xnjj+/4zBQ9a2k+i2AbuAdY7SQjPUh5zoTZ3M=
+github.com/alexedwards/scs/postgresstore v0.0.0-20261119174900-ed2e92329119 h1:1H9eC08sBUkdZwEl7eZp8P+5Gx2ZqUAcBE3I/2pcR4o=
+github.com/alexedwards/scs/postgresstore v0.0.0-20261119174900-ed2e92329119/go.mod h1:TDDdV/xnjj+/4zBQ9a2k+i2AbuAdY7SQjPUh5zoTZ3M=
 github.com/alexedwards/scs/v2 v2.9.0 h1:xa05mVpwTBm1iLeTMNFfAWpKUm4fXAW7CeAViqBVS90=
 github.com/alexedwards/scs/v2 v2.9.0/go.mod h1:ToaROZxyKukJKT/xLcVQAChi5k6+Pn1Gvmdl7h3RRj8=
 github.com/cenkalti/backoff/v4 v4.3.0 h1:MyRJ/UdXutAwSAT+s3wNd7MfTIcy71VQueUuFK343L8=

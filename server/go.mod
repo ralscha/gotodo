@@ -8,7 +8,7 @@ require (
 	github.com/aarondl/sqlboiler/v4 v4.19.7
 	github.com/aarondl/strmangle v0.0.9
 	github.com/alexedwards/argon2id v1.0.0
-	github.com/alexedwards/scs/postgresstore v0.0.0-20251002162104-209de6e426de
+	github.com/alexedwards/scs/postgresstore v0.0.0-20261119174900-ed2e92329119
 	github.com/alexedwards/scs/v2 v2.9.0
 	github.com/friendsofgo/errors v0.9.2
 	github.com/go-chi/chi/v5 v5.5.0
